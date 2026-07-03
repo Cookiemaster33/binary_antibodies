@@ -2,46 +2,70 @@
 
 ## Concept
 
-A **conditional proximity-gated bispecific** construct in which a nanobody can **only** bind its target when a linked antibody has already bound a specific antigen.
+A nanobody that can **only** bind its target when a separate antibody arm is bound to a specific antigen. The system acts as a molecular AND-gate on a cell surface.
+
+---
+
+## Refined Design: Split-scFv Conditional Switch
 
 ```
+  ── INACTIVE (VH1 bound to antigen, VL1 locked by minibinders) ───────
+
          [Nanobody]
               |
        ~flexible linker~
               |
-  [VH2─VL2 / VH1─VL1]          ←── antibody fragment
+       [Minibinders]──[VL1]      ← VL1 locked; cannot pair with VH1
+                                    (minibinders block VH1-pairing face)
+         [VH1]
               |
-          [Antigen]  ··· membrane ···  [Target]
+          [Antigen] ··· membrane ···  [Target]
+
+
+  ── ACTIVE (VH1 displaces minibinders, VH1+VL1 scFv formed) ──────────
+
+         [Nanobody]────────────────────────────────╮
+              |                               binds [Target]
+       ~flexible linker~
+              |
+       [Minibinders]  (displaced)
+       [VH1]──[VL1]      ← functional scFv formed at membrane surface
+              |
+          [Antigen] ··· membrane ···  [Target]
 ```
 
-### Mechanism (AND-gate logic)
+### Components
 
-| Antibody bound to antigen? | Nanobody near target? | Nanobody binds target? |
+| Component | Description | How to obtain |
 |---|---|---|
-| No  | No  | **No**  |
-| No  | Yes | **No** (linker not anchored, freely diffusing) |
-| Yes | Yes | **Yes** (effective local concentration ≫ Kd) |
+| **VH1** | VH domain of a known antibody, engineered to bind its antigen autonomously | Site-directed mutagenesis of a known VH/VL pair; select for antigen binding without VL |
+| **VL1** | VL domain of the same antibody; together with VH1 forms a functional scFv that binds the **Target** | Taken directly from the known antibody |
+| **Minibinders** | Designed small proteins that bind VL1 on its VH1-pairing interface | **Computational de novo design** (RFdiffusion + ProteinMPNN) against the VL1 framework |
+| **Flexible linker** | (G₄S)ₙ peptide connecting minibinder–VL1 complex to the nanobody | Optimised by `binary_antibodies` using polymer physics |
+| **Nanobody** | Single-domain antibody against the Target | Selected from llama/camel immune library or designed |
 
-When the antibody is **not** bound to the antigen, the entire construct diffuses freely in solution — the nanobody never achieves a sufficiently high local concentration near the target. Once the antibody **anchors** to the antigen on the cell surface, the flexible linker constrains the nanobody within a small search volume above the membrane, dramatically increasing its effective local concentration near any surface target in that neighbourhood.
+### Mechanism (competitive displacement switch)
 
-### Design Parameters
+1. **Free state** (no antigen): Minibinders occupy VL1's VH1-pairing interface (framework 2 and CDR-L2 region). VH1 and VL1 have been *engineered to have weak affinity in solution* (Kd,VH-VL ≈ 1–100 µM). The scFv is therefore non-functional. The nanobody, tethered to the locked VL1, cannot reach the target.
 
-1. **Antigen–Target distance** (`d`): centre-to-centre distance on the membrane between the antigen and the target epitope.
-2. **Linker length** (`N` residues): must be long enough for the nanobody to reach `d`, but short enough that the effective concentration is therapeutically meaningful.
-3. **Nanobody Kd**: intrinsic affinity; the effective conditional Kd is modulated by the effective concentration.
-4. **Antibody Kd for antigen**: determines when the construct is "anchored".
+2. **Anchoring** (VH1 binds antigen): VH1 docks to the antigen on the cell membrane. This brings VH1 into proximity with VL1 (which is tethered via the minibinder–flexible-linker chain). The effective local concentration of VH1 near VL1 is now **µM range**.
 
-### Key Biophysical Insight
+3. **Displacement** (VH1 outcompetes minibinders for VL1): Because Kd(VH1-VL1) < Kd(minibinder-VL1) at the effective local concentration, VH1 displaces the minibinders from VL1's framework interface. VH1 and VL1 pair into a functional scFv.
 
-The **effective local concentration** of the nanobody near the target, given a flexible linker of `N` residues and an antigen–target distance `d`, is estimated via polymer physics (worm-like chain / freely-jointed chain model):
+4. **Activation** (nanobody reaches target): The minibinder displacement removes the steric constraint on the flexible linker. The nanobody, now free to diffuse in the hemisphere above the membrane, engages the Target.
 
-$$c_\text{eff}(d, N) = \left(\frac{3}{2\pi N l^2}\right)^{3/2} \exp\!\left(-\frac{3d^2}{2Nl^2}\right) \cdot N_A^{-1}$$
+### Thermodynamic AND-gate condition
 
-where `l ≈ 0.38 nm` is the Cα–Cα virtual bond length and `Nₐ` is Avogadro's number. The conditional apparent Kd becomes:
+For reliable activation, the following inequalities must hold:
 
-$$K_d^\text{app} = K_d^\text{nanobody} / c_\text{eff}$$
+```
+Kd(VH1–VL1) < C_eff(VH1 | anchored)   →  VH1-VL1 pairing is driven by proximity
+Kd(VH1–VL1) < Kd(minibinder–VL1)      →  VH1 outcompetes minibinders when anchored
+Kd(minibinder–VL1) << 1/[construct]   →  VL1 is reliably locked in free state
+```
 
-This framework lets us **optimise the linker length** for any given antigen–target geometry.
+The intermediate quantity C_eff is determined by linker length and antigen–target distance
+(computed by `binary_antibodies.polymer.LinkerModel`).
 
 ---
 
@@ -53,9 +77,11 @@ binary_antibodies/
 ├── requirements.txt
 ├── binary_antibodies/
 │   ├── __init__.py
-│   ├── polymer.py          # worm-like chain / FJC linker physics
-│   ├── design.py           # end-to-end conditional construct design
-│   └── sequences.py        # linker sequence generation & composition
+│   ├── polymer.py          # FJC/WLC linker physics, effective concentration
+│   ├── design.py           # ConditionalConstruct: end-to-end construct design
+│   ├── split_scfv.py       # Split-scFv competitive displacement thermodynamics
+│   ├── minibinder.py       # Minibinder design guidance and target interface analysis
+│   └── sequences.py        # Linker sequence generation & composition
 ├── scripts/
 │   ├── optimise_linker.py  # CLI: find optimal linker for a geometry
 │   └── scan_geometry.py    # CLI: heatmap over d × N parameter space
@@ -70,30 +96,67 @@ binary_antibodies/
 ```bash
 pip install -r requirements.txt
 
-# Find optimal linker for antigen–target distance of 8 nm,
-# nanobody Kd of 10 nM, desired conditional activation fold > 100×
-python scripts/optimise_linker.py --distance 8.0 --kd-nanobody 10e-9 --fold 100
+# Analyse the thermodynamic feasibility of a split-scFv switch
+python -c "
+from binary_antibodies.split_scfv import SplitScFvSwitch
+s = SplitScFvSwitch(
+    kd_vh_vl_M=50e-6,       # engineered weak VH-VL affinity: 50 µM
+    kd_minibinder_vl_M=5e-6, # minibinder affinity for VL1: 5 µM
+    kd_nanobody_M=10e-9,     # nanobody for target: 10 nM
+)
+print(s.summary(distance_nm=8.0, linker_n_residues=60))
+"
 
-# Generate a full parameter-space heatmap
-python scripts/scan_geometry.py
+# Optimise linker length
+python scripts/optimise_linker.py --distance 8.0 --kd-nanobody 10e-9 --fold 100
 ```
+
+---
+
+## Design Workflow
+
+### Step 1 — Choose the antigen/target pair
+Select a membrane antigen (highly expressed on the target cell type) and a target
+membrane protein whose engagement you wish to conditionalise.
+
+### Step 2 — Select a known antibody for the Target
+Take an existing high-affinity antibody (or scFv) against the Target. Split it into
+VH1 and VL1. Engineer the VH1/VL1 interface to weaken their spontaneous association
+(target: Kd ≈ 10–100 µM in solution).
+
+### Step 3 — Design minibinders against VL1
+Use RFdiffusion + ProteinMPNN to design small (40–80 residue) proteins that bind
+VL1's VH1-pairing interface (FR2, CDR-L2). Target minibinder Kd ≈ 1–10 µM — tighter
+than the weakened VH1-VL1 (so VL1 is locked in free state) but weaker than VH1's
+EFFECTIVE affinity when anchored (Kd,VH-VL / C_eff).
+
+### Step 4 — Select or design the nanobody
+Choose or design a nanobody against the Target (or a different epitope on the same
+target molecule).
+
+### Step 5 — Optimise the (G₄S)ₙ linker
+Use `binary_antibodies` to compute the minimum linker that achieves high C_eff at
+the expected antigen–target distance.
+
+### Step 6 — Assemble and express
+```
+[signal peptide] – VH1 – (G4S)3 – Minibinder – (G4S)3 – VL1 – (G4S)n – Nanobody VHH
+```
+
+VH1 is a separate polypeptide (or the same chain with a self-cleavage P2A site).
 
 ---
 
 ## Design Variants
 
-### 1. Proximity-gated (shown in figure, this repo)
-Nanobody is tethered to the antibody C-terminus via a flexible (G4S)ₙ linker.
-Activation requires antigen and target to be on the **same cell surface**.
+### 1. Split-scFv with minibinder lock *(this repo — recommended)*
+Minibinders occlude VL1; VH1 membrane-anchoring displaces them.
+Highest OFF-state fidelity; requires minibinder design.
 
-### 2. Steric-occlusion / Probody-like
-The nanobody paratope is masked by a complementary peptide that is displaced
-upon antibody–antigen engagement. Requires structure-guided mask design.
+### 2. Simple proximity-gating
+Nanobody tethered to anchored antibody via flexible linker only.
+Simpler but weaker OFF-state (nanobody can still diffuse near target).
 
-### 3. Split-nanobody reconstitution
-Nanobody is split into two non-functional halves (e.g. at an exposed loop).
-One half is on the antibody, the other is soluble. Antigen binding drives
-co-localisation and reconstitution.
-
-**This repository focuses on variant 1** (proximity-gated), which is the most
-straightforward to engineer and analyse computationally.
+### 3. Steric-occlusion / Probody-like
+Nanobody paratope masked by complementary peptide; antigen-binding drives unmasking.
+Good OFF-state but harder to engineer structurally.

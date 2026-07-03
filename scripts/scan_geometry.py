@@ -211,6 +211,58 @@ def ceff_vs_distance_plot(
     print(f"  Saved: {output_path}")
 
 
+def split_scfv_plot(output_path: str) -> None:
+    """Visualise the split-scFv switch design space."""
+    from binary_antibodies.split_scfv import SplitScFvSwitch, membrane_surface_ceff_M
+
+    sw = SplitScFvSwitch(
+        kd_vh_vl_M=5e-6,
+        kd_minibinder_vl_M=100e-6,
+        kd_nanobody_M=10e-9,
+        minibinder_spacer_residues=150,
+        n_minibinders=2,
+    )
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    # ── Left: ON/OFF fractions vs antigen density ──────────────────────
+    ax = axes[0]
+    densities = np.logspace(1, 5, 100)
+    scan = sw.scan_antigen_density(linker_n_residues=60, distance_nm=8.0,
+                                   densities_per_um2=densities)
+    ax.semilogx(densities, scan["f_vl1_paired"] * 100, color="#1f77b4", lw=2,
+                label="VL1 paired (ON state)")
+    ax.axhline(100 * sw.vl1_locked_fraction(0.0), color="#d62728", lw=2, linestyle="--",
+               label="VL1 locked (free state)")
+    ax.axhline(50, color="black", lw=1, linestyle=":", alpha=0.5)
+    ax.set_xlabel("Antigen surface density (molecules/µm²)")
+    ax.set_ylabel("Fraction (%)")
+    ax.set_title("VL1 pairing and locking vs antigen expression\n"
+                 "(Kd_VH-VL=5 µM, Kd_MB=100 µM, 2×150-res spacer)")
+    ax.legend()
+    ax.set_ylim(0, 105)
+
+    # ── Right: ON vs OFF occupancy as switching diagram ─────────────────
+    ax = axes[1]
+    spacer_scan = sw.scan_spacer_length(5000, spacer_lengths=np.arange(10, 201, 5))
+    ax.plot(spacer_scan["spacer_residues"], spacer_scan["f_vl1_locked_off"] * 100,
+            color="#d62728", lw=2, label="VL1 locked (OFF state, free)")
+    ax.plot(spacer_scan["spacer_residues"], spacer_scan["f_vl1_paired_on"] * 100,
+            color="#1f77b4", lw=2, label="VL1 paired (ON state, 5000/µm²)")
+    ax.axhline(50, color="black", lw=1, linestyle=":", alpha=0.5)
+    ax.set_xlabel("Minibinder spacer length (residues)")
+    ax.set_ylabel("Fraction (%)")
+    ax.set_title("Switch performance vs minibinder spacer length\n"
+                 "(Kd_VH-VL=5 µM, Kd_MB=100 µM, antigen=5000/µm²)")
+    ax.legend()
+    ax.set_ylim(0, 105)
+
+    fig.tight_layout()
+    fig.savefig(output_path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Saved: {output_path}")
+
+
 def main() -> None:
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
@@ -243,6 +295,9 @@ def main() -> None:
     ceff_vs_distance_plot(
         construct,
         output_path=os.path.join(args.output_dir, "ceff_vs_distance.png"),
+    )
+    split_scfv_plot(
+        output_path=os.path.join(args.output_dir, "split_scfv_switch.png"),
     )
 
     print(f"\nAll figures saved to ./{args.output_dir}/\n")

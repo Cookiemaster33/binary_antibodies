@@ -1,18 +1,21 @@
 """
 design.py
 ---------
-End-to-end design and optimisation of a conditional proximity-gated
-nanobody construct.
+End-to-end design of conditional proximity-gated nanobody constructs.
 
-A ConditionalConstruct bundles:
-  - the antibody fragment (Kd for antigen)
-  - the flexible linker (LinkerModel)
-  - the nanobody (intrinsic Kd for target)
+Two architectures are supported:
 
-and exposes design-space queries such as:
-  - Which linker length achieves a target occupancy at a given geometry?
-  - What is the selectivity ratio (anchored vs free)?
-  - How does conditional binding depend on antigen expression level?
+1. **Simple proximity-gating** (ConditionalConstruct):
+   Nanobody tethered to an anchored antibody via a flexible linker.
+   Activation = antigen binding brings the nanobody into proximity with the target.
+
+2. **Split-scFv with minibinder lock** (SplitScFvConstruct):
+   Full refined design.
+   - VH1 (standalone, binds antigen)
+   - Chain B: [Minibinder]–VL1–(G4S)n–Nanobody
+   - VL1 locked by minibinder in free state; VH1 membrane anchoring displaces
+     minibinder and drives VH1+VL1 pairing → nanobody reaches target.
+   - Thermodynamics modelled in split_scfv.py.
 """
 
 from __future__ import annotations
@@ -268,4 +271,155 @@ class ConditionalConstruct:
             f"antibody_kd={self.antibody_kd_M*1e9:.1f} nM, "
             f"nanobody_kd={self.nanobody_kd_M*1e9:.1f} nM, "
             f"linker={self.linker.n_residues} res)"
+        )
+
+
+@dataclass
+class SplitScFvConstruct:
+    """
+    Full refined conditional construct: split-scFv with minibinder lock.
+
+    Architecture:
+        Chain A : VH1  (binds antigen; expressed separately)
+        Chain B : [Minibinder]–(spacer)–VL1–(G4S)n–Nanobody VHH
+
+    Activation mechanism:
+        In free solution, the intramolecular minibinder locks VL1.
+        When VH1 anchors to the antigen on the membrane, its high surface
+        concentration outcompetes the minibinder and drives VH1+VL1 pairing.
+
+    Key design insight:
+        The minibinder Kd need NOT be tight (can be 10–100 µM) because the
+        *intramolecular* effective concentration on chain B is mM-range, making
+        it act as a strong lock regardless. VH1 wins via membrane surface
+        concentration (~µM at 1000–10000 antigen/µm²).
+
+    Parameters
+    ----------
+    kd_antigen_M : float
+        Kd of VH1 for the antigen (M).
+    kd_vh_vl_M : float
+        Kd of the engineered VH1–VL1 interaction (M). Target: 1–20 µM.
+    kd_minibinder_vl_M : float
+        Kd of the minibinder for VL1 (M). Target: 10–200 µM.
+        (Counterintuitively weak; intramolecular tethering provides the locking.)
+    kd_nanobody_M : float
+        Intrinsic Kd of the nanobody for the target (M).
+    linker_n_residues : int
+        Length of the (G4S)n linker between VL1 and the nanobody.
+    minibinder_spacer_residues : int
+        Residues in the flexible spacer between the minibinder and VL1 on chain B.
+        Longer spacer → lower intramolecular C_eff_MB → easier for VH1 to win.
+        Shorter spacer → higher C_eff_MB → better OFF-state locking.
+        Typical range: 50–200 residues.
+    n_minibinders : int
+        Number of minibinder copies on chain B (1 or 2).
+    name : str
+        Human-readable construct name.
+    """
+
+    kd_antigen_M: float
+    kd_vh_vl_M: float
+    kd_minibinder_vl_M: float
+    kd_nanobody_M: float
+    linker_n_residues: int
+    minibinder_spacer_residues: int = 150
+    n_minibinders: int = 2
+    name: str = "Split-scFv conditional nanobody"
+
+    def _switch(self) -> "SplitScFvSwitch":
+        from .split_scfv import SplitScFvSwitch
+        return SplitScFvSwitch(
+            kd_vh_vl_M=self.kd_vh_vl_M,
+            kd_minibinder_vl_M=self.kd_minibinder_vl_M,
+            kd_nanobody_M=self.kd_nanobody_M,
+            minibinder_spacer_residues=self.minibinder_spacer_residues,
+            n_minibinders=self.n_minibinders,
+        )
+
+    def _linker(self, model: str = "fjc") -> LinkerModel:
+        return LinkerModel(n_residues=self.linker_n_residues, model=model)
+
+    def analyse(
+        self,
+        distance_nm: float,
+        surface_density_per_um2: float = 1000.0,
+        model: str = "fjc",
+        bulk_construct_M: float = 1e-9,
+    ) -> dict:
+        """
+        Full thermodynamic analysis at a given antigen–target distance.
+
+        Returns a dict of key design metrics.
+        """
+        sw = self._switch()
+        feas = sw.feasibility(surface_density_per_um2)
+        occ_on = sw.nanobody_occupancy_on(
+            distance_nm, self.linker_n_residues, surface_density_per_um2, model=model
+        )
+        occ_off = sw.nanobody_occupancy_off(bulk_construct_M)
+        sel = occ_on / occ_off if occ_off > 0 else float("inf")
+
+        return {
+            "distance_nm": distance_nm,
+            "surface_density_per_um2": surface_density_per_um2,
+            "c_surf_M": feas["c_surf_M"],
+            "c_eff_mb_M": feas["c_eff_mb_M"],
+            "f_vl1_paired_anchored": feas["f_vl1_paired_on"],
+            "f_vl1_locked_free": feas["f_vl1_locked_off"],
+            "nanobody_occupancy_on": occ_on,
+            "nanobody_occupancy_off": occ_off,
+            "selectivity_ratio": sel,
+            "feasible": feas["feasible"],
+            "design_flags": feas["flags"],
+        }
+
+    def summary(
+        self,
+        distance_nm: float,
+        surface_density_per_um2: float = 1000.0,
+        model: str = "fjc",
+    ) -> str:
+        """Print a full design summary."""
+        sw = self._switch()
+        return (
+            f"=== {self.name} ===\n"
+            + sw.summary(
+                distance_nm, self.linker_n_residues,
+                surface_density_per_um2=surface_density_per_um2,
+                model=model,
+            )
+        )
+
+    def optimise_linker(
+        self,
+        distance_nm: float,
+        surface_density_per_um2: float = 1000.0,
+        target_nanobody_occupancy: float = 0.5,
+        model: str = "fjc",
+        max_residues: int = 300,
+    ) -> int | None:
+        """
+        Find the minimum (G4S)n linker length that achieves `target_nanobody_occupancy`
+        nanobody ON-state occupancy for a given antigen-target distance and density.
+        """
+        sw = self._switch()
+        for n in range(1, max_residues + 1):
+            lm = LinkerModel(n_residues=n, model=model)
+            if lm.contour_length_nm < distance_nm:
+                continue
+            occ = sw.nanobody_occupancy_on(distance_nm, n, surface_density_per_um2, model=model)
+            if occ >= target_nanobody_occupancy:
+                return n
+        return None
+
+    def __repr__(self) -> str:
+        return (
+            f"SplitScFvConstruct("
+            f"kd_antigen={self.kd_antigen_M*1e9:.1f} nM, "
+            f"kd_vh_vl={self.kd_vh_vl_M*1e6:.1f} µM, "
+            f"kd_mb={self.kd_minibinder_vl_M*1e6:.1f} µM, "
+            f"kd_nanobody={self.kd_nanobody_M*1e9:.1f} nM, "
+            f"linker={self.linker_n_residues} res, "
+            f"mb_spacer={self.minibinder_spacer_residues} res)"
         )
