@@ -13,6 +13,15 @@ from .design import ConditionalConstruct, SplitScFvConstruct
 from .sequences import LinkerSequence
 from .split_scfv import SplitScFvSwitch
 from .minibinder import MinibinderDesignSpec
+from .structures import (
+    download_pdb,
+    load_structure,
+    extract_variable_domain,
+    analyse_vh_vl_interface,
+    interface_summary,
+    EXAMPLE_STRUCTURES,
+    print_design_overview,
+)
 
 __all__ = [
     "LinkerModel",
@@ -21,5 +30,12 @@ __all__ = [
     "LinkerSequence",
     "SplitScFvSwitch",
     "MinibinderDesignSpec",
+    "download_pdb",
+    "load_structure",
+    "extract_variable_domain",
+    "analyse_vh_vl_interface",
+    "interface_summary",
+    "EXAMPLE_STRUCTURES",
+    "print_design_overview",
 ]
 __version__ = "0.1.0"

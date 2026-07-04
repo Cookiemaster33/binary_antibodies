@@ -1,0 +1,61 @@
+# VL1 residues to target for minibinder design
+# Source: Trastuzumab VL chain B, residues contacting VH (< 8 Å)
+# These residues should be within the minibinder binding footprint.
+
+VL_framework_contacts:
+  35
+  36
+  37
+  38
+  39
+  44
+  45
+  46
+  47
+  98
+
+All_VL_contact_residues:
+  4
+  6
+  33
+  35
+  36
+  37
+  38
+  39
+  42
+  43
+  44
+  45
+  46
+  47
+  48
+  49
+  50
+  58
+  59
+  60
+  61
+  62
+  93
+  95
+  96
+  97
+  98
+  99
+  100
+  103
+  104
+  105
+  106
+  107
+  108
+  109
+  110
+  111
+  112
+  113
+  127
+  128
+  129
+  130
