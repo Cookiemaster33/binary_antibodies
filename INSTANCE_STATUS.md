@@ -1,36 +1,40 @@
-# Active Lambda Cloud Instance — BISPECIFIC MINIBINDER RUNNING
+# Pipeline Complete — All Instances Terminated
 
-| Field | Value |
+## v3 Bispecific Bridging Minibinder Results
+
+Pipeline completed successfully. Instance terminated.
+
+**Results in `pipeline_results/v3_bispecific/mpnn/`**
+
+| File | Content |
 |---|---|
-| Instance ID | `663bf9f3a1764ad0beecb4eec9ad51a8` |
-| IP | `161.153.122.32` |
-| Region | `us-west-2` |
-| Status | **RFdiffusion3 running** — batch ~14/20 |
+| `minibinder_sequences.fasta` | Top 1600 sequences ranked by novelty |
+| `all_sequences.json` | Full metadata (backbone, sequence, recovery score) |
 
-## Design: Bispecific bridging minibinder
+### Stats
+- 200 RFdiffusion3 backbones  
+- 1600 ProteinMPNN sequences (8 per backbone)
+- Sequence length: 56 residues (bispecific bridging)
+- Sequence recovery range: 0.164–0.636 (lower = more novel)
+- **Best design: 16.4% recovery** = 84% novel sequence
 
-Input: `vh1_nanobody_design_target.pdb`
-- Chain A: VH1 (115 res) — hotspot: VH1-CH1-contact face (FR1+FR2+FR3)
-- Chain B: Nanobody positioned in CH1 slot (115 res) — hotspot: CDR1+CDR2+CDR3
-- Contig: `A1-115,55,B1-115` → 285 res total
+### Top 5 candidates (lowest sequence recovery)
 
-Minibinder (residues 116-170) bridges:
-- VH1-CH1-face (where CL/VL1 will dock upon activation) 
-- Nanobody CDR face (CDRs it must block in OFF state)
-
-## Monitor
-
-```bash
-ssh -i $LAMBDA_SSH_KEY ubuntu@161.153.122.32 \
-  "grep -v 'WARNING\|Cached\|MACE\|not set\|bashrc' ~/pipeline/pipeline.log | tail -5; \
-   echo CIFs: \$(ls ~/pipeline/outputs/rfd3/*.cif 2>/dev/null | wc -l)"
+```
+rank_1  SDGSTGPPLSNCDPTNRGTTLNSNGNGVNGGLANSSNAGNTCYCENGVCMNETTSQ
+rank_2  ADGTSPGTFCDRYTPGQPAVDTSLSPANYDASKLLQVQPFIDNYSKELLTQQDSSQ
+rank_3  ADGTSPGTFCDCYVPGKPATDTKLERANYDPAKLLSVQPFKCLRSGEILTQEDSSQ
+rank_4  ADGSTGPPLSNCDPTNRSTTLDANGNGVNGGLATASNAGNTGYCVNGVCDSETTSQ
+rank_5  SDGSTGPPLSNCDPTNRSATLNSNGQGVNGGLATASNAKNSCLCSNGVCLNETTSQ
 ```
 
-## Terminate
+### Next steps
 
-```bash
-curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
-  -H "Authorization: Bearer $LAMBDA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"instance_ids": ["663bf9f3a1764ad0beecb4eec9ad51a8"]}'
-```
+1. **ColabFold validation** — submit `minibinder:VH1:nanobody` as a 3-chain complex
+   to https://colab.research.google.com/github/sokrypton/ColabFold
+2. **Rosetta ΔΔG** — score binding to VH1-CH1-face and to nanobody CDRs
+3. **Order top 3-5** as synthetic peptides for SPR/BLI assay
+
+## Cost
+
+~$1.50 total (38 min on A100 @ $1.99/hr)
