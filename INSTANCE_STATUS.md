@@ -1,27 +1,33 @@
-# Active Lambda Cloud Instance — MPNN RUNNING
+# Active Lambda Cloud Instance — PIPELINE RUNNING
 
 | Field | Value |
 |---|---|
-| Instance ID | `28b31e6dafc845d48ebfd92931f1ee5b` |
-| IP | `132.145.135.76` |
-| SSH key name | `cursor-agent` |
-| Status | **ProteinMPNN running** — 200 RFD3 designs complete, MPNN sequencing |
+| Instance ID | `790ebff8788b4ac8814822b5f0fc419b` |
+| IP | `150.136.66.45` |
+| Type | `gpu_1x_a100_sxm4` (40 GB) |
+| Region | `us-east-1` |
+| SSH key | `cursor-agent` |
+| Status | **RFdiffusion3 running** — ~20/200 designs done |
 
-## What was fixed
+## What's running
 
-Original run used wrong contig `"B1-130/0 60"` → output was only the 130-res VL1 target.
-Fixed contig: `"B1-130/0,60"` → output is 190 residues (1-130 = VL1, 131-190 = designed binder).
+Anti-idiotypic minibinder design against **2Rs15d nanobody CDR face** (CH1-kicker design).
 
-## Pipeline
+```
+Input:     her2_nanobody_VHH.pdb (chain B, 115 residues)
+Contig:    B1-115/0,50  →  fix nanobody, design 50-res minibinder
+Hotspots:  CDR1 (B26-33) + CDR2 (B50-57) + CDR3 (B97-112)
+Output:    CIF files with 165 res (1-115=nanobody, 116-165=minibinder)
+```
 
-- RFD3: 200 × 190-residue designs (VL1 + 60-res binder) ✓ DONE
-- MPNN: 8 sequences per backbone, binder portion only (res 131-190), VL1 fixed ← RUNNING
-- Results: `~/pipeline/outputs/mpnn/binder_sequences.fasta`
+Pipeline: RFdiffusion3 (200 designs) → ProteinMPNN (8 seqs/backbone) → `minibinder_sequences.fasta`
 
 ## Monitor
 
 ```bash
-ssh -i $LAMBDA_SSH_KEY ubuntu@132.145.135.76 "tail -5 ~/pipeline/run.log"
+ssh -i $LAMBDA_SSH_KEY ubuntu@150.136.66.45 \
+  "grep -v WARNING ~/pipeline/run.log | tail -5; \
+   echo 'CIF count:' \$(ls ~/pipeline/outputs/rfd3/*.cif 2>/dev/null | wc -l)"
 ```
 
 ## Terminate when done
@@ -30,5 +36,5 @@ ssh -i $LAMBDA_SSH_KEY ubuntu@132.145.135.76 "tail -5 ~/pipeline/run.log"
 curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
   -H "Authorization: Bearer $LAMBDA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"instance_ids": ["28b31e6dafc845d48ebfd92931f1ee5b"]}'
+  -d '{"instance_ids": ["790ebff8788b4ac8814822b5f0fc419b"]}'
 ```
