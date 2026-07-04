@@ -408,3 +408,97 @@ echo ""
 echo "===== Full pipeline complete: $(date) ====="
 echo "Results in: $PIPELINE/final/"
 ls -lh $PIPELINE/final/
+
+# ── 8. Collect top-10 structure files ────────────────────────────
+echo ""
+echo "=== Collecting top-10 CIF structures ==="
+
+python3 << 'PYEOF'
+import json, shutil, os
+from pathlib import Path
+import numpy as np
+
+HOME      = Path.home()
+PIPELINE  = HOME / "pipeline"
+BOLTZ_BASE = PIPELINE / "boltz_outputs/boltz_results_boltz_inputs/predictions"
+RFD3_OUT  = PIPELINE / "outputs/rfd3"
+MPNN_OUT  = PIPELINE / "outputs/mpnn"
+STRUCTS   = PIPELINE / "top_structures"
+STRUCTS.mkdir(exist_ok=True)
+
+# Load final results
+results = json.load(open(PIPELINE / "final/final_results.json"))
+
+# Rank by geometric mean of ipTMs (both interfaces must be good)
+results_with_score = []
+for r in results:
+    if r["iptm_MB_VH1"] > 0 and r["iptm_MB_Nb"] > 0:
+        combined = (r["iptm_MB_VH1"] * r["iptm_MB_Nb"]) ** 0.5
+    else:
+        combined = 0
+    results_with_score.append((combined, r))
+
+results_with_score.sort(reverse=True, key=lambda x: x[0])
+top10 = [r for _, r in results_with_score[:10]]
+
+print(f"Top 10 designs by √(ipTM_VH1 × ipTM_Nb):")
+for i, r in enumerate(top10):
+    bb = r["backbone"]
+    name = f"rank{r['rank']:02d}_{bb}_rec{r['sequence_recovery']:.3f}"
+    combined = (r["iptm_MB_VH1"] * r["iptm_MB_Nb"]) ** 0.5
+
+    # Copy RFd3 CIF (the designed backbone)
+    rfd3_src = RFD3_OUT / f"{bb}.cif"
+    if rfd3_src.exists():
+        shutil.copy(rfd3_src, STRUCTS / f"top{i+1:02d}_{bb}_rfd3_backbone.cif")
+        print(f"  top{i+1:02d} {bb}  √ipTM={combined:.3f}  pLDDT={r['boltz_plddt_pct']:.0f}%  ✓ RFd3 CIF")
+    else:
+        print(f"  top{i+1:02d} {bb}  ✗ RFd3 CIF not found")
+
+    # Copy Boltz-2 CIF (the predicted complex)
+    boltz_cif = BOLTZ_BASE / name / f"{name}_model_0.cif"
+    if boltz_cif.exists():
+        shutil.copy(boltz_cif, STRUCTS / f"top{i+1:02d}_{bb}_boltz2_complex.cif")
+        print(f"           ✓ Boltz-2 complex CIF")
+    else:
+        print(f"           ✗ Boltz-2 CIF not found ({boltz_cif})")
+
+# Save a summary TSV for easy reading
+with open(STRUCTS / "top10_summary.tsv", "w") as f:
+    f.write("rank\tbackbone\tcombined_iptm\tiptm_VH1\tiptm_Nb\tpLDDT_pct\tsc_rmsd_A\tminibinder_sequence\n")
+    for i, r in enumerate(top10):
+        combined = (r["iptm_MB_VH1"] * r["iptm_MB_Nb"]) ** 0.5
+        f.write(f"{i+1}\t{r['backbone']}\t{combined:.3f}\t{r['iptm_MB_VH1']:.3f}\t"
+                f"{r['iptm_MB_Nb']:.3f}\t{r['boltz_plddt_pct']:.1f}\t{r['sc_rmsd_A']:.2f}\t"
+                f"{r['minibinder_sequence']}\n")
+
+print(f"\nSaved {len(list(STRUCTS.glob('*.cif')))} CIF files + summary TSV to {STRUCTS}")
+PYEOF
+
+# Push structures to GitHub
+echo ""
+echo "=== Pushing structures to GitHub ==="
+STRUCTS_DIR=$HOME/pipeline/top_structures
+REPO_STRUCTS=$HOME/repo/pipeline_results/v3_bispecific_validated/structures
+mkdir -p $REPO_STRUCTS
+
+cp -f $STRUCTS_DIR/*.cif $REPO_STRUCTS/ 2>/dev/null || true
+cp -f $STRUCTS_DIR/*.tsv $REPO_STRUCTS/ 2>/dev/null || true
+
+cd $HOME/repo
+git add pipeline_results/v3_bispecific_validated/
+git commit -m "results: top-10 structure CIFs (RFd3 backbone + Boltz-2 complex)
+
+For each top design (ranked by √(ipTM_VH1 × ipTM_Nb)):
+  *_rfd3_backbone.cif   — RFdiffusion3 designed backbone
+  *_boltz2_complex.cif  — Boltz-2 predicted 3-chain complex
+
+Open in PyMOL/ChimeraX to visualize the bispecific bridging minibinder
+between VH1-CH1-face (chain A) and nanobody CDRs (chain C)." 2>&1
+
+GH_TOKEN_VAR=$(cat /tmp/gh_token 2>/dev/null)
+git push "https://x-access-token:${GH_TOKEN_VAR}@github.com/Cookiemaster33/binary_antibodies.git" \
+    cursor/conditional-nanobody-design-992c 2>&1 | tail -3
+
+echo "Structures pushed to GitHub ✓"
+echo "View at: https://github.com/Cookiemaster33/binary_antibodies/pull/1"
