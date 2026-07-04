@@ -1,44 +1,56 @@
-# Active Lambda Cloud Instance — BOLTZ-2 RUNNING
+# Active Lambda Cloud Instance — FULL INTEGRATED PIPELINE RUNNING
 
 | Field | Value |
 |---|---|
-| Instance ID | `94c63717df0a4432b814247acbd82dd2` |
+| Instance ID | `52d978c10b4543a7b54ba965a3ea09b9` |
 | IP | `129.146.164.146` |
 | Region | `us-west-2` |
-| Status | **Boltz-2 downloading data, then predicting 50 complexes** |
+| Status | **Step 0: Docker pull + Boltz-2 install (parallel)** |
 
-## What's running
+## What will run (all on this instance)
 
-Boltz-2 v2.2.1 predicting 50 three-chain complexes:
-- Chain A: VH1 (Trastuzumab VH, 115 res)
-- Chain B: Designed minibinder (56 res, from MPNN)
-- Chain C: 2Rs15d anti-HER2 nanobody (115 res)
+```
+Step 1: RFdiffusion3  — 200 bispecific bridging minibinder designs
+                         Contig: A1-115,55,B1-115 (VH1+MB+Nanobody)
+                         CIFs saved to ~/pipeline/outputs/rfd3/
 
-**Pocket constraints** guide Boltz-2 to the designed binding surfaces:
-- VH1-CH1-face residues (28 contacts on chain A)
-- Nanobody CDR residues (27 contacts on chain C)
+Step 2: ProteinMPNN   — 8 sequences per backbone (1600 total)
 
-**Scoring**: pLDDT + chain-pair ipTM(A,B) + ipTM(B,C)
-Filter: pLDDT > 60 AND ipTM(MB↔VH1) > 0.3 AND ipTM(MB↔Nb) > 0.3
+Step 3: Boltz-2       — top-50 unique backbones as 3-chain complexes
+                         Pocket constraints on VH1-CH1-face + Nanobody CDRs
 
-## Note on scRMSD
+Step 4: scRMSD        — superimpose Boltz-2 on VH1+Nb (fixed), measure
+                         RMSD of Boltz-2 minibinder vs RFd3 backbone
+                         CIFs are available because same instance!
 
-Full scRMSD (Boltz-2 vs RFd3 backbone) requires CIFs from the design run
-on the same instance. Next time: use integrated pipeline that does
-RFd3 → MPNN → Boltz-2 all on one instance (CIFs never lost).
+Filter: scRMSD < 2Å AND pLDDT > 60 AND ipTM(MB↔VH1) > 0.3 AND ipTM(MB↔Nb) > 0.3
+```
+
+## Estimated time
+
+| Step | Time |
+|---|---|
+| Docker + Boltz-2 install | ~5 min (parallel) |
+| RFdiffusion3 (200 designs) | ~20 min |
+| ProteinMPNN | ~10 min |
+| Boltz-2 (50 complexes) | ~45 min |
+| scRMSD scoring | ~2 min |
+| **Total** | **~80 min, ~$2.65** |
 
 ## Monitor
 
 ```bash
 ssh -i $LAMBDA_SSH_KEY ubuntu@129.146.164.146 \
-  "tail -10 ~/pipeline/boltz2.log | grep -E 'rank|pLDDT|Passed|Error'"
+  "grep -v 'WARNING\|Cached\|MACE\|not set\|bashrc\|AMP\|Tensor\|DEBUG' \
+   ~/pipeline/full_pipeline.log | tail -10; \
+   echo CIFs: \$(ls ~/pipeline/outputs/rfd3/*.cif 2>/dev/null | wc -l)"
 ```
 
-## Terminate
+## Terminate when done
 
 ```bash
 curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
   -H "Authorization: Bearer $LAMBDA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"instance_ids": ["94c63717df0a4432b814247acbd82dd2"]}'
+  -d '{"instance_ids": ["52d978c10b4543a7b54ba965a3ea09b9"]}'
 ```
