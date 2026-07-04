@@ -1,30 +1,36 @@
-# Pipeline Complete — All Instances Terminated
+# Active Lambda Cloud Instance — BISPECIFIC MINIBINDER RUNNING
 
-## v2 Run (3-chain design): Results available in pipeline_results/v2_3chain/
+| Field | Value |
+|---|---|
+| Instance ID | `663bf9f3a1764ad0beecb4eec9ad51a8` |
+| IP | `161.153.122.32` |
+| Region | `us-west-2` |
+| Status | **RFdiffusion3 running** — batch ~14/20 |
 
-- 200 RFdiffusion3 backbones (nanobody + 50-res minibinder + CL domain = 278 res each)
-- 1600 ProteinMPNN sequences (8 per backbone)
-- RF3 self-consistency attempted but scRMSD metric is not appropriate for binder design
+## Design: Bispecific bridging minibinder
 
-## Why scRMSD doesn't apply to binder design
+Input: `vh1_nanobody_design_target.pdb`
+- Chain A: VH1 (115 res) — hotspot: VH1-CH1-contact face (FR1+FR2+FR3)
+- Chain B: Nanobody positioned in CH1 slot (115 res) — hotspot: CDR1+CDR2+CDR3
+- Contig: `A1-115,55,B1-115` → 285 res total
 
-scRMSD checks if a designed sequence folds to the intended backbone IN ISOLATION.
-For BINDER design, the backbone is shaped by the binding partners — folding the
-50-residue minibinder alone (without nanobody + CL) naturally gives a different
-conformation. scRMSD ~15-20 Å is expected, not a failure.
+Minibinder (residues 116-170) bridges:
+- VH1-CH1-face (where CL/VL1 will dock upon activation) 
+- Nanobody CDR face (CDRs it must block in OFF state)
 
-## The right validation path
+## Monitor
 
-1. **ColabFold with MSA** on top-5 designs: submit minibinder:nanobody FASTA to
-   https://colab.research.google.com/github/sokrypton/ColabFold — free, fast,
-   gives trustworthy ipTM with real MSA features
-2. **Rosetta or Autodock** for binding energy estimate
-3. **Experimental SPR/BLI** on top-3 sequences — ultimate test
+```bash
+ssh -i $LAMBDA_SSH_KEY ubuntu@161.153.122.32 \
+  "grep -v 'WARNING\|Cached\|MACE\|not set\|bashrc' ~/pipeline/pipeline.log | tail -5; \
+   echo CIFs: \$(ls ~/pipeline/outputs/rfd3/*.cif 2>/dev/null | wc -l)"
+```
 
-## Top 5 sequences to validate (lowest MPNN sequence recovery):
+## Terminate
 
-1. PDNLPPPPYTESEPTPSPAPPFVTPSPVVVVPAPVQPNVTSTLVRTGPNP  (backbone mb_b001_002, rec=0.080)
-2. SSAAKLATPSNPEPPPLSPPVPLLPPVTPVVVVPGTVSDTANLVVTVYSP  (backbone mb_b005_004, rec=0.120)
-3. PEPLQAWEPQEFTPVYSTQPPPVPPLPLPPPPVGPKVPVTKTLVRTGLNS  (backbone mb_b003_009, rec=0.140)
-4. PESREPPPPVEFQCVPGPPAPVTEEVVVVVPGKPVSSDPRLKLVVPSPSP  (backbone mb_b003_005, rec=0.180)
-5. PDNKPPPPYTPAEPTKSPFPPFVEPSPEVEVPTPVKPDVTTTTVYTGLNP  (backbone mb_b001_002, rec=0.160)
+```bash
+curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
+  -H "Authorization: Bearer $LAMBDA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"instance_ids": ["663bf9f3a1764ad0beecb4eec9ad51a8"]}'
+```

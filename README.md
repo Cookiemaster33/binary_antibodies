@@ -7,7 +7,71 @@ specific antigen on the same cell surface — AND-gate logic.
 
 ---
 
-## Current Design: CH1-Kicker Mechanism
+## Current Design: Bispecific Bridging Minibinder
+
+```
+  ── INACTIVE (OFF state) ──────────────────────────────────────────
+
+       [Nanobody] ← CDRs blocked
+          +++
+     [Minibinder]   ← bridges BOTH surfaces simultaneously
+          |||
+       [VH1]        ← CH1-face exposed (CH1 domain deleted)
+          |
+       [Antigen] ··· membrane ···  [Target]
+
+
+  ── ACTIVE (ON state, VL1 pairs with VH1) ────────────────────────
+
+       [Nanobody CDRs free] ────────────────────────── binds [Target]
+          ↑
+     long linker (nanobody swings away)
+          |
+     [Minibinder]──short linker──[VH1]──[VL1/CL] ← VL1 occupies CH1-face
+                                    |
+                                 [Antigen]
+```
+
+### How it works (6-step design)
+
+1. **Take native Fab** (VH + VL + CH1_heavy + CL)  
+2. **Delete heavy-chain CH1** — exposes VH1's CH1-contact surface  
+3. **Position Nanobody in the CH1 slot** — CDR face (+++) points at VH1's exposed CH1-contact surface  
+4. **Design Minibinder** — bridges VH1-CH1-face AND Nanobody CDRs simultaneously (bispecific)
+5. **VH1 and VL1 engineered to be independent** — don't spontaneously pair in solution
+6. **Asymmetric linkers**:
+   - **Short** (5-10 res): VH1 → Minibinder — MB stays at VH1 after displacement
+   - **Long** (30-50 res): Minibinder → Nanobody — CDRs can swing far away
+
+### The displacement mechanism
+
+In the OFF state, the Minibinder acts as a **molecular staple** holding VH1 and the Nanobody CDRs together in the geometry where CH1 used to sit.
+
+When VH1 binds the antigen AND VL1 pairs with VH1:
+- VL1's CL domain occupies VH1's CH1-contact surface (the same surface the Minibinder was using)
+- The Minibinder is displaced from VH1's surface
+- **Short linker** keeps the Minibinder physically near VH1 (it cannot escape)
+- **Long linker** allows the Nanobody to swing completely away from the displaced Minibinder
+- CDRs are free to bind the Target
+
+### Why this is better than previous designs
+
+| | Previous designs | This design |
+|---|---|---|
+| What minibinder bridges | Single surface (VL1 FR2 or nanobody CDRs alone) | **Two surfaces simultaneously** (VH1-CH1 face + nanobody CDRs) |
+| Displacement trigger | VH1 surface concentration / CL steric kick | **VL1 directly occupies VH1-CH1 face** (same surface MB uses) |
+| OFF-state lock | Thermodynamic (Kd windows) | **Geometric** — staple holds shape |
+| Linker requirement | Symmetric | **Asymmetric — the switch mechanism** |
+
+### Design target geometry
+
+- VH1-CH1 contact residues (28): FR1(11-15), FR2(39-41), FR3(79-115)
+- Nanobody CDR hotspots (27): CDR1(27-33), CDR2(52-57), CDR3(99-112)
+- Gap between surfaces: **20 Å**
+- Minibinder size: **55 residues**
+- Input PDB: `structures/domains/vh1_nanobody_design_target.pdb`
+
+
 
 ```
   ── INACTIVE ──────────────────────────────────────────────────────────
