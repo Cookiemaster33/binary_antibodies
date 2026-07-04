@@ -2,70 +2,118 @@
 
 ## Concept
 
-A nanobody that can **only** bind its target when a separate antibody arm is bound to a specific antigen. The system acts as a molecular AND-gate on a cell surface.
+A nanobody that can **only** bind its target when a VH1 domain is bound to a
+specific antigen on the same cell surface — AND-gate logic.
 
 ---
 
-## Refined Design: Split-scFv Conditional Switch
+## Current Design: CH1-Kicker Mechanism
 
 ```
-  ── INACTIVE (VH1 bound to antigen, VL1 locked by minibinders) ───────
+  ── INACTIVE ──────────────────────────────────────────────────────────
 
-         [Nanobody]
-              |
-       ~flexible linker~
-              |
-       [Minibinders]──[VL1]      ← VL1 locked; cannot pair with VH1
-                                    (minibinders block VH1-pairing face)
+                [Nanobody CDRs blocked by Minibinder]
+                         |
+                    ~flexible linker~
+                         |
+               [CL]──[VL1]    ← CL/CH1 positioned away from nanobody
+                    (free, unanchored)
          [VH1]
-              |
-          [Antigen] ··· membrane ···  [Target]
+          (not yet bound to antigen)
+
+         [Antigen] ··· membrane ···  [Target]
 
 
-  ── ACTIVE (VH1 displaces minibinders, VH1+VL1 scFv formed) ──────────
+  ── ACTIVE ────────────────────────────────────────────────────────────
 
-         [Nanobody]────────────────────────────────╮
-              |                               binds [Target]
-       ~flexible linker~
-              |
-       [Minibinders]  (displaced)
-       [VH1]──[VL1]      ← functional scFv formed at membrane surface
-              |
-          [Antigen] ··· membrane ···  [Target]
+                [Nanobody]────────────────────────────╮
+                     |                           binds [Target]
+                ~flexible linker~
+                     |
+               [CL]  ← CH1/CL physically KICKS Minibinder off Nanobody CDRs
+               [VL1]──[VH1]  ← VH1-VL1 pairing brings CL into kicking position
+                    |
+               [Antigen] ··· membrane ···  [Target]
 ```
 
 ### Components
 
-| Component | Description | How to obtain |
+| Component | Role | How to obtain |
 |---|---|---|
-| **VH1** | VH domain of a known antibody, engineered to bind its antigen autonomously | Site-directed mutagenesis of a known VH/VL pair; select for antigen binding without VL |
-| **VL1** | VL domain of the same antibody; together with VH1 forms a functional scFv that binds the **Target** | Taken directly from the known antibody |
-| **Minibinders** | Designed small proteins that bind VL1 on its VH1-pairing interface | **Computational de novo design** (RFdiffusion + ProteinMPNN) against the VL1 framework |
-| **Flexible linker** | (G₄S)ₙ peptide connecting minibinder–VL1 complex to the nanobody | Optimised by `binary_antibodies` using polymer physics |
-| **Nanobody** | Single-domain antibody against the Target | Selected from llama/camel immune library or designed |
+| **VH1** | Binds antigen autonomously; anchors construct to membrane | Engineered from existing anti-antigen VH |
+| **VL1** | Pairs with VH1 to form scFv; triggers the kicker mechanism | From same antibody as VH1 |
+| **CL (CH1)** | "Kicker" domain — physically displaces minibinder from nanobody CDRs upon VH1-VL1 pairing | Natural constant light chain, attached to VL1 C-terminus |
+| **Minibinder** | Blocks nanobody CDR face in free state | **Designed against nanobody paratope** (anti-idiotypic design) |
+| **Flexible linker** | Connects VL1-CL block to nanobody; must be long enough for kicking geometry | (G₄S)ₙ, optimised |
+| **Nanobody** | Anti-target single-domain antibody | Selected from library or existing |
 
-### Mechanism (competitive displacement switch)
+### Mechanism (structural switch — NOT thermodynamic competition)
 
-1. **Free state** (no antigen): Minibinders occupy VL1's VH1-pairing interface (framework 2 and CDR-L2 region). VH1 and VL1 have been *engineered to have weak affinity in solution* (Kd,VH-VL ≈ 1–100 µM). The scFv is therefore non-functional. The nanobody, tethered to the locked VL1, cannot reach the target.
+1. **Free state**: Minibinder occupies the nanobody's CDR face. Nanobody cannot bind target.
+   VH1 and VL1 are not paired (or floating freely in solution).
 
-2. **Anchoring** (VH1 binds antigen): VH1 docks to the antigen on the cell membrane. This brings VH1 into proximity with VL1 (which is tethered via the minibinder–flexible-linker chain). The effective local concentration of VH1 near VL1 is now **µM range**.
+2. **Anchoring**: VH1 binds the antigen on the cell surface.
 
-3. **Displacement** (VH1 outcompetes minibinders for VL1): Because Kd(VH1-VL1) < Kd(minibinder-VL1) at the effective local concentration, VH1 displaces the minibinders from VL1's framework interface. VH1 and VL1 pair into a functional scFv.
+3. **Pairing**: VH1 recruits VL1; VH1-VL1 pair into a functional scFv.
+   The CL domain comes along with VL1 (it is covalently attached at VL1's C-terminus).
 
-4. **Activation** (nanobody reaches target): The minibinder displacement removes the steric constraint on the flexible linker. The nanobody, now free to diffuse in the hemisphere above the membrane, engages the Target.
+4. **Kicking**: The CL domain, now in its new position relative to the nanobody
+   (set by the VH1-VL1 pairing geometry), **sterically clashes with the minibinder**
+   and physically displaces it from the nanobody's CDR loops.
 
-### Thermodynamic AND-gate condition
+5. **Activation**: Nanobody CDRs are now free. The flexible linker allows the
+   nanobody to extend and bind the target.
 
-For reliable activation, the following inequalities must hold:
+### Why this design is better than competitive displacement
+
+| Property | Competitive displacement (old) | CH1-kicker (new) |
+|---|---|---|
+| Mechanism | Thermodynamic (VH1 surface conc. vs intramolecular minibinder) | Structural/mechanical (steric kick) |
+| OFF-state fidelity | Good — intramolecular minibinder is always present | Good — minibinder blocks CDRs |
+| ON-state trigger | Needs µM VH1 surface concentration | Needs VH1-VL1 pairing (binary event) |
+| Precision needed | High — tight Kd windows, exact linker lengths | Low — CH1 kick is a physical event |
+| Minibinders needed | 2 | **1** |
+| Robustness | Sensitive to antigen expression level | **Robust** — switch is structural |
+
+### Key design parameter: kicking geometry
+
+The CL domain must be positioned such that, **after VH1-VL1 pairing**, it overlaps
+with the minibinder's footprint on the nanobody CDRs. This is determined by:
+
+- The Fab geometry (VH1-VL1-CL complex structure)
+- The flexible linker length between CL and the nanobody
+- The size and position of the minibinder on the nanobody CDR face
+
+Use the structural analysis in `binary_antibodies/kicker.py` to assess geometry.
+
+### Chain B assembly (N→C)
 
 ```
-Kd(VH1–VL1) < C_eff(VH1 | anchored)   →  VH1-VL1 pairing is driven by proximity
-Kd(VH1–VL1) < Kd(minibinder–VL1)      →  VH1 outcompetes minibinders when anchored
-Kd(minibinder–VL1) << 1/[construct]   →  VL1 is reliably locked in free state
+SP – [VL1] – [CL] – (G4S)n – [Minibinder] – (G4S)3 – [Nanobody VHH]
 ```
 
-The intermediate quantity C_eff is determined by linker length and antigen–target distance
-(computed by `binary_antibodies.polymer.LinkerModel`).
+- `SP`: signal peptide
+- `VL1`: variable light domain (pairs with VH1 to trigger kicking)
+- `CL`: constant light domain (the "kicker" — repositions upon VL1-VH1 pairing)
+- `(G4S)n`: flexible linker (length sets kicking geometry)
+- `Minibinder`: blocks nanobody CDRs in free state
+- `(G4S)3`: short linker
+- `Nanobody VHH`: anti-target single-domain antibody
+
+Chain A (separate): **VH1** (binds antigen; expressed as separate polypeptide)
+
+---
+
+## Example Biological System
+
+| Component | Molecule | PDB |
+|---|---|---|
+| Antigen | EGFR | Cetuximab Fab 1YY9 (VH template) |
+| Target | HER2 | — |
+| VH1 + VL1 | Anti-HER2 scFv | Trastuzumab Fab 1N8Z |
+| CL | Trastuzumab Cκ | 1N8Z chain B (C-terminal constant domain) |
+| Nanobody | 2Rs15d anti-HER2 VHH | 5MY6 |
+| Minibinder target | **Nanobody CDR face** (CDR1, CDR2, CDR3) | `structures/domains/her2_nanobody_VHH.pdb` |
 
 ---
 
@@ -76,87 +124,24 @@ binary_antibodies/
 ├── README.md
 ├── requirements.txt
 ├── binary_antibodies/
-│   ├── __init__.py
-│   ├── polymer.py          # FJC/WLC linker physics, effective concentration
-│   ├── design.py           # ConditionalConstruct: end-to-end construct design
-│   ├── split_scfv.py       # Split-scFv competitive displacement thermodynamics
-│   ├── minibinder.py       # Minibinder design guidance and target interface analysis
-│   └── sequences.py        # Linker sequence generation & composition
+│   ├── polymer.py          # linker physics
+│   ├── design.py           # ConditionalConstruct, SplitScFvConstruct
+│   ├── kicker.py           # CH1-kicker geometry and displacement model ← NEW
+│   ├── split_scfv.py       # competitive displacement model (reference)
+│   ├── minibinder.py       # minibinder design guidance
+│   ├── sequences.py        # linker sequences
+│   └── structures.py       # PDB download/analysis
 ├── scripts/
-│   ├── optimise_linker.py  # CLI: find optimal linker for a geometry
-│   └── scan_geometry.py    # CLI: heatmap over d × N parameter space
-└── notebooks/
-    └── design_walkthrough.ipynb
+│   ├── setup_example.py
+│   ├── interface_analysis.py        # VH-VL interface (reference)
+│   ├── nanobody_cdr_analysis.py     # Nanobody CDR face analysis ← NEW
+│   └── gpu_setup/
+│       ├── run_minibinder_design_rfd3.sh   # rfd3 pipeline (against nanobody CDRs)
+│       └── ...
+└── structures/
+    ├── domains/
+    │   ├── her2_nanobody_VHH.pdb    ← TARGET for minibinder design
+    │   ├── trastuzumab_VH.pdb
+    │   └── trastuzumab_VL.pdb
+    └── interface/
 ```
-
----
-
-## Quick Start
-
-```bash
-pip install -r requirements.txt
-
-# Analyse the thermodynamic feasibility of a split-scFv switch
-python -c "
-from binary_antibodies.split_scfv import SplitScFvSwitch
-s = SplitScFvSwitch(
-    kd_vh_vl_M=50e-6,       # engineered weak VH-VL affinity: 50 µM
-    kd_minibinder_vl_M=5e-6, # minibinder affinity for VL1: 5 µM
-    kd_nanobody_M=10e-9,     # nanobody for target: 10 nM
-)
-print(s.summary(distance_nm=8.0, linker_n_residues=60))
-"
-
-# Optimise linker length
-python scripts/optimise_linker.py --distance 8.0 --kd-nanobody 10e-9 --fold 100
-```
-
----
-
-## Design Workflow
-
-### Step 1 — Choose the antigen/target pair
-Select a membrane antigen (highly expressed on the target cell type) and a target
-membrane protein whose engagement you wish to conditionalise.
-
-### Step 2 — Select a known antibody for the Target
-Take an existing high-affinity antibody (or scFv) against the Target. Split it into
-VH1 and VL1. Engineer the VH1/VL1 interface to weaken their spontaneous association
-(target: Kd ≈ 10–100 µM in solution).
-
-### Step 3 — Design minibinders against VL1
-Use RFdiffusion + ProteinMPNN to design small (40–80 residue) proteins that bind
-VL1's VH1-pairing interface (FR2, CDR-L2). Target minibinder Kd ≈ 1–10 µM — tighter
-than the weakened VH1-VL1 (so VL1 is locked in free state) but weaker than VH1's
-EFFECTIVE affinity when anchored (Kd,VH-VL / C_eff).
-
-### Step 4 — Select or design the nanobody
-Choose or design a nanobody against the Target (or a different epitope on the same
-target molecule).
-
-### Step 5 — Optimise the (G₄S)ₙ linker
-Use `binary_antibodies` to compute the minimum linker that achieves high C_eff at
-the expected antigen–target distance.
-
-### Step 6 — Assemble and express
-```
-[signal peptide] – VH1 – (G4S)3 – Minibinder – (G4S)3 – VL1 – (G4S)n – Nanobody VHH
-```
-
-VH1 is a separate polypeptide (or the same chain with a self-cleavage P2A site).
-
----
-
-## Design Variants
-
-### 1. Split-scFv with minibinder lock *(this repo — recommended)*
-Minibinders occlude VL1; VH1 membrane-anchoring displaces them.
-Highest OFF-state fidelity; requires minibinder design.
-
-### 2. Simple proximity-gating
-Nanobody tethered to anchored antibody via flexible linker only.
-Simpler but weaker OFF-state (nanobody can still diffuse near target).
-
-### 3. Steric-occlusion / Probody-like
-Nanobody paratope masked by complementary peptide; antigen-binding drives unmasking.
-Good OFF-state but harder to engineer structurally.
