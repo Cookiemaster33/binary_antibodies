@@ -1,33 +1,42 @@
-# Instance Running — Results Will Auto-Push to GitHub
+# Active Lambda Cloud Instance — FULL PIPELINE RUNNING (with structures)
 
 | Field | Value |
 |---|---|
-| Instance ID | `52d978c10b4543a7b54ba965a3ea09b9` |
-| IP | `129.146.164.146` |
-| Status | **Boltz-2 predicting 50 complexes (~45 min)** |
+| Instance ID | `59a43a5ff4c647b99baeb366a74876ac` |
+| IP | `129.146.52.56` |
+| Region | `us-west-2` |
+| Status | **Running — Step 0: Docker pull + Boltz-2 install** |
 
-## Auto-push configured ✓
+## This run adds structure files
 
-When Boltz-2 + scRMSD scoring finish, results will be **pushed automatically
-to this GitHub PR** — no action needed from you.
+In addition to JSON scores, this run will push to GitHub:
+- `top01_*_rfd3_backbone.cif` through `top10_*_rfd3_backbone.cif`
+- `top01_*_boltz2_complex.cif` through `top10_*_boltz2_complex.cif`
+- `top10_summary.tsv` — table with all metrics
 
-**Where to see results:**
+Ranked by √(ipTM_VH1 × ipTM_Nb) — designs where Boltz-2 is most confident
+about BOTH interfaces simultaneously.
+
+## Expected timeline (~90 min total)
+
+| Step | Time |
+|---|---|
+| Docker + Boltz-2 install | ~5 min |
+| RFdiffusion3 (200 designs) | ~20 min |
+| ProteinMPNN | ~10 min |
+| Boltz-2 (50 complexes) | ~45 min |
+| scRMSD + top-10 CIF collection | ~3 min |
+| GitHub push | ~1 min |
+
+## Results will appear in the PR automatically when done
+
 👉 https://github.com/Cookiemaster33/binary_antibodies/pull/1
 
-Look for a new commit titled "results: Boltz-2 + scRMSD validation complete"
-in the PR. Files will appear at:
-- `pipeline_results/v3_bispecific_validated/final_results.json`
-- `pipeline_results/v3_bispecific_validated/validated_minibinders.fasta`
-
-## Terminate the instance when done
-
-After results appear in the PR, terminate to avoid charges:
+## Terminate when done
 
 ```bash
 curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
   -H "Authorization: Bearer $LAMBDA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"instance_ids": ["52d978c10b4543a7b54ba965a3ea09b9"]}'
+  -d '{"instance_ids": ["59a43a5ff4c647b99baeb366a74876ac"]}'
 ```
-
-Or just ask a new Cursor agent: "terminate the Lambda instance 52d978c10b4543a7b54ba965a3ea09b9"
