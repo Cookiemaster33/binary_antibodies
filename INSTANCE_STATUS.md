@@ -1,40 +1,26 @@
-# Active Lambda Cloud Instance — PIPELINE RUNNING
+# Pipeline Complete — Instance Terminated
 
-| Field | Value |
+The anti-idiotypic minibinder design run completed successfully.
+
+## Results (in pipeline_results/ — not committed, large files)
+
+| File | Content |
 |---|---|
-| Instance ID | `790ebff8788b4ac8814822b5f0fc419b` |
-| IP | `150.136.66.45` |
-| Type | `gpu_1x_a100_sxm4` (40 GB) |
-| Region | `us-east-1` |
-| SSH key | `cursor-agent` |
-| Status | **RFdiffusion3 running** — ~20/200 designs done |
+| `pipeline_results/outputs/rfd3/` | 200 minibinder backbone CIF files (165 res each) |
+| `pipeline_results/outputs/mpnn/minibinder_sequences.fasta` | 1600 minibinder sequences (8 per backbone) |
+| `pipeline_results/outputs/mpnn/all_sequences.json` | Full metadata with sequence recovery scores |
 
-## What's running
+## Top candidates
 
-Anti-idiotypic minibinder design against **2Rs15d nanobody CDR face** (CH1-kicker design).
+Sequences ranked by lowest `sequence_recovery` (most novel relative to nanobody).
+Top designs have recovery ~0.10-0.20, meaning the minibinder sequence is
+80-90% novel (not copying the nanobody it sits against).
 
-```
-Input:     her2_nanobody_VHH.pdb (chain B, 115 residues)
-Contig:    B1-115/0,50  →  fix nanobody, design 50-res minibinder
-Hotspots:  CDR1 (B26-33) + CDR2 (B50-57) + CDR3 (B97-112)
-Output:    CIF files with 165 res (1-115=nanobody, 116-165=minibinder)
-```
+## Next steps
 
-Pipeline: RFdiffusion3 (200 designs) → ProteinMPNN (8 seqs/backbone) → `minibinder_sequences.fasta`
+1. **AF2-Multimer validation**: fold top 20 sequences in complex with the nanobody
+   to confirm the minibinder adopts the designed conformation and contacts CDRs.
+2. **Rosetta energy filter**: ΔΔG < -5 REU for nanobody-minibinder interface.
+3. **Experimental validation**: SPR/BLI binding assay of top candidates vs 2Rs15d nanobody.
 
-## Monitor
-
-```bash
-ssh -i $LAMBDA_SSH_KEY ubuntu@150.136.66.45 \
-  "grep -v WARNING ~/pipeline/run.log | tail -5; \
-   echo 'CIF count:' \$(ls ~/pipeline/outputs/rfd3/*.cif 2>/dev/null | wc -l)"
-```
-
-## Terminate when done
-
-```bash
-curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
-  -H "Authorization: Bearer $LAMBDA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"instance_ids": ["790ebff8788b4ac8814822b5f0fc419b"]}'
-```
+## Cost: ~$0.70 total (21 min at $1.99/hr)
