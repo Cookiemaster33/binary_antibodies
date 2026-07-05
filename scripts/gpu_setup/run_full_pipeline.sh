@@ -362,7 +362,13 @@ docker run --rm --gpus all \
     -v $PIPELINE:/workspace \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \
     rosettacommons/foundry:latest \
-    python3 /workspace/final_score.py
+    # Replace the final_score.py heredoc with a call to the tested scoring module
+    python3 /workspace/binary_antibodies/scoring.py \
+        --pipeline-dir /workspace \
+        --mode single_chain \
+        --plddt-threshold 0.60 \
+        --scrmsd-threshold 2.0 \
+        --n-top-cifs 10
 
 # ── Step 5: Push to GitHub ────────────────────────────────────────
 echo ""

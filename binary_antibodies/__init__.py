@@ -14,6 +14,7 @@ from .sequences import LinkerSequence
 from .split_scfv import SplitScFvSwitch
 from .minibinder import MinibinderDesignSpec
 from .kicker import KickerGeometry, KickerConstruct
+from .scoring import score_all_designs, parse_boltz_confidence, kabsch_rmsd
 from .structures import (
     download_pdb, load_structure, extract_variable_domain,
     analyse_vh_vl_interface, interface_summary,
