@@ -1,16 +1,13 @@
 #!/bin/bash
 # ============================================================
-# run_full_pipeline.sh
-# --------------------
-# Fully integrated pipeline on ONE instance:
-#   1. RFdiffusion3 — design bispecific bridging minibinder
-#   2. ProteinMPNN  — design sequences
-#   3. Boltz-2      — predict full 3-chain complex for top-50
-#   4. scRMSD       — compare Boltz-2 minibinder to RFd3 backbone
-#                     (possible because CIFs are on the same instance)
+# run_full_pipeline.sh  v2
+# RFdiffusion3 + ProteinMPNN + Boltz-2 (single-chain) + scRMSD
 #
-# Design: VH1(A, 115 res) + Minibinder(55 res) + Nanobody(B, 115 res)
-# Contig: A1-115,55,B1-115
+# Design changes:
+#   - 4-chain input: VH1(A) + VL(B, steric context) + Nanobody(C)
+#   - VH1 hotspots exclude VH-VL interface overlap (39,41,85 removed)
+#   - Boltz-2 folds the CONNECTED single chain (not 3 separate chains)
+#     → scRMSD is meaningful because topology is preserved
 # ============================================================
 set -eo pipefail
 PIPELINE=/home/ubuntu/pipeline
@@ -21,36 +18,26 @@ N_DESIGNS=${N_DESIGNS:-200}
 BATCH_SIZE=${BATCH_SIZE:-10}
 N_MPNN_SEQS=${N_MPNN_SEQS:-8}
 N_BATCHES=$(( (N_DESIGNS + BATCH_SIZE - 1) / BATCH_SIZE ))
-TOP_N=${TOP_N:-50}   # how many designs to run through Boltz-2
+TOP_N=${TOP_N:-50}
 
-echo "===== Full integrated pipeline: $(date) ====="
+echo "===== Full integrated pipeline v2: $(date) ====="
 echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
-echo "N_DESIGNS=$N_DESIGNS  N_MPNN_SEQS=$N_MPNN_SEQS  TOP_N=$TOP_N"
 mkdir -p $PIPELINE/outputs/rfd3 $PIPELINE/outputs/mpnn \
-         $PIPELINE/boltz_inputs $PIPELINE/boltz_outputs $PIPELINE/final
+         $PIPELINE/boltz_inputs $PIPELINE/boltz_outputs \
+         $PIPELINE/final $PIPELINE/top_structures
 
-# ── 1. Install Boltz-2 ───────────────────────────────────────────
-echo ""
-echo "=== Step 0: Install Boltz-2 (background) ==="
+# ── Step 0: Install Boltz-2 + pull Docker in parallel ────────────
 pip install boltz[cuda] -U -q > $PIPELINE/boltz_install.log 2>&1 &
-BOLTZ_INSTALL_PID=$!
-echo "  Boltz-2 installing in background (PID $BOLTZ_INSTALL_PID)..."
-
-# ── 2. Pull foundry Docker (parallel with Boltz install) ─────────
-echo "=== Step 0b: Pull foundry Docker (parallel) ==="
+BOLTZ_PID=$!
 sudo chmod 666 /var/run/docker.sock
 docker pull rosettacommons/foundry:latest > $PIPELINE/docker_pull.log 2>&1 &
 DOCKER_PID=$!
-echo "  Docker pull in background (PID $DOCKER_PID)..."
+echo "Installing Boltz-2 (PID $BOLTZ_PID) + pulling Docker (PID $DOCKER_PID) in parallel..."
+wait $DOCKER_PID && echo "Docker ready."
 
-# Wait for Docker (needed first for RFd3)
-echo "  Waiting for Docker pull..."
-wait $DOCKER_PID && echo "  Docker ready." || echo "  Docker pull error."
-
-# ── 3. RFdiffusion3 ──────────────────────────────────────────────
+# ── Step 1: RFdiffusion3 ─────────────────────────────────────────
 echo ""
-echo "=== Step 1/4: RFdiffusion3 (bispecific bridging minibinder) ==="
-
+echo "=== Step 1/4: RFdiffusion3 (4-chain context) ==="
 cat > $PIPELINE/run_rfd3.py << 'PYEOF'
 import os, torch
 from pathlib import Path
@@ -59,27 +46,28 @@ from rfd3.engine import RFD3InferenceConfig, RFD3InferenceEngine
 from rfd3.inference.input_parsing import DesignInputSpecification
 torch.set_float32_matmul_precision('high')
 
-INPUT  = "/workspace/inputs/vh1_nanobody_design_target.pdb"
+INPUT  = "/workspace/inputs/vh1_vl_nanobody_design_target.pdb"
 OUT    = Path("/workspace/outputs/rfd3")
 N      = int(os.environ.get("N_DESIGNS", 200))
 BATCH  = int(os.environ.get("BATCH_SIZE", 10))
 NBATCH = max(1, N // BATCH)
 OUT.mkdir(parents=True, exist_ok=True)
 
+# VH1 CH1-face hotspots (EXCLUDING VH-VL overlap residues 39,41,85)
+# VL is chain B — in input PDB but NOT in contig → steric clash avoidance
 HOTSPOTS = (
-    "A11,A12,A13,A14,A15,A39,A40,A41,"
-    "A79,A80,A81,A82,A83,A84,A85,"
+    "A11,A12,A13,A14,A15,A40,"
+    "A79,A80,A81,A82,A83,A84,"
     "A103,A104,A105,A106,A107,A108,A109,A110,A111,A112,A113,A114,A115,"
-    "B27,B28,B29,B30,B31,B32,B33,"
-    "B52,B53,B54,B55,B56,B57,"
-    "B99,B100,B101,B102,B103,B104,B105,B106,B107,B108,B109,B110,B111,B112"
+    "C27,C28,C29,C30,C31,C32,C33,"
+    "C52,C53,C54,C55,C56,C57,"
+    "C99,C100,C101,C102,C103,C104,C105,C106,C107,C108,C109,C110,C111,C112"
 )
-
-print(f"RFd3: {N} designs  contig=A1-115,55,B1-115")
-spec   = DesignInputSpecification.safe_init(
-    input=INPUT, contig="A1-115,55,B1-115", select_hotspots=HOTSPOTS)
-model  = RFD3InferenceEngine(**RFD3InferenceConfig(diffusion_batch_size=BATCH))
-
+print(f"RFd3: {N} designs | 4-chain context (VL=chain B as steric barrier)")
+print(f"Excluded VH hotspots 39,41,85 (VH-VL interface overlap)")
+spec = DesignInputSpecification.safe_init(
+    input=INPUT, contig="A1-115,55,C1-115", select_hotspots=HOTSPOTS)
+model = RFD3InferenceEngine(**RFD3InferenceConfig(diffusion_batch_size=BATCH))
 saved = 0
 for bi in range(NBATCH):
     print(f"  Batch {bi+1}/{NBATCH} ...", flush=True)
@@ -87,7 +75,7 @@ for bi in range(NBATCH):
         for i, d in enumerate(designs):
             to_cif_file(d.atom_array, str(OUT / f"mb_b{bi:03d}_{i:03d}.cif"))
             saved += 1
-print(f"RFd3 done: {saved} designs  (A=VH1 1-115, MB=116-170, B=Nanobody 171-285)")
+print(f"RFd3 done: {saved} designs")
 PYEOF
 
 docker run --rm --gpus all \
@@ -97,12 +85,11 @@ docker run --rm --gpus all \
     rosettacommons/foundry:latest \
     python3 /workspace/run_rfd3.py
 
-echo "RFd3 done: $(ls $PIPELINE/outputs/rfd3/mb_*.cif | wc -l) designs"
+echo "RFd3: $(ls $PIPELINE/outputs/rfd3/mb_*.cif | wc -l) designs done"
 
-# ── 4. ProteinMPNN ───────────────────────────────────────────────
+# ── Step 2: ProteinMPNN ──────────────────────────────────────────
 echo ""
 echo "=== Step 2/4: ProteinMPNN ==="
-
 cat > $PIPELINE/run_mpnn.py << 'PYEOF'
 import os, json
 from pathlib import Path
@@ -119,7 +106,7 @@ engine = MPNNInferenceEngine(model_type="protein_mpnn", is_legacy_weights=True,
 
 results = []
 cifs = sorted(RFD3.glob("mb_*.cif"))
-print(f"MPNN: {len(cifs)} × {NSEQS}  (designing residues 116-170)")
+print(f"MPNN: {len(cifs)} × {NSEQS}")
 
 for idx, cif in enumerate(cifs):
     raw = load_any(str(cif)); aa = raw[0] if hasattr(raw,"__getitem__") else raw
@@ -130,19 +117,17 @@ for idx, cif in enumerate(cifs):
     for r in (result if isinstance(result,list) else [result]):
         seq = r.output_dict.get("designed_sequence","")
         rec = float(r.output_dict.get("sequence_recovery",0))
-        results.append({"backbone": cif.stem, "full_sequence": seq,
-                        "minibinder_sequence": seq[115:171] if len(seq)>=171 else seq[115:],
-                        "sequence_recovery": rec})
+        results.append({"backbone":cif.stem,"full_sequence":seq,
+                        "minibinder_sequence":seq[115:171] if len(seq)>=171 else seq[115:],
+                        "sequence_recovery":rec})
     if (idx+1)%20==0: print(f"  {idx+1}/{len(cifs)} done...", flush=True)
 
 results.sort(key=lambda x: x["sequence_recovery"])
 json.dump(results, open(OUT/"all_sequences.json","w"), indent=2)
-fasta = OUT/"minibinder_sequences.fasta"
-with open(fasta,"w") as f:
+with open(OUT/"minibinder_sequences.fasta","w") as f:
     for i,r in enumerate(results):
         f.write(f">rank_{i+1}_{r['backbone']}_rec{r['sequence_recovery']:.3f}\n{r['minibinder_sequence']}\n")
 print(f"MPNN done: {len(results)} sequences")
-if results: print(f"Top: {results[0]['minibinder_sequence'][:50]}  rec={results[0]['sequence_recovery']:.3f}")
 PYEOF
 
 docker run --rm --gpus all \
@@ -152,353 +137,236 @@ docker run --rm --gpus all \
     rosettacommons/foundry:latest \
     python3 /workspace/run_mpnn.py
 
-# ── 5. Wait for Boltz-2 install to finish ────────────────────────
+# ── Step 3: Boltz-2 SINGLE-CHAIN validation ──────────────────────
 echo ""
-echo "=== Waiting for Boltz-2 install to complete ==="
-wait $BOLTZ_INSTALL_PID 2>/dev/null || true
-if ! $HOME/.local/bin/boltz --help &>/dev/null; then
-    echo "  Re-installing Boltz-2..."
-    pip install boltz[cuda] -U -q
-fi
-echo "  Boltz-2 ready: $(python3 -c 'import boltz; print(boltz.__version__)')"
+echo "=== Step 3/4: Boltz-2 (single connected chain) ==="
 
-# Also download Boltz CCD data now (first-run download)
-echo "  Pre-downloading Boltz CCD data..."
-python3 -c "from boltz.main import download; download('$HOME/.boltz')" 2>/dev/null || true
+wait $BOLTZ_PID 2>/dev/null || pip install boltz[cuda] -U -q
+pip install -q 'networkx>=3.0' 'platformdirs>=3.0' 2>/dev/null || true
 
-# ── 6. Build Boltz-2 inputs + run ────────────────────────────────
-echo ""
-echo "=== Step 3/4: Boltz-2 complex prediction (top $TOP_N designs) ==="
+cat > $PIPELINE/build_boltz_inputs.py << 'PYEOF'
+"""
+Build Boltz-2 inputs for SINGLE-CHAIN validation.
 
-python3 << PYEOF
+For each top-N design, build ONE sequence:
+  VH1(115) + Minibinder(55) + Nanobody(115) = 285 residues
+  (same as the RFd3 CIF single chain — no explicit linkers)
+
+Boltz-2 predicts the folded structure of this single chain.
+scRMSD: align Boltz-2 on VH1(1-115)+Nb(171-285), measure RMSD of MB(116-170).
+
+This is the correct self-consistency check for a CONNECTED bispecific binder.
+"""
 import json
 from pathlib import Path
+from atomworks.io.utils.io_utils import load_any
+import biotite.sequence as bseq
 
-mpnn_data = json.load(open("$PIPELINE/outputs/mpnn/all_sequences.json"))
-validation = json.load(open("$PIPELINE/validation_inputs.json"))
-VH1_SEQ = validation["VH1_seq"]
-NB_SEQ  = validation["NB_seq"]
+PIPELINE = Path("/workspace")
+MPNN_OUT = PIPELINE / "outputs/mpnn"
+RFD3_OUT = PIPELINE / "outputs/rfd3"
+BOLTZ_IN = PIPELINE / "boltz_inputs"
+BOLTZ_IN.mkdir(exist_ok=True)
 
-# Top-N unique backbones
+mpnn_data = json.load(open(MPNN_OUT/"all_sequences.json"))
+mpnn_data.sort(key=lambda x: x["sequence_recovery"])
 seen, top_designs = set(), []
 for r in mpnn_data:
     if r["backbone"] not in seen:
         seen.add(r["backbone"]); top_designs.append(r)
-    if len(top_designs) >= $TOP_N: break
+    if len(top_designs) >= int(__import__('os').environ.get("TOP_N", 50)): break
 
-VH1_CONTACTS = [11,12,13,14,15,39,40,41,79,80,81,82,83,84,85,103,104,105,106,107,108,109,110,111,112,113,114,115]
-NB_CDR       = list(range(27,34)) + list(range(52,58)) + list(range(99,113))
-
-outdir = Path("$PIPELINE/boltz_inputs")
-outdir.mkdir(exist_ok=True)
-
-# Save design list for scRMSD step
-json.dump({"designs": [{"rank":i+1,"backbone":r["backbone"],
-                         "minibinder_sequence":r["minibinder_sequence"],
-                         "sequence_recovery":r["sequence_recovery"]}
-                        for i,r in enumerate(top_designs)],
-            "VH1_seq": VH1_SEQ, "NB_seq": NB_SEQ},
-          open("$PIPELINE/top_designs.json","w"), indent=2)
-
-contacts_str = (
-    "[" +
-    ", ".join(f'["A", {res}]' for res in VH1_CONTACTS) + ", " +
-    ", ".join(f'["C", {res}]' for res in NB_CDR) +
-    "]"
-)
+print(f"Building {len(top_designs)} single-chain Boltz-2 inputs...")
+design_list = []
 for i, r in enumerate(top_designs):
-    name = f"rank{i+1:02d}_{r['backbone']}_rec{r['sequence_recovery']:.3f}"
-    yaml = f"""sequences:
-  - protein:
-      id: A
-      sequence: "{VH1_SEQ}"
-      msa: empty
-  - protein:
-      id: B
-      sequence: "{r['minibinder_sequence']}"
-      msa: empty
-  - protein:
-      id: C
-      sequence: "{NB_SEQ}"
-      msa: empty
-constraints:
-  - pocket:
-      binder: B
-      contacts: {contacts_str}
-      max_distance: 10.0
-"""
-    (outdir / f"{name}.yaml").write_text(yaml)
+    bb = r["backbone"]
+    # Extract full 285-residue sequence from the RFd3 MPNN output
+    full_seq = r["full_sequence"]  # VH1(1-115) + Minibinder(116-170) + Nanobody(171-285)
+    if len(full_seq) < 171:
+        print(f"  Skip {bb}: short sequence ({len(full_seq)})"); continue
 
-print(f"Wrote {len(top_designs)} YAML files for Boltz-2")
-PYEOF
-
-$HOME/.local/bin/boltz predict $PIPELINE/boltz_inputs \
-    --out_dir $PIPELINE/boltz_outputs \
-    --devices 1 \
-    --num_workers 2 \
-    --override 2>&1 | tee $PIPELINE/boltz_run.log
-
-echo "Boltz-2 predictions done."
-
-# ── 7. scRMSD + ipTM scoring ─────────────────────────────────────
-echo ""
-echo "=== Step 4/4: scRMSD (Boltz-2 vs RFd3 backbone) + ipTM ==="
-
-python3 << 'PYEOF'
-import json, glob
-from pathlib import Path
-import numpy as np
-
-PIPELINE   = Path("/home/ubuntu/pipeline")
-RFD3_OUT   = PIPELINE / "outputs/rfd3"
-BOLTZ_OUT  = PIPELINE / "boltz_outputs"
-FINAL      = PIPELINE / "final"
-FINAL.mkdir(exist_ok=True)
-
-top_data = json.load(open(PIPELINE / "top_designs.json"))
-designs  = top_data["designs"]
-
-# ── Helpers ──────────────────────────────────────────────────────
-def kabsch_rmsd(P, Q):
-    P = P - P.mean(0); Q = Q - Q.mean(0)
-    U, S, Vt = np.linalg.svd(P.T @ Q)
-    d = np.linalg.det(Vt.T @ U.T)
-    R = Vt.T @ np.diag([1,1,d]) @ U.T
-    return float(np.sqrt(np.mean(np.sum((P @ R.T - Q)**2, axis=1))))
-
-def load_cif_ca(cif_path, chain_id=None, res_min=None, res_max=None):
-    """Load Cα coords from a CIF file using biotite."""
-    import biotite.structure.io.pdbx as pdbx
-    cif = pdbx.CIFFile.read(str(cif_path))
-    aa  = pdbx.get_structure(cif, model=1, include_bonds=False)
-    mask = aa.atom_name == "CA"
-    if chain_id:  mask &= (aa.chain_id == chain_id)
-    if res_min:   mask &= (aa.res_id >= res_min)
-    if res_max:   mask &= (aa.res_id <= res_max)
-    return aa.coord[mask], aa.res_id[mask]
-
-def load_rfd3_ca(cif_path, res_min, res_max):
-    """Load Cα from RFd3 single-chain CIF (all chain A)."""
-    from atomworks.io.utils.io_utils import load_any
-    raw = load_any(str(cif_path))
-    aa  = raw[0] if hasattr(raw, "__getitem__") else raw
-    ch  = list(set(aa.chain_id))[0]
-    mask = (aa.chain_id == ch) & np.isin(aa.atom_name, ["CA"]) & \
-           (aa.res_id >= res_min) & (aa.res_id <= res_max)
-    return aa.coord[mask]
-
-results = []
-for r in designs:
-    rank, bb, mb = r["rank"], r["backbone"], r["minibinder_sequence"]
+    rank = i + 1
     rec  = r["sequence_recovery"]
     name = f"rank{rank:02d}_{bb}_rec{rec:.3f}"
 
-    # Boltz-2 output CIF
-    boltz_cifs = sorted(glob.glob(
-        str(BOLTZ_OUT / f"**/{name}/**/*.cif"), recursive=True))
-    # Confidence JSON
-    conf_files = sorted(glob.glob(
-        str(BOLTZ_OUT / f"**/{name}*/**/*confidence*.json"), recursive=True))
+    # Single-chain YAML — Boltz-2 folds it as one polypeptide
+    yaml = f"""sequences:
+  - protein:
+      id: A
+      sequence: "{full_seq}"
+      msa: empty
+"""
+    (BOLTZ_IN / f"{name}.yaml").write_text(yaml)
+    design_list.append({"rank":rank,"backbone":bb,"minibinder_sequence":r["minibinder_sequence"],
+                        "sequence_recovery":rec})
 
-    plddt = iptm_ab = iptm_bc = 0.0
-    if conf_files:
-        try:
-            c = json.load(open(conf_files[0]))
-            plddt   = float(c.get("mean_plddt", 0) or 0)
-            pair    = c.get("pair_chains_iptm", c.get("chain_pair_iptm", {}))
-            if isinstance(pair, dict):
-                iptm_ab = float(pair.get("A-B", pair.get("AB", 0)) or 0)
-                iptm_bc = float(pair.get("B-C", pair.get("BC", 0)) or 0)
-            if not iptm_ab:
-                iptm_ab = iptm_bc = float(c.get("iptm", 0) or 0)
-        except Exception as e:
-            print(f"  Conf parse error {name}: {e}")
-
-    # scRMSD: superimpose Boltz VH1(A)+Nb(C) onto RFd3, then measure MB RMSD
-    sc_rmsd = 999.0
-    if boltz_cifs:
-        try:
-            rfd3_cif = RFD3_OUT / f"{bb}.cif"
-            if rfd3_cif.exists():
-                # RFd3 backbone (single chain A): VH1=1-115, MB=116-170, Nb=171-285
-                rfd3_vh1 = load_rfd3_ca(rfd3_cif, 1,   115)
-                rfd3_mb  = load_rfd3_ca(rfd3_cif, 116, 170)
-                rfd3_nb  = load_rfd3_ca(rfd3_cif, 171, 285)
-
-                # Boltz-2 output (3 chains: A=VH1, B=MB, C=Nb)
-                boltz_vh1, _ = load_cif_ca(boltz_cifs[0], chain_id="A")
-                boltz_mb,  _ = load_cif_ca(boltz_cifs[0], chain_id="B")
-                boltz_nb,  _ = load_cif_ca(boltz_cifs[0], chain_id="C")
-
-                # Build alignment anchor: VH1 + Nanobody (the fixed parts)
-                n_vh1 = min(len(boltz_vh1), len(rfd3_vh1))
-                n_nb  = min(len(boltz_nb),  len(rfd3_nb))
-                n_mb  = min(len(boltz_mb),  len(rfd3_mb))
-
-                if n_vh1 > 10 and n_nb > 10 and n_mb > 5:
-                    P_anch = np.vstack([boltz_vh1[:n_vh1], boltz_nb[:n_nb]])
-                    Q_anch = np.vstack([rfd3_vh1[:n_vh1],  rfd3_nb[:n_nb]])
-
-                    P_c = P_anch - P_anch.mean(0)
-                    Q_c = Q_anch - Q_anch.mean(0)
-                    U, S, Vt = np.linalg.svd(P_c.T @ Q_c)
-                    d = np.linalg.det(Vt.T @ U.T)
-                    Rmat = Vt.T @ np.diag([1,1,d]) @ U.T
-
-                    # Apply rotation+translation to Boltz MB
-                    boltz_mb_aligned = (boltz_mb[:n_mb] - P_anch.mean(0)) @ Rmat.T + Q_anch.mean(0)
-                    sc_rmsd = kabsch_rmsd(boltz_mb_aligned, rfd3_mb[:n_mb])
-                else:
-                    print(f"  Length issue {name}: VH1={n_vh1} Nb={n_nb} MB={n_mb}")
-        except Exception as e:
-            print(f"  scRMSD error {name}: {e}")
-
-    passed = sc_rmsd < 2.0 and plddt > 60 and iptm_ab > 0.3 and iptm_bc > 0.3
-    results.append({
-        "rank": rank, "backbone": bb,
-        "minibinder_sequence": mb,
-        "sequence_recovery": rec,
-        "boltz_mean_plddt": round(plddt, 1),
-        "iptm_MB_VH1": round(iptm_ab, 3),
-        "iptm_MB_Nb":  round(iptm_bc, 3),
-        "sc_rmsd_A": round(sc_rmsd, 3),
-        "pass_filter": passed,
-    })
-    print(f"  rank{rank:02d} {bb}  scRMSD={sc_rmsd:.2f}Å  "
-          f"pLDDT={plddt:.1f}  ipTM↔VH1={iptm_ab:.3f}  ipTM↔Nb={iptm_bc:.3f}"
-          f"{'  ✓' if passed else ''}")
-
-# Sort by scRMSD (ascending), then ipTMs
-results.sort(key=lambda x: (x["sc_rmsd_A"] if x["sc_rmsd_A"]<900 else 999,
-                             -(x["iptm_MB_VH1"]*x["iptm_MB_Nb"])**0.5))
-
-json.dump(results, open(FINAL/"final_results.json","w"), indent=2)
-passing = [r for r in results if r["pass_filter"]]
-
-with open(FINAL/"validated_minibinders.fasta","w") as f:
-    for r in passing:
-        f.write(f">{r['backbone']}"
-                f"__scRMSD{r['sc_rmsd_A']:.2f}"
-                f"__pLDDT{r['boltz_mean_plddt']:.0f}"
-                f"__ipTM_VH1_{r['iptm_MB_VH1']:.2f}"
-                f"__ipTM_Nb_{r['iptm_MB_Nb']:.2f}\n"
-                f"{r['minibinder_sequence']}\n")
-
-print(f"\n{'='*70}")
-print(f"{'R':>3}  {'Backbone':>28}  {'scRMSD':>7}  {'pLDDT':>6}  {'↔VH1':>5}  {'↔Nb':>5}  Pass")
-print("  " + "-"*68)
-for r in results[:20]:
-    print(f"{r['rank']:>3}.  {r['backbone']:>28}  {r['sc_rmsd_A']:>7.3f}  "
-          f"{r['boltz_mean_plddt']:>6.1f}  {r['iptm_MB_VH1']:>5.3f}  "
-          f"{r['iptm_MB_Nb']:>5.3f}{'  ✓' if r['pass_filter'] else ''}")
-
-print(f"\nPassed filter (scRMSD<2Å, pLDDT>60, both ipTM>0.3): {len(passing)}/{len(results)}")
-if passing:
-    p = passing[0]
-    print(f"\nBest validated design:")
-    print(f"  Backbone:   {p['backbone']}")
-    print(f"  Sequence:   {p['minibinder_sequence']}")
-    print(f"  scRMSD:     {p['sc_rmsd_A']:.2f} Å  (< 2.0 Å = correct position ✓)")
-    print(f"  pLDDT:      {p['boltz_mean_plddt']:.0f}")
-    print(f"  ipTM↔VH1:   {p['iptm_MB_VH1']:.3f}  (> 0.3 = confident interface ✓)")
-    print(f"  ipTM↔Nb:    {p['iptm_MB_Nb']:.3f}  (> 0.3 = confident interface ✓)")
+json.dump({"designs":design_list,
+           "validation_note":"Single connected chain: VH1(1-115)+MB(116-170)+Nb(171-285). "
+                             "scRMSD aligns on VH1+Nb portions, measures MB RMSD."},
+          open(PIPELINE/"top_designs.json","w"), indent=2)
+print(f"Wrote {len(design_list)} YAML files")
 PYEOF
 
-echo ""
-echo "===== Full pipeline complete: $(date) ====="
-echo "Results in: $PIPELINE/final/"
-ls -lh $PIPELINE/final/
+docker run --rm --gpus all \
+    -v $PIPELINE:/workspace \
+    -e TOP_N=$TOP_N \
+    -e FOUNDRY_CHECKPOINT_DIRS=/weights \
+    rosettacommons/foundry:latest \
+    python3 /workspace/build_boltz_inputs.py
 
-# ── 8. Collect top-10 structure files ────────────────────────────
-echo ""
-echo "=== Collecting top-10 CIF structures ==="
+N_YAML=$(ls $PIPELINE/boltz_inputs/*.yaml | wc -l)
+echo "Running Boltz-2 on $N_YAML single-chain sequences..."
 
-python3 << 'PYEOF'
-import json, shutil, os
+$HOME/.local/bin/boltz predict $PIPELINE/boltz_inputs \
+    --out_dir $PIPELINE/boltz_outputs \
+    --devices 1 --num_workers 2 --override 2>&1 | \
+    grep -E "Predicting|Saving|Done|Error" | head -20
+
+# ── Step 4: scRMSD scoring ────────────────────────────────────────
+echo ""
+echo "=== Step 4/4: scRMSD + ipTM scoring ==="
+
+cat > $PIPELINE/final_score.py << 'PYEOF'
+"""
+scRMSD: compare Boltz-2 single-chain prediction to RFd3 backbone.
+Alignment: VH1(A,1-115) + Nanobody(A,171-285) as rigid anchors.
+Metric:    RMSD of Minibinder(A,116-170) after alignment.
+"""
+import json, glob, shutil
 from pathlib import Path
 import numpy as np
 
-HOME      = Path.home()
-PIPELINE  = HOME / "pipeline"
+PIPELINE   = Path("/workspace")
 BOLTZ_BASE = PIPELINE / "boltz_outputs/boltz_results_boltz_inputs/predictions"
-RFD3_OUT  = PIPELINE / "outputs/rfd3"
-MPNN_OUT  = PIPELINE / "outputs/mpnn"
-STRUCTS   = PIPELINE / "top_structures"
-STRUCTS.mkdir(exist_ok=True)
+RFD3_OUT   = PIPELINE / "outputs/rfd3"
+MPNN_OUT   = PIPELINE / "outputs/mpnn"
+FINAL      = PIPELINE / "final"
+STRUCTS    = PIPELINE / "top_structures"
+for d in [FINAL, STRUCTS]: d.mkdir(exist_ok=True)
 
-# Load final results
-results = json.load(open(PIPELINE / "final/final_results.json"))
+from atomworks.io.utils.io_utils import load_any
+import biotite.structure.io.pdbx as pdbx
 
-# Rank by geometric mean of ipTMs (both interfaces must be good)
-results_with_score = []
-for r in results:
-    if r["iptm_MB_VH1"] > 0 and r["iptm_MB_Nb"] > 0:
-        combined = (r["iptm_MB_VH1"] * r["iptm_MB_Nb"]) ** 0.5
-    else:
-        combined = 0
-    results_with_score.append((combined, r))
+def kabsch_rmsd(P, Q):
+    P=P-P.mean(0); Q=Q-Q.mean(0)
+    U,S,Vt=np.linalg.svd(P.T@Q); d=np.linalg.det(Vt.T@U.T)
+    R=Vt.T@np.diag([1,1,d])@U.T
+    return float(np.sqrt(np.mean(np.sum((P@R.T-Q)**2,axis=1))))
 
-results_with_score.sort(reverse=True, key=lambda x: x[0])
-top10 = [r for _, r in results_with_score[:10]]
+def rfd3_ca(cif,r1,r2):
+    raw=load_any(str(cif)); aa=raw[0] if hasattr(raw,"__getitem__") else raw
+    ch=list(set(aa.chain_id))[0]
+    m=(aa.chain_id==ch)&np.isin(aa.atom_name,["CA"])&(aa.res_id>=r1)&(aa.res_id<=r2)
+    return aa.coord[m]
 
-print(f"Top 10 designs by √(ipTM_VH1 × ipTM_Nb):")
-for i, r in enumerate(top10):
-    bb = r["backbone"]
-    name = f"rank{r['rank']:02d}_{bb}_rec{r['sequence_recovery']:.3f}"
-    combined = (r["iptm_MB_VH1"] * r["iptm_MB_Nb"]) ** 0.5
+def boltz_single_ca(cif, r1, r2):
+    """Boltz-2 single-chain prediction — all residues on chain A."""
+    aa=pdbx.get_structure(pdbx.CIFFile.read(str(cif)),model=1,include_bonds=False)
+    m=(aa.atom_name=="CA")&(aa.chain_id=="A")&(aa.res_id>=r1)&(aa.res_id<=r2)
+    return aa.coord[m]
 
-    # Copy RFd3 CIF (the designed backbone)
-    rfd3_src = RFD3_OUT / f"{bb}.cif"
-    if rfd3_src.exists():
-        shutil.copy(rfd3_src, STRUCTS / f"top{i+1:02d}_{bb}_rfd3_backbone.cif")
-        print(f"  top{i+1:02d} {bb}  √ipTM={combined:.3f}  pLDDT={r['boltz_plddt_pct']:.0f}%  ✓ RFd3 CIF")
-    else:
-        print(f"  top{i+1:02d} {bb}  ✗ RFd3 CIF not found")
+top_data = json.load(open(PIPELINE/"top_designs.json"))
+designs  = top_data["designs"]
+pred_dirs = {d.name:d for d in BOLTZ_BASE.iterdir() if d.is_dir()}
 
-    # Copy Boltz-2 CIF (the predicted complex)
-    boltz_cif = BOLTZ_BASE / name / f"{name}_model_0.cif"
-    if boltz_cif.exists():
-        shutil.copy(boltz_cif, STRUCTS / f"top{i+1:02d}_{bb}_boltz2_complex.cif")
-        print(f"           ✓ Boltz-2 complex CIF")
-    else:
-        print(f"           ✗ Boltz-2 CIF not found ({boltz_cif})")
+results = []
+for r in designs:
+    rank,bb,mb,rec = r["rank"],r["backbone"],r["minibinder_sequence"],r["sequence_recovery"]
+    name = f"rank{rank:02d}_{bb}_rec{rec:.3f}"
+    pred_dir = pred_dirs.get(name)
 
-# Save a summary TSV for easy reading
-with open(STRUCTS / "top10_summary.tsv", "w") as f:
-    f.write("rank\tbackbone\tcombined_iptm\tiptm_VH1\tiptm_Nb\tpLDDT_pct\tsc_rmsd_A\tminibinder_sequence\n")
-    for i, r in enumerate(top10):
-        combined = (r["iptm_MB_VH1"] * r["iptm_MB_Nb"]) ** 0.5
-        f.write(f"{i+1}\t{r['backbone']}\t{combined:.3f}\t{r['iptm_MB_VH1']:.3f}\t"
-                f"{r['iptm_MB_Nb']:.3f}\t{r['boltz_plddt_pct']:.1f}\t{r['sc_rmsd_A']:.2f}\t"
-                f"{r['minibinder_sequence']}\n")
+    plddt = iptm = 0.0
+    sc_rmsd = 999.0
 
-print(f"\nSaved {len(list(STRUCTS.glob('*.cif')))} CIF files + summary TSV to {STRUCTS}")
+    if pred_dir:
+        conf = pred_dir / f"confidence_{name}_model_0.json"
+        cif  = pred_dir / f"{name}_model_0.cif"
+        if conf.exists():
+            c = json.load(open(conf))
+            plddt = float(c.get("complex_plddt", 0))
+            iptm  = float(c.get("iptm", 0))  # single chain — use overall pTM/pLDDT
+
+        if cif.exists():
+            try:
+                rc = RFD3_OUT / f"{bb}.cif"
+                if rc.exists():
+                    # RFd3 backbone: single chain, VH1=1-115, MB=116-170, Nb=171-285
+                    rv = rfd3_ca(rc, 1,   115)
+                    rm = rfd3_ca(rc, 116, 170)
+                    rn = rfd3_ca(rc, 171, 285)
+                    # Boltz-2: single chain A, same residue numbering
+                    bv = boltz_single_ca(cif, 1,   115)
+                    bm = boltz_single_ca(cif, 116, 170)
+                    bn = boltz_single_ca(cif, 171, 285)
+                    nv=min(len(bv),len(rv)); nn=min(len(bn),len(rn)); nm=min(len(bm),len(rm))
+                    if nv>10 and nn>10 and nm>5:
+                        P=np.vstack([bv[:nv],bn[:nn]]); Q=np.vstack([rv[:nv],rn[:nn]])
+                        Pc=P-P.mean(0); Qc=Q-Q.mean(0)
+                        U,S,Vt=np.linalg.svd(Pc.T@Qc); d=np.linalg.det(Vt.T@U.T)
+                        Rmat=Vt.T@np.diag([1,1,d])@U.T
+                        sc_rmsd=kabsch_rmsd((bm[:nm]-P.mean(0))@Rmat.T+Q.mean(0),rm[:nm])
+            except Exception as e: print(f"  scRMSD err {bb}: {e}")
+
+    # For single-chain: pLDDT>0.60 AND scRMSD<2Å is a passing design
+    passed = sc_rmsd < 2.0 and plddt > 0.60
+    results.append({"rank":rank,"backbone":bb,"minibinder_sequence":mb,
+                    "sequence_recovery":rec,"boltz_plddt":round(plddt,3),
+                    "boltz_plddt_pct":round(plddt*100,1),
+                    "boltz_iptm":round(iptm,3),
+                    "sc_rmsd_A":round(sc_rmsd,3),"pass_filter":passed})
+
+results.sort(key=lambda x:(x["sc_rmsd_A"] if x["sc_rmsd_A"]<900 else 999, -x["boltz_plddt"]))
+json.dump(results, open(FINAL/"final_results.json","w"), indent=2)
+passing=[r for r in results if r["pass_filter"]]
+with open(FINAL/"validated_minibinders.fasta","w") as f:
+    for r in passing:
+        f.write(f">{r['backbone']}__scRMSD{r['sc_rmsd_A']:.2f}__pLDDT{r['boltz_plddt_pct']:.0f}\n{r['minibinder_sequence']}\n")
+
+# Top-10 by pLDDT x low_scRMSD
+scored=[(r,r["boltz_plddt"]/(r["sc_rmsd_A"] if r["sc_rmsd_A"]<900 else 999+1)) for r in results]
+scored.sort(key=lambda x:-x[1])
+top10=[r for r,_ in scored[:10]]
+
+for i,r in enumerate(top10):
+    bb=r["backbone"]; rec=r["sequence_recovery"]; rank=r["rank"]
+    name=f"rank{rank:02d}_{bb}_rec{rec:.3f}"
+    pred_dir=pred_dirs.get(name)
+    rfd3_src=RFD3_OUT/f"{bb}.cif"
+    if rfd3_src.exists(): shutil.copy(rfd3_src, STRUCTS/f"top{i+1:02d}_{bb}_rfd3.cif")
+    if pred_dir:
+        bs=pred_dir/f"{name}_model_0.cif"
+        if bs.exists(): shutil.copy(bs, STRUCTS/f"top{i+1:02d}_{bb}_boltz2.cif")
+
+with open(STRUCTS/"top10_summary.tsv","w") as f:
+    f.write("rank\tbackbone\tsc_rmsd_A\tboltz_plddt_pct\tboltz_iptm\tsequence_recovery\tminibinder_sequence\n")
+    for i,r in enumerate(top10):
+        f.write(f"{i+1}\t{r['backbone']}\t{r['sc_rmsd_A']}\t{r['boltz_plddt_pct']}\t"
+                f"{r['boltz_iptm']}\t{r['sequence_recovery']}\t{r['minibinder_sequence']}\n")
+
+print(f"\n{'='*72}")
+print(f"{'R':>3}  {'Backbone':>28}  {'scRMSD':>7}  {'pLDDT%':>6}  {'pTM':>5}  Pass")
+print("  "+"-"*70)
+for r in results[:20]:
+    print(f"{r['rank']:>3}.  {r['backbone']:>28}  {r['sc_rmsd_A']:>7.3f}  "
+          f"{r['boltz_plddt_pct']:>6.1f}  {r['boltz_iptm']:>5.3f}{'  ✓' if r['pass_filter'] else ''}")
+print(f"\nPassed (scRMSD<2Å & pLDDT>60%): {len(passing)}/{len(results)}")
+if passing:
+    p=passing[0]
+    print(f"\nBest: {p['backbone']}")
+    print(f"  Sequence: {p['minibinder_sequence']}")
+    print(f"  scRMSD={p['sc_rmsd_A']:.2f}Å  pLDDT={p['boltz_plddt_pct']:.0f}%")
+print(f"Saved {len(list(STRUCTS.glob('*.cif')))} CIF files")
 PYEOF
 
-# Push structures to GitHub
+docker run --rm --gpus all \
+    -v $PIPELINE:/workspace \
+    -e FOUNDRY_CHECKPOINT_DIRS=/weights \
+    rosettacommons/foundry:latest \
+    python3 /workspace/final_score.py
+
+# ── Step 5: Push to GitHub ────────────────────────────────────────
 echo ""
-echo "=== Pushing structures to GitHub ==="
-STRUCTS_DIR=$HOME/pipeline/top_structures
-REPO_STRUCTS=$HOME/repo/pipeline_results/v3_bispecific_validated/structures
-mkdir -p $REPO_STRUCTS
-
-cp -f $STRUCTS_DIR/*.cif $REPO_STRUCTS/ 2>/dev/null || true
-cp -f $STRUCTS_DIR/*.tsv $REPO_STRUCTS/ 2>/dev/null || true
-
-cd $HOME/repo
-git add pipeline_results/v3_bispecific_validated/
-git commit -m "results: top-10 structure CIFs (RFd3 backbone + Boltz-2 complex)
-
-For each top design (ranked by √(ipTM_VH1 × ipTM_Nb)):
-  *_rfd3_backbone.cif   — RFdiffusion3 designed backbone
-  *_boltz2_complex.cif  — Boltz-2 predicted 3-chain complex
-
-Open in PyMOL/ChimeraX to visualize the bispecific bridging minibinder
-between VH1-CH1-face (chain A) and nanobody CDRs (chain C)." 2>&1
-
-GH_TOKEN_VAR=$(cat /tmp/gh_token 2>/dev/null)
-git push "https://x-access-token:${GH_TOKEN_VAR}@github.com/Cookiemaster33/binary_antibodies.git" \
-    cursor/conditional-nanobody-design-992c 2>&1 | tail -3
-
-echo "Structures pushed to GitHub ✓"
-echo "View at: https://github.com/Cookiemaster33/binary_antibodies/pull/1"
+echo "=== Step 5: Push to GitHub ==="
+bash $PIPELINE/push_results.sh
+echo ""
+echo "===== Complete: $(date) ====="
