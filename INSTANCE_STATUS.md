@@ -1,34 +1,25 @@
-# Active Lambda Cloud Instance — FULL PIPELINE RUNNING (with structures)
+# Active Lambda Cloud Instance — PIPELINE v2 RUNNING
 
 | Field | Value |
 |---|---|
-| Instance ID | `59a43a5ff4c647b99baeb366a74876ac` |
-| IP | `129.146.52.56` |
+| Instance ID | `95d1d0703932446c82dff3d34648532b` |
+| IP | `129.146.79.157` |
 | Region | `us-west-2` |
-| Status | **Running — Step 0: Docker pull + Boltz-2 install** |
+| Status | **Step 1/4: RFdiffusion3 running — batch ~2/20** |
 
-## This run adds structure files
+## Pipeline v2 improvements
 
-In addition to JSON scores, this run will push to GitHub:
-- `top01_*_rfd3_backbone.cif` through `top10_*_rfd3_backbone.cif`
-- `top01_*_boltz2_complex.cif` through `top10_*_boltz2_complex.cif`
-- `top10_summary.tsv` — table with all metrics
+1. **4-chain RFd3 design**: VH1(A) + VL(B, steric context) + Nanobody(C)
+   - VL blocks the VH-VL pairing face during design — minibinder CANNOT clash with VL
+   - Removed 3 overlapping hotspots (39,41,85): they contact BOTH CH1 face AND VL
 
-Ranked by √(ipTM_VH1 × ipTM_Nb) — designs where Boltz-2 is most confident
-about BOTH interfaces simultaneously.
+2. **Single-chain Boltz-2 validation**: folds VH1+Minibinder+Nanobody as ONE polypeptide
+   - Same topology as the RFd3 output (no chain separation)
+   - scRMSD < 2 Å is now meaningful — the chain is connected so topology is preserved
 
-## Expected timeline (~90 min total)
+## ETA
 
-| Step | Time |
-|---|---|
-| Docker + Boltz-2 install | ~5 min |
-| RFdiffusion3 (200 designs) | ~20 min |
-| ProteinMPNN | ~10 min |
-| Boltz-2 (50 complexes) | ~45 min |
-| scRMSD + top-10 CIF collection | ~3 min |
-| GitHub push | ~1 min |
-
-## Results will appear in the PR automatically when done
+~90 min total. Results push automatically to GitHub when done.
 
 👉 https://github.com/Cookiemaster33/binary_antibodies/pull/1
 
@@ -38,5 +29,5 @@ about BOTH interfaces simultaneously.
 curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
   -H "Authorization: Bearer $LAMBDA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"instance_ids": ["59a43a5ff4c647b99baeb366a74876ac"]}'
+  -d '{"instance_ids": ["95d1d0703932446c82dff3d34648532b"]}'
 ```
