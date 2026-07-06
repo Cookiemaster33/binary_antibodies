@@ -45,9 +45,15 @@ mkdir -p $PIPELINE/outputs/rfd3 $PIPELINE/outputs/rfd3_round2 \
          $PIPELINE/boltz_outputs $PIPELINE/boltz_outputs_round1 \
          $PIPELINE/final $PIPELINE/top_structures
 
-cp "$PIPELINE_SCRIPT_DIR/rfd3_round2.py" "$PIPELINE/rfd3_round2.py"
-cp "$PIPELINE_SCRIPT_DIR/push_results.sh" "$PIPELINE/push_results.sh"
-chmod +x "$PIPELINE/push_results.sh"
+# Copy helper scripts when launched from a different directory (skip if already in place).
+for script in rfd3_round2.py push_results.sh; do
+    src="$PIPELINE_SCRIPT_DIR/$script"
+    dst="$PIPELINE/$script"
+    if [ "$src" != "$dst" ] && [ -f "$src" ]; then
+        cp "$src" "$dst"
+    fi
+done
+chmod +x "$PIPELINE/push_results.sh" 2>/dev/null || true
 
 # ── Step 0: Install Boltz-2 + pull Docker in parallel ────────────
 pip install boltz[cuda] -U -q > $PIPELINE/boltz_install.log 2>&1 &

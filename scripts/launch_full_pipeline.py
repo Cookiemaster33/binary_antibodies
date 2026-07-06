@@ -37,9 +37,10 @@ from binary_antibodies.lambda_client import LambdaClient, resolve_lambda_api_key
 DEFAULT_INSTANCE_TYPE = "gpu_1x_a100_sxm4"
 DEFAULT_REGION = "us-east-1"
 DEFAULT_SSH_KEY_NAME = os.environ.get("LAMBDA_SSH_KEY_NAME", "cursor-agent")
+REMOTE_TMUX = "tmux"  # plain tmux on Lambda (no /exec-daemon path)
+INPUT_PDB = "structures/domains/vh1_vl_nanobody_design_target.pdb"
 REMOTE_USER = "ubuntu"
 REMOTE_PIPELINE = "/home/ubuntu/pipeline"
-INPUT_PDB = "structures/domains/vh1_vl_nanobody_design_target.pdb"
 
 
 def parse_args() -> argparse.Namespace:
@@ -139,13 +140,13 @@ def upload_pipeline(ip: str, key: str) -> None:
 def run_setup(ip: str, key: str) -> None:
     print("  Running foundry Docker setup ...")
     ssh(ip, key,
-        f"tmux -f /exec-daemon/tmux.portal.conf new-session -d -s setup -c {REMOTE_PIPELINE} "
+        f"{REMOTE_TMUX} new-session -d -s setup -c {REMOTE_PIPELINE} "
         f"'bash {REMOTE_PIPELINE}/setup_pipeline_rfd3.sh 2>&1 | tee setup.log'")
     while True:
         if ssh(ip, key, f"grep -q 'Setup complete' {REMOTE_PIPELINE}/setup.log", check=False) == 0:
             print("  Setup complete.")
             return
-        if ssh(ip, key, "tmux -f /exec-daemon/tmux.portal.conf has-session -t setup", check=False) != 0:
+        if ssh(ip, key, f"{REMOTE_TMUX} has-session -t setup", check=False) != 0:
             ssh(ip, key, f"tail -30 {REMOTE_PIPELINE}/setup.log", check=False)
             raise RuntimeError("Setup session ended unexpectedly")
         time.sleep(20)
@@ -167,21 +168,19 @@ def run_pipeline(ip: str, key: str, args: argparse.Namespace, gh_tok: str) -> No
     ])
     print(f"  Starting pipeline (RFD3_ROUNDS={args.rfd3_rounds}) ...")
     ssh(ip, key,
-        f"tmux -f /exec-daemon/tmux.portal.conf new-session -d -s pipeline -c {REMOTE_PIPELINE} "
+        f"{REMOTE_TMUX} new-session -d -s pipeline -c {REMOTE_PIPELINE} "
         f"\"{env} bash {REMOTE_PIPELINE}/run_full_pipeline.sh\"")
     print(f"  Monitor: ssh -i {args.ssh_key} {REMOTE_USER}@{ip} "
-          f"'tmux -f /exec-daemon/tmux.portal.conf attach -t pipeline'")
+          f"'{REMOTE_TMUX} attach -t pipeline'")
 
+    time.sleep(30)  # let pipeline pass startup before first health check
     while True:
         if ssh(ip, key, f"grep -q 'Complete:' {REMOTE_PIPELINE}/full_pipeline.log", check=False) == 0:
             print("  Pipeline complete!")
             return
-        if ssh(ip, key, "tmux -f /exec-daemon/tmux.portal.conf has-session -t pipeline", check=False) != 0:
+        if ssh(ip, key, f"{REMOTE_TMUX} has-session -t pipeline", check=False) != 0:
             ssh(ip, key, f"tail -40 {REMOTE_PIPELINE}/full_pipeline.log", check=False)
             raise RuntimeError("Pipeline session ended before completion")
-        rc = ssh(ip, key,
-                 f"grep -iE 'error|traceback|failed' {REMOTE_PIPELINE}/full_pipeline.log | tail -3",
-                 check=False)
         time.sleep(60)
 
 
@@ -245,13 +244,17 @@ def main() -> None:
         run_setup(ip, args.ssh_key)
         run_pipeline(ip, args.ssh_key, args, gh_tok)
         print(f"\nResults pushed to {args.results_dir} on branch {args.github_branch}")
-    finally:
         if not args.no_terminate:
             print(f"\nTerminating {instance_id} ...")
             client.terminate(instance_id)
         else:
             print(f"\nInstance still running: {instance_id} @ {ip}")
             print(f"  ssh -i {args.ssh_key} {REMOTE_USER}@{ip}")
+    except Exception:
+        print(f"\nPipeline failed — instance left running for debugging: {instance_id} @ {ip}")
+        print(f"  ssh -i {args.ssh_key} {REMOTE_USER}@{ip}")
+        print(f"  tail -f {REMOTE_PIPELINE}/full_pipeline.log")
+        raise
 
 
 if __name__ == "__main__":
