@@ -2,7 +2,7 @@
 """
 launch_full_pipeline.py
 -----------------------
-Launch Lambda Cloud GPU, run run_full_pipeline.sh (RFd3 → MPNN → Boltz → scRMSD),
+Launch Lambda Cloud GPU, run run_full_pipeline.sh (RFd3 → MPNN → Boltz → global RMSD),
 push results to a new pipeline_results/ subfolder on GitHub.
 
 Usage
@@ -11,7 +11,7 @@ Usage
     python scripts/launch_full_pipeline.py \\
         --ssh-key ~/.ssh/lambda_agent_key \\
         --rfd3-rounds 2 \\
-        --results-dir pipeline_results/v5_two_round_refine
+        --results-dir pipeline_results/v6_global_rmsd_rerun
 
     # Monitor a running job
     python scripts/launch_full_pipeline.py --status
@@ -60,7 +60,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--rfd3-partial-t", type=float, default=2.0)
     p.add_argument(
         "--results-dir",
-        default="pipeline_results/v5_two_round_refine",
+        default="pipeline_results/v6_global_rmsd_rerun",
         help="GitHub subfolder for results (under repo root).",
     )
     p.add_argument("--github-branch", default="cursor/conditional-nanobody-design-992c")

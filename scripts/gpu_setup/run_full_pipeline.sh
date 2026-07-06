@@ -46,6 +46,7 @@ mkdir -p $PIPELINE/outputs/rfd3 $PIPELINE/outputs/rfd3_round2 \
          $PIPELINE/final $PIPELINE/top_structures
 
 # Copy helper scripts when launched from a different directory (skip if already in place).
+mkdir -p "$PIPELINE/binary_antibodies"
 for script in rfd3_round2.py push_results.sh; do
     src="$PIPELINE_SCRIPT_DIR/$script"
     dst="$PIPELINE/$script"
@@ -53,6 +54,10 @@ for script in rfd3_round2.py push_results.sh; do
         cp "$src" "$dst"
     fi
 done
+scoring_src="$PIPELINE_SCRIPT_DIR/../../binary_antibodies/scoring.py"
+if [ -f "$scoring_src" ]; then
+    cp "$scoring_src" "$PIPELINE/binary_antibodies/scoring.py"
+fi
 chmod +x "$PIPELINE/push_results.sh" 2>/dev/null || true
 
 # ── Step 0: Install Boltz-2 + pull Docker in parallel ────────────

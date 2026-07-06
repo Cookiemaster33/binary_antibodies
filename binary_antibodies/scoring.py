@@ -345,6 +345,8 @@ def score_all_designs(
 
     results.sort(key=lambda x: (x["global_rmsd_A"] if x["global_rmsd_A"] < 900 else 999,
                                  -x["boltz_plddt_pct"]))
+    for i, r in enumerate(results):
+        r["rank"] = i + 1
 
     results_path = FINAL / results_filename
     json.dump(results, open(results_path, "w"), indent=2)

@@ -83,9 +83,7 @@ def select_templates(round1_dir: Path) -> list[Path]:
         results = json.load(open(results_path))
         results.sort(
             key=lambda r: (
-                r.get("global_rmsd_A", r.get("sc_rmsd_A", 999))
-                if r.get("global_rmsd_A", r.get("sc_rmsd_A", 999)) < 900
-                else 999,
+                r["global_rmsd_A"] if r.get("global_rmsd_A", 999) < 900 else 999,
                 -r.get("boltz_plddt_pct", 0),
             )
         )
@@ -95,7 +93,10 @@ def select_templates(round1_dir: Path) -> list[Path]:
             bb = row.get("backbone", "")
             if not bb or bb in seen:
                 continue
-            rmsd = row.get("global_rmsd_A", row.get("sc_rmsd_A", 999))
+            if "global_rmsd_A" not in row:
+                print(f"  WARNING: {bb} missing global_rmsd_A — re-score round 1 first")
+                continue
+            rmsd = row["global_rmsd_A"]
             if rmsd >= 900:
                 continue
             path = round1_dir / f"{bb}.cif"
