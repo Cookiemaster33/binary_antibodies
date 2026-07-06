@@ -1,46 +1,30 @@
-# Pipeline Run — v5 Two-Round Partial Diffusion
+# Active Lambda Instance — v5 Two-Round Partial Diffusion
 
-## Status: **Ready to launch** (waiting for `LAMBDA_API_KEY`)
+| Field | Value |
+|---|---|
+| Instance ID | `5314d4de9afc487f8611143bbfc70ffe` |
+| IP | `132.145.134.114` |
+| Status | **Booting → pipeline starting** |
+| Results folder | `pipeline_results/v5_two_round_refine/` |
 
-Results will be saved to a **new folder** (does not overwrite previous runs):
-`pipeline_results/v5_two_round_refine/`
+## Configuration
 
-## Launch command
+- `RFD3_ROUNDS=2` — validate round 1, then partial diffusion on top scRMSD RFd3 backbones
+- Round 1: 200 designs, MB length 35–70
+- Round 2: top 5 templates × 8 designs, `partial_t=2.0`
 
-Add `LAMBDA_API_KEY` to your Cursor Cloud Agent secrets, then re-run the agent or:
-
-```bash
-export LAMBDA_API_KEY=<your-key>
-python scripts/launch_full_pipeline.py \
-    --ssh-key ~/.ssh/lambda_agent_key \
-    --rfd3-rounds 2 \
-    --results-dir pipeline_results/v5_two_round_refine
-```
-
-## Run configuration
-
-| Parameter | Value |
-|-----------|-------|
-| `RFD3_ROUNDS` | 2 |
-| Round 1 designs | 200 |
-| MB length range | 35–70 |
-| Round 2 templates | 5 (lowest round-1 scRMSD RFd3 backbones) |
-| Designs per template | 8 |
-| `partial_t` | 2.0 Å |
-
-## Workflow
-
-```
-Round 1 RFd3 → MPNN → Boltz → scRMSD
-         ↓ pick top 5 by scRMSD (RFd3 CIFs)
-Round 2 partial diffusion → MPNN → Boltz → final scRMSD
-         ↓
-GitHub: pipeline_results/v5_two_round_refine/
-```
-
-## Monitor / terminate
+## Monitor
 
 ```bash
-python scripts/launch_full_pipeline.py --status
-python scripts/launch_full_pipeline.py --terminate --instance-id <id>
+tail -f /workspace/pipeline_launch.log
+
+# Or on the instance once SSH is up:
+ssh -i ~/.ssh/lambda_agent_key ubuntu@132.145.134.114 \
+  "tmux -f /exec-daemon/tmux.portal.conf attach -t pipeline"
+```
+
+## Terminate when done
+
+```bash
+python3 scripts/launch_full_pipeline.py --terminate --instance-id 5314d4de9afc487f8611143bbfc70ffe
 ```
