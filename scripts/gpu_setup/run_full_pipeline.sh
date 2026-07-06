@@ -46,6 +46,8 @@ mkdir -p $PIPELINE/outputs/rfd3 $PIPELINE/outputs/rfd3_round2 \
          $PIPELINE/final $PIPELINE/top_structures
 
 cp "$PIPELINE_SCRIPT_DIR/rfd3_round2.py" "$PIPELINE/rfd3_round2.py"
+cp "$PIPELINE_SCRIPT_DIR/push_results.sh" "$PIPELINE/push_results.sh"
+chmod +x "$PIPELINE/push_results.sh"
 
 # ── Step 0: Install Boltz-2 + pull Docker in parallel ────────────
 pip install boltz[cuda] -U -q > $PIPELINE/boltz_install.log 2>&1 &
@@ -317,6 +319,8 @@ fi
 # ── Push to GitHub ────────────────────────────────────────────────
 echo ""
 echo "=== Push to GitHub ==="
+export RESULTS_GITHUB_DIR=${RESULTS_GITHUB_DIR:-pipeline_results/v5_two_round_refine}
+export GITHUB_BRANCH=${GITHUB_BRANCH:-cursor/conditional-nanobody-design-992c}
 bash $PIPELINE/push_results.sh
 echo ""
 echo "===== Complete: $(date) ====="
