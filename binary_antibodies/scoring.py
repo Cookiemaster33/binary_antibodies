@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import glob
+import os
 import shutil
 from pathlib import Path
 from typing import Literal
@@ -275,7 +276,8 @@ def score_all_designs(
     n_top_cifs        Number of top designs to copy CIF files for.
     """
     MPNN_OUT   = pipeline_dir / "outputs/mpnn"
-    RFD3_OUT   = pipeline_dir / "outputs/rfd3"
+    rfd3_subdir = os.environ.get("RFD3_ACTIVE_SUBDIR", "rfd3")
+    RFD3_OUT   = pipeline_dir / "outputs" / rfd3_subdir
     BOLTZ_OUT  = pipeline_dir / "boltz_outputs"
     FINAL      = pipeline_dir / "final"
     STRUCTS    = pipeline_dir / "top_structures"
@@ -299,6 +301,7 @@ def score_all_designs(
                 pred_dirs[d.name] = d
 
     print(f"Scoring {len(top_designs)} designs (Boltz-2 mode: {boltz_mode})")
+    print(f"RFd3 structures: {RFD3_OUT}")
     print(f"pLDDT threshold: >{plddt_threshold*100:.0f}%  |  scRMSD threshold: <{scrmsd_threshold}Å")
     print(f"Found {len(pred_dirs)} Boltz-2 prediction directories")
 

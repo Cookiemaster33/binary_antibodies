@@ -1,30 +1,61 @@
 #!/bin/bash
 # ============================================================
-# run_full_pipeline.sh  v2
-# RFdiffusion3 + ProteinMPNN + Boltz-2 (single-chain) + scRMSD
+# run_full_pipeline.sh  v3
+# RFdiffusion3 (+ optional round-2 partial diffusion)
+#   → ProteinMPNN → Boltz-2 (single-chain) → scRMSD
 #
 # Design changes:
 #   - 4-chain input: VH1(A) + VL(B, steric context) + Nanobody(C)
 #   - VH1 hotspots exclude VH-VL interface overlap (39,41,85 removed)
 #   - Boltz-2 folds the CONNECTED single chain (not 3 separate chains)
 #     → scRMSD is meaningful because topology is preserved
+#   - Optional round 2: partial diffusion on round-1 templates (RFD3_ROUNDS=2)
 # ============================================================
 set -eo pipefail
 PIPELINE=/home/ubuntu/pipeline
 LOG=$PIPELINE/full_pipeline.log
 exec > >(tee -a "$LOG") 2>&1
 
+# ── User-configurable parameters ─────────────────────────────────
 N_DESIGNS=${N_DESIGNS:-200}
 BATCH_SIZE=${BATCH_SIZE:-10}
 N_MPNN_SEQS=${N_MPNN_SEQS:-8}
 N_BATCHES=$(( (N_DESIGNS + BATCH_SIZE - 1) / BATCH_SIZE ))
 TOP_N=${TOP_N:-50}
+MB_LENGTH_RANGE=${MB_LENGTH_RANGE:-35-70}
 
-echo "===== Full integrated pipeline v2: $(date) ====="
+# RFd3 rounds: 1 = de novo only (default), 2 = add partial-diffusion refinement
+RFD3_ROUNDS=${RFD3_ROUNDS:-1}
+RFD3_ROUND2_TEMPLATES=${RFD3_ROUND2_TEMPLATES:-5}
+RFD3_ROUND2_DESIGNS_PER_TEMPLATE=${RFD3_ROUND2_DESIGNS_PER_TEMPLATE:-8}
+RFD3_ROUND2_BATCH_SIZE=${RFD3_ROUND2_BATCH_SIZE:-8}
+RFD3_PARTIAL_T=${RFD3_PARTIAL_T:-2.0}
+RFD3_ROUND2_VL_CONTEXT=${RFD3_ROUND2_VL_CONTEXT:-1}
+# Optional comma-separated backbone stems, e.g. mb_b003_000,mb_b006_005
+RFD3_ROUND2_TEMPLATE_BACKBONES=${RFD3_ROUND2_TEMPLATE_BACKBONES:-}
+
+if [ "$RFD3_ROUNDS" = "2" ]; then
+    RFD3_ACTIVE_SUBDIR=rfd3_round2
+else
+    RFD3_ACTIVE_SUBDIR=rfd3
+fi
+
+PIPELINE_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "===== Full integrated pipeline v3: $(date) ====="
 echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
-mkdir -p $PIPELINE/outputs/rfd3 $PIPELINE/outputs/mpnn \
+echo "RFd3 rounds: $RFD3_ROUNDS | MB length range: $MB_LENGTH_RANGE"
+if [ "$RFD3_ROUNDS" = "2" ]; then
+    echo "Round 2: $RFD3_ROUND2_TEMPLATES templates × $RFD3_ROUND2_DESIGNS_PER_TEMPLATE designs"
+    echo "         partial_t=${RFD3_PARTIAL_T} Å | VL context=$RFD3_ROUND2_VL_CONTEXT"
+fi
+mkdir -p $PIPELINE/outputs/rfd3 $PIPELINE/outputs/rfd3_round2 \
+         $PIPELINE/outputs/rfd3_round2_inputs \
+         $PIPELINE/outputs/mpnn \
          $PIPELINE/boltz_inputs $PIPELINE/boltz_outputs \
          $PIPELINE/final $PIPELINE/top_structures
+
+cp "$PIPELINE_SCRIPT_DIR/rfd3_round2.py" "$PIPELINE/rfd3_round2.py"
 
 # ── Step 0: Install Boltz-2 + pull Docker in parallel ────────────
 pip install boltz[cuda] -U -q > $PIPELINE/boltz_install.log 2>&1 &
@@ -37,7 +68,7 @@ wait $DOCKER_PID && echo "Docker ready."
 
 # ── Step 1: RFdiffusion3 ─────────────────────────────────────────
 echo ""
-echo "=== Step 1/4: RFdiffusion3 (4-chain context) ==="
+echo "=== Step 1/5: RFdiffusion3 round 1 (4-chain context) ==="
 cat > $PIPELINE/run_rfd3.py << 'PYEOF'
 import os, torch
 from pathlib import Path
@@ -96,22 +127,43 @@ PYEOF
 docker run --rm --gpus all \
     -v $PIPELINE:/workspace \
     -e N_DESIGNS=$N_DESIGNS -e BATCH_SIZE=$BATCH_SIZE \
+    -e MB_LENGTH_RANGE=$MB_LENGTH_RANGE \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \
     rosettacommons/foundry:latest \
     python3 /workspace/run_rfd3.py
 
-echo "RFd3: $(ls $PIPELINE/outputs/rfd3/mb_*.cif | wc -l) designs done"
+echo "RFd3 round 1: $(ls $PIPELINE/outputs/rfd3/mb_*.cif 2>/dev/null | wc -l) designs done"
+
+# ── Step 1b: RFdiffusion3 round 2 (optional partial diffusion) ──
+if [ "$RFD3_ROUNDS" = "2" ]; then
+    echo ""
+    echo "=== Step 1b/5: RFdiffusion3 round 2 (partial diffusion) ==="
+    docker run --rm --gpus all \
+        -v $PIPELINE:/workspace \
+        -e RFD3_ROUND2_TEMPLATES=$RFD3_ROUND2_TEMPLATES \
+        -e RFD3_ROUND2_DESIGNS_PER_TEMPLATE=$RFD3_ROUND2_DESIGNS_PER_TEMPLATE \
+        -e RFD3_ROUND2_BATCH_SIZE=$RFD3_ROUND2_BATCH_SIZE \
+        -e RFD3_PARTIAL_T=$RFD3_PARTIAL_T \
+        -e RFD3_ROUND2_VL_CONTEXT=$RFD3_ROUND2_VL_CONTEXT \
+        -e RFD3_ROUND2_TEMPLATE_BACKBONES="$RFD3_ROUND2_TEMPLATE_BACKBONES" \
+        -e FOUNDRY_CHECKPOINT_DIRS=/weights \
+        rosettacommons/foundry:latest \
+        python3 /workspace/rfd3_round2.py
+    echo "RFd3 round 2: $(ls $PIPELINE/outputs/rfd3_round2/r2_*.cif 2>/dev/null | wc -l) designs done"
+fi
 
 # ── Step 2: ProteinMPNN ──────────────────────────────────────────
 echo ""
-echo "=== Step 2/4: ProteinMPNN ==="
+echo "=== Step 2/5: ProteinMPNN ==="
 cat > $PIPELINE/run_mpnn.py << 'PYEOF'
 import os, json
 from pathlib import Path
 from atomworks.io.utils.io_utils import load_any
 from mpnn.inference_engines.mpnn import MPNNInferenceEngine
 
-RFD3  = Path("/workspace/outputs/rfd3")
+RFD3_ROUNDS = os.environ.get("RFD3_ROUNDS", "1")
+RFD3_SUBDIR = os.environ.get("RFD3_ACTIVE_SUBDIR", "rfd3_round2" if RFD3_ROUNDS == "2" else "rfd3")
+RFD3  = Path("/workspace/outputs") / RFD3_SUBDIR
 OUT   = Path("/workspace/outputs/mpnn")
 NSEQS = int(os.environ.get("N_MPNN_SEQS", 8))
 OUT.mkdir(parents=True, exist_ok=True)
@@ -120,8 +172,9 @@ engine = MPNNInferenceEngine(model_type="protein_mpnn", is_legacy_weights=True,
     out_directory=None, write_structures=False, write_fasta=False)
 
 results = []
-cifs = sorted(RFD3.glob("mb_*.cif"))
-print(f"MPNN: {len(cifs)} × {NSEQS}")
+glob_pat = "r2_*.cif" if RFD3_ROUNDS == "2" else "mb_*.cif"
+cifs = sorted(RFD3.glob(glob_pat))
+print(f"MPNN ({RFD3_SUBDIR}): {len(cifs)} × {NSEQS}")
 
 for idx, cif in enumerate(cifs):
     raw = load_any(str(cif)); aa = raw[0] if hasattr(raw,"__getitem__") else raw
@@ -155,13 +208,15 @@ PYEOF
 docker run --rm --gpus all \
     -v $PIPELINE:/workspace \
     -e N_MPNN_SEQS=$N_MPNN_SEQS \
+    -e RFD3_ROUNDS=$RFD3_ROUNDS \
+    -e RFD3_ACTIVE_SUBDIR=$RFD3_ACTIVE_SUBDIR \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \
     rosettacommons/foundry:latest \
     python3 /workspace/run_mpnn.py
 
 # ── Step 3: Boltz-2 SINGLE-CHAIN validation ──────────────────────
 echo ""
-echo "=== Step 3/4: Boltz-2 (single connected chain) ==="
+echo "=== Step 3/5: Boltz-2 (single connected chain) ==="
 
 wait $BOLTZ_PID 2>/dev/null || pip install boltz[cuda] -U -q
 pip install -q 'networkx>=3.0' 'platformdirs>=3.0' 2>/dev/null || true
@@ -186,7 +241,8 @@ import biotite.sequence as bseq
 
 PIPELINE = Path("/workspace")
 MPNN_OUT = PIPELINE / "outputs/mpnn"
-RFD3_OUT = PIPELINE / "outputs/rfd3"
+RFD3_SUBDIR = __import__('os').environ.get("RFD3_ACTIVE_SUBDIR", "rfd3")
+RFD3_OUT = PIPELINE / "outputs" / RFD3_SUBDIR
 BOLTZ_IN = PIPELINE / "boltz_inputs"
 BOLTZ_IN.mkdir(exist_ok=True)
 
@@ -235,6 +291,7 @@ PYEOF
 docker run --rm --gpus all \
     -v $PIPELINE:/workspace \
     -e TOP_N=$TOP_N \
+    -e RFD3_ACTIVE_SUBDIR=$RFD3_ACTIVE_SUBDIR \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \
     rosettacommons/foundry:latest \
     python3 /workspace/build_boltz_inputs.py
@@ -249,7 +306,7 @@ $HOME/.local/bin/boltz predict $PIPELINE/boltz_inputs \
 
 # ── Step 4: scRMSD scoring ────────────────────────────────────────
 echo ""
-echo "=== Step 4/4: scRMSD + ipTM scoring ==="
+echo "=== Step 4/5: scRMSD + ipTM scoring ==="
 
 cat > $PIPELINE/final_score.py << 'PYEOF'
 """
@@ -385,6 +442,7 @@ PYEOF
 
 docker run --rm --gpus all \
     -v $PIPELINE:/workspace \
+    -e RFD3_ACTIVE_SUBDIR=$RFD3_ACTIVE_SUBDIR \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \
     rosettacommons/foundry:latest \
     python3 /workspace/binary_antibodies/scoring.py \
@@ -396,7 +454,7 @@ docker run --rm --gpus all \
 
 # ── Step 5: Push to GitHub ────────────────────────────────────────
 echo ""
-echo "=== Step 5: Push to GitHub ==="
+echo "=== Step 5/5: Push to GitHub ==="
 bash $PIPELINE/push_results.sh
 echo ""
 echo "===== Complete: $(date) ====="
