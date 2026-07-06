@@ -1,50 +1,37 @@
-# Pipeline v2 — Single-Chain Boltz-2 Validation Results
+# Pipeline Results — Progress Across Runs
 
-## What changed vs v1
+## scRMSD improvement trajectory
 
-| | v1 (3 separate chains) | v2 (connected single chain) |
-|---|---|---|
-| Boltz-2 input | VH1 + MB + Nanobody as separate chains | VH1+MB+Nanobody as ONE polypeptide |
-| scRMSD range | 9–15 Å | **7–10 Å** (improvement) |
-| VL steric check | ❌ VL not in design | ✅ VL in RFd3 as steric context |
-| VH-VL overlap removed | ❌ hotspots 39,41,85 included | ✅ those hotspots excluded |
+| Run | Designs | MB Length | Best scRMSD | Key change |
+|-----|---------|-----------|-------------|------------|
+| v2 | 200 | fixed 55 | 7.26 Å | Baseline (single-chain Boltz-2) |
+| v3 | 500 | fixed 55 | 6.03 Å | 2.5× more designs |
+| **v4** | **200** | **variable 35-70** | **5.18 Å** | **Variable length + select_fixed_atoms** |
 
-## Scores — top 10 designs (ranked by pLDDT / scRMSD)
+## v4 — variable-length minibinder results
 
-| Rank | Backbone | scRMSD (Å) | pLDDT% | Notes |
-|------|----------|------------|--------|-------|
-| 1 | mb_b008_006 | **7.26** | 78% | Best scRMSD |
-| 2 | mb_b007_000 | 7.37 | 77% | |
-| 3 | mb_b008_003 | 7.53 | 78% | |
-| 4 | mb_b005_003 | 8.05 | 80% | Best pLDDT in top-5 |
-| 5 | mb_b006_009 | 8.06 | 78% | |
-| 6 | mb_b008_001 | 8.07 | 76% | |
-| 7 | mb_b004_003 | 8.08 | 78% | |
-| 8 | mb_b004_007 | 8.09 | 77% | |
-| 9 | mb_b012_004 | 8.54 | 79% | |
-| 10 | mb_b002_005 | 8.85 | 76% | |
+**Minibinder length distribution** (RFd3 sampled from 35-70):
+- Short (35-40 res): 40 designs — best scRMSD candidates
+- Medium (51-55 res): 100 designs — most common
+- Long (58-70 res): 60 designs
 
-## Interpreting the scRMSD (7–10 Å)
+**Top 5 designs (sorted by scRMSD):**
 
-The 2 Å filter is calibrated for **single-domain standalone proteins** (Baker lab hallucination). For a 285-residue three-domain connected chain bridging two structured antibody domains:
+| Rank | Backbone | scRMSD | pLDDT% | pTM |
+|------|----------|--------|--------|-----|
+| 1 | mb_b003_000 | **5.18 Å** | 77.5% | 0.471 |
+| 2 | mb_b006_005 | 5.87 Å | 80.3% | 0.512 |
+| 3 | mb_b001_005 | 6.27 Å | 80.8% | 0.505 |
+| 4 | mb_b004_002 | 6.30 Å | 76.4% | 0.532 |
+| 5 | mb_b001_000 | 6.41 Å | 78.5% | 0.506 |
 
-- **The improvement from 9–15 Å → 7–10 Å** confirms that single-chain folding is the correct validation approach
-- **7 Å scRMSD** means Boltz-2 places the minibinder ~7 Å from the designed position — within the neighborhood but different orientation
-- **pLDDT 74–82%** confirms the overall chain is predicted to fold well
-- **Boltz-2 and RFd3 are inherently different models** — Boltz-2 uses sequence co-evolution; RFd3 uses backbone diffusion. Some discrepancy is expected and acceptable
+## Next steps to push below 2 Å
 
-## Recommended next step: visualise the structures
-
-Open `top01_mb_b008_006_rfd3.cif` and `top01_mb_b008_006_boltz2.cif` in PyMOL.
-Align on chain A residues 1-115 (VH1). Check if:
-1. The minibinder (residues 116-170) is roughly in the CH1 slot
-2. Chain C (nanobody) CDRs face the minibinder
-
-A ~7 Å scRMSD with pLDDT >75% and visual confirmation of the correct topology
-is a reasonable threshold for ordering synthetic peptides.
+1. **Narrow the length range** to 35-45 residues (shorter = fewer DOF = lower scRMSD)
+2. **Add Boltz-2 contact constraints** (intra-chain MB↔VH1 and MB↔Nb contacts)
+3. **More designs** at the shorter length
 
 ## Structure files
 
-`structures/top01_mb_b008_006_rfd3.cif`    — RFdiffusion3 designed backbone  
-`structures/top01_mb_b008_006_boltz2.cif`  — Boltz-2 predicted fold  
-`structures/top10_summary.tsv`             — all metrics  
+`structures/top01_mb_b003_000_rfd3.cif`   — RFd3 backbone
+`structures/top01_mb_b003_000_boltz2.cif` — Boltz-2 predicted fold
