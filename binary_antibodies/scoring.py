@@ -263,6 +263,13 @@ def score_all_designs(
     plddt_threshold: float = 0.60,   # 0-1 scale — Boltz-2 reports 0→1, NOT 0→100
     scrmsd_threshold: float = 2.0,
     n_top_cifs: int = 10,
+    *,
+    rfd3_subdir: str | None = None,
+    mpnn_subdir: str = "mpnn",
+    boltz_subdir: str = "boltz_outputs",
+    results_filename: str = "final_results.json",
+    copy_top_cifs: bool = True,
+    structs_subdir: str = "top_structures",
 ) -> list[dict]:
     """
     Score all designs in the pipeline directory.
@@ -275,12 +282,12 @@ def score_all_designs(
     scrmsd_threshold  Maximum scRMSD to pass (Å).
     n_top_cifs        Number of top designs to copy CIF files for.
     """
-    MPNN_OUT   = pipeline_dir / "outputs/mpnn"
-    rfd3_subdir = os.environ.get("RFD3_ACTIVE_SUBDIR", "rfd3")
-    RFD3_OUT   = pipeline_dir / "outputs" / rfd3_subdir
-    BOLTZ_OUT  = pipeline_dir / "boltz_outputs"
+    MPNN_OUT   = pipeline_dir / "outputs" / mpnn_subdir
+    rfd3_sub = rfd3_subdir or os.environ.get("RFD3_ACTIVE_SUBDIR", "rfd3")
+    RFD3_OUT   = pipeline_dir / "outputs" / rfd3_sub
+    BOLTZ_OUT  = pipeline_dir / boltz_subdir
     FINAL      = pipeline_dir / "final"
-    STRUCTS    = pipeline_dir / "top_structures"
+    STRUCTS    = pipeline_dir / structs_subdir
     for d in [FINAL, STRUCTS]:
         d.mkdir(parents=True, exist_ok=True)
 
@@ -353,38 +360,39 @@ def score_all_designs(
     results.sort(key=lambda x: (x["sc_rmsd_A"] if x["sc_rmsd_A"] < 900 else 999,
                                  -x["boltz_plddt_pct"]))
 
-    # Save results
-    json.dump(results, open(FINAL / "final_results.json", "w"), indent=2)
+    results_path = FINAL / results_filename
+    json.dump(results, open(results_path, "w"), indent=2)
     passing = [r for r in results if r["pass_filter"]]
-    with open(FINAL / "validated_minibinders.fasta", "w") as f:
+    fasta_name = "validated_minibinders.fasta" if results_filename == "final_results.json" else f"validated_{results_filename.replace('.json', '')}.fasta"
+    with open(FINAL / fasta_name, "w") as f:
         for r in passing:
             f.write(f">{r['backbone']}__scRMSD{r['sc_rmsd_A']:.2f}"
                     f"__pLDDT{r['boltz_plddt_pct']:.0f}\n"
                     f"{r['minibinder_sequence']}\n")
 
-    # Copy top-N CIF files
-    for i, r in enumerate(results[:n_top_cifs]):
-        bb = r["backbone"]
-        rec = r["sequence_recovery"]
-        rank = r["rank"]
-        name = f"rank{rank:02d}_{bb}_rec{rec:.3f}"
-        pred_dir = pred_dirs.get(name)
-        rfd3_src = RFD3_OUT / f"{bb}.cif"
-        if rfd3_src.exists():
-            shutil.copy(rfd3_src, STRUCTS / f"top{i+1:02d}_{bb}_rfd3.cif")
-        if pred_dir:
-            bs = pred_dir / f"{name}_model_0.cif"
-            if bs.exists():
-                shutil.copy(bs, STRUCTS / f"top{i+1:02d}_{bb}_boltz2.cif")
-
-    # Summary TSV
-    with open(STRUCTS / "top_summary.tsv", "w") as f:
-        f.write("rank\tbackbone\tsc_rmsd_A\tboltz_plddt_pct\tboltz_ptm\t"
-                "iptm_MB_VH1\tiptm_MB_Nb\tsequence_recovery\tminibinder_sequence\n")
+    if copy_top_cifs:
         for i, r in enumerate(results[:n_top_cifs]):
-            f.write(f"{i+1}\t{r['backbone']}\t{r['sc_rmsd_A']}\t{r['boltz_plddt_pct']}\t"
-                    f"{r['boltz_ptm']}\t{r['iptm_MB_VH1']}\t{r['iptm_MB_Nb']}\t"
-                    f"{r['sequence_recovery']}\t{r['minibinder_sequence']}\n")
+            bb = r["backbone"]
+            rec = r["sequence_recovery"]
+            rank = r["rank"]
+            name = f"rank{rank:02d}_{bb}_rec{rec:.3f}"
+            pred_dir = pred_dirs.get(name)
+            rfd3_src = RFD3_OUT / f"{bb}.cif"
+            if rfd3_src.exists():
+                shutil.copy(rfd3_src, STRUCTS / f"top{i+1:02d}_{bb}_rfd3.cif")
+            if pred_dir:
+                bs = pred_dir / f"{name}_model_0.cif"
+                if bs.exists():
+                    shutil.copy(bs, STRUCTS / f"top{i+1:02d}_{bb}_boltz2.cif")
+
+        summary_name = "top_summary.tsv" if results_filename == "final_results.json" else f"top_{results_filename.replace('.json', '')}.tsv"
+        with open(STRUCTS / summary_name, "w") as f:
+            f.write("rank\tbackbone\tsc_rmsd_A\tboltz_plddt_pct\tboltz_ptm\t"
+                    "iptm_MB_VH1\tiptm_MB_Nb\tsequence_recovery\tminibinder_sequence\n")
+            for i, r in enumerate(results[:n_top_cifs]):
+                f.write(f"{i+1}\t{r['backbone']}\t{r['sc_rmsd_A']}\t{r['boltz_plddt_pct']}\t"
+                        f"{r['boltz_ptm']}\t{r['iptm_MB_VH1']}\t{r['iptm_MB_Nb']}\t"
+                        f"{r['sequence_recovery']}\t{r['minibinder_sequence']}\n")
 
     # Print table
     print(f"\n{'='*76}")
@@ -401,6 +409,7 @@ def score_all_designs(
 
     print(f"\nPassed (scRMSD<{scrmsd_threshold}Å & pLDDT>{plddt_threshold*100:.0f}%): "
           f"{len(passing)}/{len(results)}")
+    print(f"Results written to {results_path}")
     if passing:
         p = passing[0]
         print(f"\nBest: {p['backbone']}  scRMSD={p['sc_rmsd_A']:.2f}Å  pLDDT={p['boltz_plddt_pct']:.0f}%")
@@ -424,6 +433,16 @@ if __name__ == "__main__":
                    help="Max scRMSD to pass (Å).")
     p.add_argument("--n-top-cifs", type=int, default=10,
                    help="Number of top designs to copy CIF files for.")
+    p.add_argument("--rfd3-subdir", default=None,
+                   help="Subdirectory under outputs/ for RFd3 CIFs (default: rfd3).")
+    p.add_argument("--mpnn-subdir", default="mpnn",
+                   help="Subdirectory under outputs/ for MPNN JSON.")
+    p.add_argument("--boltz-subdir", default="boltz_outputs",
+                   help="Boltz-2 output directory name under pipeline root.")
+    p.add_argument("--results-file", default="final_results.json",
+                   help="Filename for JSON results under final/.")
+    p.add_argument("--no-copy-cifs", action="store_true",
+                   help="Skip copying top CIF files (use for intermediate round-1 scoring).")
     args = p.parse_args()
 
     score_all_designs(
@@ -432,4 +451,9 @@ if __name__ == "__main__":
         plddt_threshold=args.plddt_threshold,
         scrmsd_threshold=args.scrmsd_threshold,
         n_top_cifs=args.n_top_cifs,
+        rfd3_subdir=args.rfd3_subdir,
+        mpnn_subdir=args.mpnn_subdir,
+        boltz_subdir=args.boltz_subdir,
+        results_filename=args.results_file,
+        copy_top_cifs=not args.no_copy_cifs,
     )

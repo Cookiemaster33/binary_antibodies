@@ -8,6 +8,7 @@ Designed to run inside the foundry Docker container.
 """
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -55,7 +56,7 @@ def remap_hotspots(mb_len: int) -> str:
 
 
 def select_templates(round1_dir: Path) -> list[Path]:
-    """Pick round-1 CIF templates for partial diffusion."""
+    """Pick round-1 RFd3 CIF templates for partial diffusion."""
     explicit = os.environ.get("RFD3_ROUND2_TEMPLATE_BACKBONES", "").strip()
     if explicit:
         templates: list[Path] = []
@@ -70,14 +71,51 @@ def select_templates(round1_dir: Path) -> list[Path]:
                 print(f"  WARNING: template not found, skipping: {path}")
         return templates
 
-    cifs = sorted(round1_dir.glob("mb_*.cif"))
+    # Prefer lowest scRMSD backbones from round-1 Boltz validation.
+    results_path = Path(
+        os.environ.get(
+            "RFD3_ROUND1_RESULTS",
+            "/workspace/final/round1_final_results.json",
+        )
+    )
     n = int(os.environ.get("RFD3_ROUND2_TEMPLATES", 5))
+    if results_path.exists():
+        results = json.load(open(results_path))
+        results.sort(
+            key=lambda r: (
+                r.get("sc_rmsd_A", 999) if r.get("sc_rmsd_A", 999) < 900 else 999,
+                -r.get("boltz_plddt_pct", 0),
+            )
+        )
+        templates = []
+        seen: set[str] = set()
+        for row in results:
+            bb = row.get("backbone", "")
+            if not bb or bb in seen:
+                continue
+            scrmsd = row.get("sc_rmsd_A", 999)
+            if scrmsd >= 900:
+                continue
+            path = round1_dir / f"{bb}.cif"
+            if not path.exists():
+                print(f"  WARNING: round-1 RFd3 CIF missing for {bb}")
+                continue
+            templates.append(path)
+            seen.add(bb)
+            print(f"  template {len(templates)}: {bb} (scRMSD={scrmsd:.2f} Å)")
+            if len(templates) >= n:
+                break
+        if templates:
+            print(f"Selected {len(templates)} templates from round-1 scRMSD ranking")
+            return templates
+        print("WARNING: round-1 results found but no valid templates — falling back")
+
+    # Fallback: evenly sample round-1 CIFs (no scoring available).
+    cifs = sorted(round1_dir.glob("mb_*.cif"))
     if not cifs:
         return []
     if len(cifs) <= n:
         return cifs
-
-    # Evenly sample across the sorted list for batch diversity.
     step = len(cifs) / n
     return [cifs[int(i * step)] for i in range(n)]
 
