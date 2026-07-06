@@ -40,6 +40,12 @@ def kabsch_rmsd(P: np.ndarray, Q: np.ndarray) -> float:
 
 # ── Structure loading ─────────────────────────────────────────────────────────
 
+def design_chain_id(aa) -> str:
+    """Return the connected VH1-MB-Nb design chain (always A when present)."""
+    chains = sorted(set(aa.chain_id))
+    return "A" if "A" in chains else chains[0]
+
+
 def load_ca_rfd3(cif_path: Path, res_min: int, res_max: int) -> np.ndarray:
     """
     Load Cα coordinates from an RFdiffusion3 CIF (single chain A,
@@ -49,7 +55,7 @@ def load_ca_rfd3(cif_path: Path, res_min: int, res_max: int) -> np.ndarray:
     from atomworks.io.utils.io_utils import load_any
     raw = load_any(str(cif_path))
     aa = raw[0] if hasattr(raw, "__getitem__") else raw
-    ch = list(set(aa.chain_id))[0]
+    ch = design_chain_id(aa)
     mask = (
         (aa.chain_id == ch)
         & np.isin(aa.atom_name, ["CA"])
@@ -176,7 +182,8 @@ def compute_scrmsdsingle_chain(
         from atomworks.io.utils.io_utils import load_any
         raw = load_any(str(rfd3_cif))
         aa_rfd3 = raw[0] if hasattr(raw, "__getitem__") else raw
-        total = len(set(aa_rfd3.res_id))
+        ch = design_chain_id(aa_rfd3)
+        total = len(set(aa_rfd3.res_id[aa_rfd3.chain_id == ch]))
         mb_len = total - vh1_end - nb_len
         mb_start = vh1_end + 1
         mb_end   = vh1_end + mb_len

@@ -22,6 +22,32 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
     exit 0
 fi
 
+echo "Preparing GitHub repo checkout → $REPO_DIR"
+
+# Clone or update repo BEFORE writing results (mkdir under REPO_DIR breaks git clone).
+if [ -d "$REPO_DIR/.git" ]; then
+    cd "$REPO_DIR"
+    git config user.email "cursor-agent@users.noreply.github.com"
+    git config user.name "Cursor Agent"
+    git fetch origin "$BRANCH" 2>/dev/null || true
+    git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH" "origin/$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
+    git pull --rebase origin "$BRANCH" 2>/dev/null || true
+elif [ -d "$REPO_DIR" ]; then
+    echo "Removing non-git directory at $REPO_DIR (leftover from failed push)"
+    rm -rf "$REPO_DIR"
+    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_SLUG}.git" "$REPO_DIR"
+    cd "$REPO_DIR"
+    git config user.email "cursor-agent@users.noreply.github.com"
+    git config user.name "Cursor Agent"
+    git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH" "origin/$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
+else
+    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_SLUG}.git" "$REPO_DIR"
+    cd "$REPO_DIR"
+    git config user.email "cursor-agent@users.noreply.github.com"
+    git config user.name "Cursor Agent"
+    git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH" "origin/$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
+fi
+
 DEST="$REPO_DIR/$RESULTS_SUBDIR"
 mkdir -p "$DEST/structures"
 
@@ -48,18 +74,6 @@ cat > "$DEST/run_config.json" << EOF
   "completed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 EOF
-
-# Clone or update repo
-if [ ! -d "$REPO_DIR/.git" ]; then
-    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_SLUG}.git" "$REPO_DIR"
-fi
-
-cd "$REPO_DIR"
-git config user.email "cursor-agent@users.noreply.github.com"
-git config user.name "Cursor Agent"
-git fetch origin "$BRANCH" 2>/dev/null || true
-git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH" "origin/$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
-git pull --rebase origin "$BRANCH" 2>/dev/null || true
 
 git add "$RESULTS_SUBDIR"
 if git diff --cached --quiet; then
