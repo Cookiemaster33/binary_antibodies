@@ -1,30 +1,26 @@
-# Active Lambda Instance — v5 Two-Round Partial Diffusion
+# Active Lambda Instance — v5 Two-Round (relaunch)
 
 | Field | Value |
 |---|---|
-| Instance ID | `5314d4de9afc487f8611143bbfc70ffe` |
-| IP | `132.145.134.114` |
-| Status | **Booting → pipeline starting** |
+| Instance ID | `d83660305eea427ba4664752954b13f8` |
+| IP | `150.136.116.198` |
+| Status | **Running — RFd3 round 1 in progress** |
 | Results folder | `pipeline_results/v5_two_round_refine/` |
 
-## Configuration
+## What happened to the first instance?
 
-- `RFD3_ROUNDS=2` — validate round 1, then partial diffusion on top scRMSD RFd3 backbones
-- Round 1: 200 designs, MB length 35–70
-- Round 2: top 5 templates × 8 designs, `partial_t=2.0`
+Instance `5314d4de` terminated because the pipeline **crashed within seconds** of starting:
+- `cp` tried to copy `rfd3_round2.py` onto itself → exit code 1
+- `set -e` in the shell script treated that as fatal
+- Launch script saw tmux session die → auto-terminated the instance
+
+**Fixed:** skip self-copy, keep instance alive on failure, relaunched.
 
 ## Monitor
 
 ```bash
 tail -f /workspace/pipeline_launch.log
 
-# Or on the instance once SSH is up:
-ssh -i ~/.ssh/lambda_agent_key ubuntu@132.145.134.114 \
-  "tmux -f /exec-daemon/tmux.portal.conf attach -t pipeline"
-```
-
-## Terminate when done
-
-```bash
-python3 scripts/launch_full_pipeline.py --terminate --instance-id 5314d4de9afc487f8611143bbfc70ffe
+ssh -i ~/.ssh/lambda_agent_key ubuntu@150.136.116.198 \
+  "tail -f ~/pipeline/full_pipeline.log"
 ```
