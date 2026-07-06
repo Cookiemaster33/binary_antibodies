@@ -17,12 +17,29 @@ from __future__ import annotations
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import requests
 
 BASE_URL = "https://cloud.lambda.ai/api/v1"
 POLL_INTERVAL_S = 15
+
+
+def resolve_lambda_api_key() -> str:
+    """Resolve Lambda API key from env vars or Cursor secrets upload."""
+    for name in ("LAMBDA_API_KEY", "LAMBDA_KEY"):
+        val = os.environ.get(name, "").strip()
+        if val:
+            return val
+    # Cursor Cloud Agents store secrets under uploads/cursor2_*.txt
+    uploads = Path.home() / ".cursor/projects/workspace/uploads"
+    if uploads.is_dir():
+        for path in sorted(uploads.glob("cursor2_*.txt")):
+            val = path.read_text().strip()
+            if val:
+                return val
+    return ""
 
 
 class LambdaAPIError(Exception):
@@ -33,11 +50,11 @@ class LambdaClient:
     """Lambda Cloud API client."""
 
     def __init__(self, api_key: str | None = None) -> None:
-        self.api_key = api_key or os.environ.get("LAMBDA_API_KEY", "")
+        self.api_key = api_key or resolve_lambda_api_key()
         if not self.api_key:
             raise ValueError(
                 "Lambda Cloud API key required. "
-                "Set LAMBDA_API_KEY environment variable or pass api_key=."
+                "Set LAMBDA_API_KEY / LAMBDA_KEY, or add to Cursor secrets."
             )
         self._session = requests.Session()
         self._session.headers.update({"Authorization": f"Bearer {self.api_key}"})

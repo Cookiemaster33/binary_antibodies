@@ -32,11 +32,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from binary_antibodies.lambda_client import LambdaClient
+from binary_antibodies.lambda_client import LambdaClient, resolve_lambda_api_key
 
 DEFAULT_INSTANCE_TYPE = "gpu_1x_a100_sxm4"
 DEFAULT_REGION = "us-east-1"
-DEFAULT_SSH_KEY_NAME = os.environ.get("LAMBDA_SSH_KEY_NAME", "cursor-agent-binary-antibodies")
+DEFAULT_SSH_KEY_NAME = os.environ.get("LAMBDA_SSH_KEY_NAME", "cursor-agent")
 REMOTE_USER = "ubuntu"
 REMOTE_PIPELINE = "/home/ubuntu/pipeline"
 INPUT_PDB = "structures/domains/vh1_vl_nanobody_design_target.pdb"
@@ -187,11 +187,12 @@ def run_pipeline(ip: str, key: str, args: argparse.Namespace, gh_tok: str) -> No
 
 def main() -> None:
     args = parse_args()
-    if not args.api_key:
-        print("ERROR: Set LAMBDA_API_KEY in Cursor secrets or pass --api-key.")
+    api_key = args.api_key or resolve_lambda_api_key()
+    if not api_key:
+        print("ERROR: Lambda API key not found (env or Cursor secrets).")
         sys.exit(1)
 
-    client = LambdaClient(api_key=args.api_key)
+    client = LambdaClient(api_key=api_key)
 
     if args.status:
         for inst in client.list_instances():
