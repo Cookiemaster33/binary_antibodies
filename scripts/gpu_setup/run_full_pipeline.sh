@@ -63,10 +63,25 @@ HOTSPOTS = (
     "C52,C53,C54,C55,C56,C57,"
     "C99,C100,C101,C102,C103,C104,C105,C106,C107,C108,C109,C110,C111,C112"
 )
-print(f"RFd3: {N} designs | 4-chain context (VL=chain B as steric barrier)")
-print(f"Excluded VH hotspots 39,41,85 (VH-VL interface overlap)")
+# select_fixed_atoms: HARD PIN — VH1, VL, Nanobody frozen at input coordinates
+# select_hotspots:    SOFT ATTRACTOR — minibinder drawn toward these residues
+# contig length range: RFd3 samples MB length from 35-70 residues per design
+FIXED_ATOMS = {
+    "A1-115": "ALL",   # VH1
+    "B1-115": "ALL",   # VL (steric context, frozen)
+    "C1-115": "ALL",   # Nanobody
+}
+MB_LENGTH_RANGE = os.environ.get("MB_LENGTH_RANGE", "35-70")
+CONTIG = f"A1-115,{MB_LENGTH_RANGE},C1-115"
+print(f"RFd3: {N} designs | variable-length minibinder ({MB_LENGTH_RANGE} residues)")
+print(f"  select_fixed_atoms: chains A,B,C pinned at input coordinates")
+print(f"  select_hotspots: soft attractors on VH1-CH1-face + Nanobody CDRs")
 spec = DesignInputSpecification.safe_init(
-    input=INPUT, contig="A1-115,55,C1-115", select_hotspots=HOTSPOTS)
+    input=INPUT,
+    contig=CONTIG,
+    select_hotspots=HOTSPOTS,
+    select_fixed_atoms=FIXED_ATOMS,
+)
 model = RFD3InferenceEngine(**RFD3InferenceConfig(diffusion_batch_size=BATCH))
 saved = 0
 for bi in range(NBATCH):
@@ -111,15 +126,22 @@ print(f"MPNN: {len(cifs)} × {NSEQS}")
 for idx, cif in enumerate(cifs):
     raw = load_any(str(cif)); aa = raw[0] if hasattr(raw,"__getitem__") else raw
     ch = list(set(aa.chain_id))[0]
-    designed = [f"{ch}{r}" for r in range(116,171) if r in set(aa.res_id)]
+    all_res = sorted(set(aa.res_id))
+    total = len(all_res)
+    # Detect variable minibinder length: total = 115 (VH1) + MB + 115 (Nb)
+    mb_len = total - 230
+    mb_start, mb_end = 116, 115 + mb_len
+    nb_start = mb_end + 1
+    designed = [f"{ch}{r}" for r in range(mb_start, mb_end+1) if r in set(aa.res_id)]
     result = engine.run(atom_arrays=[aa], input_dicts=[{
         "batch_size": NSEQS, "remove_waters": True, "designed_residues": designed}])
     for r in (result if isinstance(result,list) else [result]):
         seq = r.output_dict.get("designed_sequence","")
         rec = float(r.output_dict.get("sequence_recovery",0))
+        mb_seq = seq[mb_start-1:mb_end] if len(seq)>=mb_end else seq[mb_start-1:]
         results.append({"backbone":cif.stem,"full_sequence":seq,
-                        "minibinder_sequence":seq[115:171] if len(seq)>=171 else seq[115:],
-                        "sequence_recovery":rec})
+                        "minibinder_sequence":mb_seq,"sequence_recovery":rec,
+                        "mb_start":mb_start,"mb_end":mb_end,"mb_len":mb_len})
     if (idx+1)%20==0: print(f"  {idx+1}/{len(cifs)} done...", flush=True)
 
 results.sort(key=lambda x: x["sequence_recovery"])
@@ -198,7 +220,10 @@ for i, r in enumerate(top_designs):
 """
     (BOLTZ_IN / f"{name}.yaml").write_text(yaml)
     design_list.append({"rank":rank,"backbone":bb,"minibinder_sequence":r["minibinder_sequence"],
-                        "sequence_recovery":rec})
+                        "sequence_recovery":rec,
+                        "mb_start":r.get("mb_start",116),
+                        "mb_end":r.get("mb_end",170),
+                        "mb_len":r.get("mb_len",55)})
 
 json.dump({"designs":design_list,
            "validation_note":"Single connected chain: VH1(1-115)+MB(116-170)+Nb(171-285). "

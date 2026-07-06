@@ -153,27 +153,42 @@ def parse_boltz_confidence(
 def compute_scrmsdsingle_chain(
     rfd3_cif: Path,
     boltz_cif: Path,
-    vh1_range: tuple[int, int] = (1, 115),
-    mb_range:  tuple[int, int] = (116, 170),
-    nb_range:  tuple[int, int] = (171, 285),
+    vh1_end: int = 115,
+    nb_len: int = 115,
 ) -> float:
     """
-    Compute scRMSD for a single-chain design (VH1+MB+Nb on chain A).
+    Compute scRMSD for a single-chain design with variable minibinder length.
 
-    Method:
-      1. Extract Cα from VH1 and Nanobody portions of both structures
-      2. Kabsch-align Boltz-2 onto RFd3 using VH1+Nb as the rigid anchor
-      3. Apply same rotation to Boltz-2 minibinder
-      4. Compute RMSD between aligned Boltz-2 MB and RFd3 MB
+    Automatically detects the minibinder length from the RFd3 CIF:
+        total_residues = 115 (VH1) + MB_len + 115 (Nb)
+        MB_len = total - 230
+
+    Parameters
+    ----------
+    vh1_end : int
+        Last residue of VH1 (default 115).
+    nb_len : int
+        Length of Nanobody (default 115).
     """
     try:
-        rv = load_ca_rfd3(rfd3_cif, *vh1_range)
-        rm = load_ca_rfd3(rfd3_cif, *mb_range)
-        rn = load_ca_rfd3(rfd3_cif, *nb_range)
+        # Detect total length and compute ranges from RFd3 CIF
+        from atomworks.io.utils.io_utils import load_any
+        raw = load_any(str(rfd3_cif))
+        aa_rfd3 = raw[0] if hasattr(raw, "__getitem__") else raw
+        total = len(set(aa_rfd3.res_id))
+        mb_len = total - vh1_end - nb_len
+        mb_start = vh1_end + 1
+        mb_end   = vh1_end + mb_len
+        nb_start = mb_end + 1
+        nb_end   = total
 
-        bv = load_ca_boltz(boltz_cif, "A", *vh1_range)
-        bm = load_ca_boltz(boltz_cif, "A", *mb_range)
-        bn = load_ca_boltz(boltz_cif, "A", *nb_range)
+        rv = load_ca_rfd3(rfd3_cif, 1,        vh1_end)
+        rm = load_ca_rfd3(rfd3_cif, mb_start,  mb_end)
+        rn = load_ca_rfd3(rfd3_cif, nb_start,  nb_end)
+
+        bv = load_ca_boltz(boltz_cif, "A", 1,        vh1_end)
+        bm = load_ca_boltz(boltz_cif, "A", mb_start,  mb_end)
+        bn = load_ca_boltz(boltz_cif, "A", nb_start,  nb_end)
 
         nv = min(len(bv), len(rv))
         nn = min(len(bn), len(rn))
@@ -182,7 +197,6 @@ def compute_scrmsdsingle_chain(
         if nv < 10 or nn < 10 or nm < 5:
             return 999.0
 
-        # Anchor alignment: VH1 + Nanobody
         P = np.vstack([bv[:nv], bn[:nn]])
         Q = np.vstack([rv[:nv], rn[:nn]])
         Pc = P - P.mean(0)
@@ -190,8 +204,6 @@ def compute_scrmsdsingle_chain(
         U, S, Vt = np.linalg.svd(Pc.T @ Qc)
         d = np.linalg.det(Vt.T @ U.T)
         Rmat = Vt.T @ np.diag([1, 1, d]) @ U.T
-
-        # Apply rotation to Boltz-2 minibinder
         bm_aligned = (bm[:nm] - P.mean(0)) @ Rmat.T + Q.mean(0)
         return kabsch_rmsd(bm_aligned, rm[:nm])
 
