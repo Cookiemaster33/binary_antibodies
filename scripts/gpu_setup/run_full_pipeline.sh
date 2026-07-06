@@ -134,12 +134,16 @@ print(f"MPNN ({RFD3_SUBDIR} → {MPNN_SUBDIR}): {len(cifs)} × {NSEQS}")
 results = []
 for idx, cif in enumerate(cifs):
     raw = load_any(str(cif)); aa = raw[0] if hasattr(raw,"__getitem__") else raw
-    ch = list(set(aa.chain_id))[0]
-    total = len(sorted(set(aa.res_id)))
+    chains = sorted(set(aa.chain_id))
+    # Connected VH1-MB-Nb is always chain A; chain B is optional VL steric context (round 2).
+    ch = "A" if "A" in chains else chains[0]
+    aa_chain = aa[aa.chain_id == ch]
+    total = len(sorted(set(aa_chain.res_id)))
     mb_len = total - 230
     mb_start, mb_end = 116, 115 + mb_len
-    designed = [f"{ch}{r}" for r in range(mb_start, mb_end+1) if r in set(aa.res_id)]
-    result = engine.run(atom_arrays=[aa], input_dicts=[{
+    chain_res = set(aa_chain.res_id)
+    designed = [f"{ch}{r}" for r in range(mb_start, mb_end+1) if r in chain_res]
+    result = engine.run(atom_arrays=[aa_chain], input_dicts=[{
         "batch_size": NSEQS, "remove_waters": True, "designed_residues": designed}])
     for r in (result if isinstance(result,list) else [result]):
         seq = r.output_dict.get("designed_sequence","")
