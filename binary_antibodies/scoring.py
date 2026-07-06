@@ -1,8 +1,13 @@
 """
 scoring.py
 ----------
-Boltz-2 output parsing and scRMSD scoring for the bispecific bridging minibinder pipeline.
-Runs inside the foundry Docker container (has atomworks + biotite).
+Boltz-2 output parsing and global assembly RMSD scoring for the bispecific
+bridging minibinder pipeline. Runs inside the foundry Docker container
+(has atomworks + biotite).
+
+Validation RMSD: Kabsch-aligned Cα RMSD over the full VH1 + minibinder +
+nanobody assembly (chain A). This checks that Boltz-2 preserves the designed
+bispecific geometry, not just local minibinder backbone shape.
 
 Key facts about Boltz-2 output format:
   - Predictions are at: <out_dir>/boltz_results_<input_dir_name>/predictions/<name>/
@@ -155,111 +160,85 @@ def parse_boltz_confidence(
     }
 
 
-# ── scRMSD ────────────────────────────────────────────────────────────────────
+# ── Global assembly RMSD ───────────────────────────────────────────────────────
 
-def compute_scrmsdsingle_chain(
+def assembly_length(rfd3_cif: Path, vh1_end: int = 115, nb_len: int = 115) -> int:
+    """Return total residue count on the connected VH1-MB-Nb design chain."""
+    from atomworks.io.utils.io_utils import load_any
+    raw = load_any(str(rfd3_cif))
+    aa = raw[0] if hasattr(raw, "__getitem__") else raw
+    ch = design_chain_id(aa)
+    return len(set(aa.res_id[aa.chain_id == ch]))
+
+
+def compute_global_rmsd_single_chain(
     rfd3_cif: Path,
     boltz_cif: Path,
     vh1_end: int = 115,
     nb_len: int = 115,
 ) -> float:
     """
-    Compute scRMSD for a single-chain design with variable minibinder length.
+    Global Kabsch RMSD over all Cα in the VH1 + minibinder + nanobody assembly.
 
-    Automatically detects the minibinder length from the RFd3 CIF:
-        total_residues = 115 (VH1) + MB_len + 115 (Nb)
-        MB_len = total - 230
-
-    Parameters
-    ----------
-    vh1_end : int
-        Last residue of VH1 (default 115).
-    nb_len : int
-        Length of Nanobody (default 115).
+    Both RFd3 and Boltz-2 use a single connected chain A with residues:
+        VH1 (1–vh1_end) | MB (vh1_end+1 …) | Nb (last nb_len residues)
     """
     try:
-        # Detect total length and compute ranges from RFd3 CIF
-        from atomworks.io.utils.io_utils import load_any
-        raw = load_any(str(rfd3_cif))
-        aa_rfd3 = raw[0] if hasattr(raw, "__getitem__") else raw
-        ch = design_chain_id(aa_rfd3)
-        total = len(set(aa_rfd3.res_id[aa_rfd3.chain_id == ch]))
-        mb_len = total - vh1_end - nb_len
-        mb_start = vh1_end + 1
-        mb_end   = vh1_end + mb_len
-        nb_start = mb_end + 1
-        nb_end   = total
-
-        rv = load_ca_rfd3(rfd3_cif, 1,        vh1_end)
-        rm = load_ca_rfd3(rfd3_cif, mb_start,  mb_end)
-        rn = load_ca_rfd3(rfd3_cif, nb_start,  nb_end)
-
-        bv = load_ca_boltz(boltz_cif, "A", 1,        vh1_end)
-        bm = load_ca_boltz(boltz_cif, "A", mb_start,  mb_end)
-        bn = load_ca_boltz(boltz_cif, "A", nb_start,  nb_end)
-
-        nv = min(len(bv), len(rv))
-        nn = min(len(bn), len(rn))
-        nm = min(len(bm), len(rm))
-
-        if nv < 10 or nn < 10 or nm < 5:
+        total = assembly_length(rfd3_cif, vh1_end, nb_len)
+        rv = load_ca_rfd3(rfd3_cif, 1, total)
+        bv = load_ca_boltz(boltz_cif, "A", 1, total)
+        n = min(len(rv), len(bv))
+        if n < vh1_end + nb_len + 5:
             return 999.0
-
-        P = np.vstack([bv[:nv], bn[:nn]])
-        Q = np.vstack([rv[:nv], rn[:nn]])
-        Pc = P - P.mean(0)
-        Qc = Q - Q.mean(0)
-        U, S, Vt = np.linalg.svd(Pc.T @ Qc)
-        d = np.linalg.det(Vt.T @ U.T)
-        Rmat = Vt.T @ np.diag([1, 1, d]) @ U.T
-        bm_aligned = (bm[:nm] - P.mean(0)) @ Rmat.T + Q.mean(0)
-        return kabsch_rmsd(bm_aligned, rm[:nm])
+        return kabsch_rmsd(bv[:n], rv[:n])
 
     except Exception as e:
-        print(f"  scRMSD error: {e}")
+        print(f"  global RMSD error: {e}")
         return 999.0
 
 
-def compute_scrmsd_three_chain(
+def compute_global_rmsd_three_chain(
     rfd3_cif: Path,
     boltz_cif: Path,
-    vh1_range: tuple[int, int] = (1, 115),
-    mb_range:  tuple[int, int] = (116, 170),
-    nb_range:  tuple[int, int] = (171, 285),
+    vh1_end: int = 115,
+    nb_len: int = 115,
 ) -> float:
     """
-    Compute scRMSD for a 3-chain Boltz-2 prediction.
-    RFd3 is still single-chain; Boltz-2 has chains A (VH1), B (MB), C (Nb).
+    Global Kabsch RMSD for a 3-chain Boltz-2 prediction vs single-chain RFd3.
+
+    RFd3 is one connected chain; Boltz-2 has chains A (VH1), B (MB), C (Nb).
+    All domain Cα atoms are stacked and aligned together.
     """
     try:
-        rv = load_ca_rfd3(rfd3_cif, *vh1_range)
-        rm = load_ca_rfd3(rfd3_cif, *mb_range)
-        rn = load_ca_rfd3(rfd3_cif, *nb_range)
+        total = assembly_length(rfd3_cif, vh1_end, nb_len)
+        mb_len = total - vh1_end - nb_len
+        mb_start = vh1_end + 1
+        mb_end = vh1_end + mb_len
+        nb_start = mb_end + 1
 
-        bv = load_ca_boltz(boltz_cif, "A")
-        bm = load_ca_boltz(boltz_cif, "B")
-        bn = load_ca_boltz(boltz_cif, "C")
+        rv = load_ca_rfd3(rfd3_cif, 1, vh1_end)
+        rm = load_ca_rfd3(rfd3_cif, mb_start, mb_end)
+        rn = load_ca_rfd3(rfd3_cif, nb_start, total)
+        Q = np.vstack([rv, rm, rn])
 
-        nv = min(len(bv), len(rv))
-        nn = min(len(bn), len(rn))
-        nm = min(len(bm), len(rm))
+        bv = load_ca_boltz(boltz_cif, "A", 1, vh1_end)
+        bm = load_ca_boltz(boltz_cif, "B", mb_start, mb_end)
+        bn = load_ca_boltz(boltz_cif, "C", nb_start, total)
+        P = np.vstack([bv, bm, bn])
 
-        if nv < 10 or nn < 10 or nm < 5:
+        n = min(len(P), len(Q))
+        if n < vh1_end + nb_len + 5:
             return 999.0
-
-        P = np.vstack([bv[:nv], bn[:nn]])
-        Q = np.vstack([rv[:nv], rn[:nn]])
-        Pc = P - P.mean(0)
-        Qc = Q - Q.mean(0)
-        U, S, Vt = np.linalg.svd(Pc.T @ Qc)
-        d = np.linalg.det(Vt.T @ U.T)
-        Rmat = Vt.T @ np.diag([1, 1, d]) @ U.T
-        bm_aligned = (bm[:nm] - P.mean(0)) @ Rmat.T + Q.mean(0)
-        return kabsch_rmsd(bm_aligned, rm[:nm])
+        return kabsch_rmsd(P[:n], Q[:n])
 
     except Exception as e:
-        print(f"  scRMSD error (3-chain): {e}")
+        print(f"  global RMSD error (3-chain): {e}")
         return 999.0
+
+
+# Backwards-compatible aliases (old metric was anchor-aligned minibinder-only).
+compute_scrmsdsingle_chain = compute_global_rmsd_single_chain
+compute_scrmsd_three_chain = compute_global_rmsd_three_chain
 
 
 # ── Main scoring function ─────────────────────────────────────────────────────
@@ -268,7 +247,7 @@ def score_all_designs(
     pipeline_dir: Path,
     boltz_mode: Literal["single_chain", "three_chain"] = "single_chain",
     plddt_threshold: float = 0.60,   # 0-1 scale — Boltz-2 reports 0→1, NOT 0→100
-    scrmsd_threshold: float = 2.0,
+    global_rmsd_threshold: float = 20.0,
     n_top_cifs: int = 10,
     *,
     rfd3_subdir: str | None = None,
@@ -286,7 +265,7 @@ def score_all_designs(
     pipeline_dir      Root pipeline directory (contains outputs/, boltz_outputs/, final/).
     boltz_mode        'single_chain' or 'three_chain'.
     plddt_threshold   Minimum pLDDT to pass (0-1 scale).
-    scrmsd_threshold  Maximum scRMSD to pass (Å).
+    global_rmsd_threshold  Maximum global assembly RMSD to pass (Å).
     n_top_cifs        Number of top designs to copy CIF files for.
     """
     MPNN_OUT   = pipeline_dir / "outputs" / mpnn_subdir
@@ -316,7 +295,7 @@ def score_all_designs(
 
     print(f"Scoring {len(top_designs)} designs (Boltz-2 mode: {boltz_mode})")
     print(f"RFd3 structures: {RFD3_OUT}")
-    print(f"pLDDT threshold: >{plddt_threshold*100:.0f}%  |  scRMSD threshold: <{scrmsd_threshold}Å")
+    print(f"pLDDT threshold: >{plddt_threshold*100:.0f}%  |  global RMSD threshold: <{global_rmsd_threshold}Å")
     print(f"Found {len(pred_dirs)} Boltz-2 prediction directories")
 
     results = []
@@ -333,22 +312,22 @@ def score_all_designs(
         iptm_vh1  = conf.get("iptm_MB_VH1", 0.0)
         iptm_nb   = conf.get("iptm_MB_Nb",  0.0)
 
-        # Compute scRMSD
+        # Compute global assembly RMSD (VH1 + MB + Nb)
         rfd3_cif = RFD3_OUT / f"{bb}.cif"
-        sc_rmsd = 999.0
+        global_rmsd = 999.0
         if pred_dir and rfd3_cif.exists():
             boltz_cif = pred_dir / f"{name}_model_0.cif"
             if boltz_cif.exists():
                 if boltz_mode == "single_chain":
-                    sc_rmsd = compute_scrmsdsingle_chain(rfd3_cif, boltz_cif)
+                    global_rmsd = compute_global_rmsd_single_chain(rfd3_cif, boltz_cif)
                 else:
-                    sc_rmsd = compute_scrmsd_three_chain(rfd3_cif, boltz_cif)
+                    global_rmsd = compute_global_rmsd_three_chain(rfd3_cif, boltz_cif)
 
         # Pass/fail
         if boltz_mode == "single_chain":
-            passed = sc_rmsd < scrmsd_threshold and plddt_01 > plddt_threshold
+            passed = global_rmsd < global_rmsd_threshold and plddt_01 > plddt_threshold
         else:
-            passed = (sc_rmsd < scrmsd_threshold and plddt_01 > plddt_threshold
+            passed = (global_rmsd < global_rmsd_threshold and plddt_01 > plddt_threshold
                       and iptm_vh1 > 0.3 and iptm_nb > 0.3)
 
         results.append({
@@ -360,11 +339,11 @@ def score_all_designs(
             "boltz_ptm": round(ptm, 4),
             "iptm_MB_VH1": round(iptm_vh1, 4),
             "iptm_MB_Nb":  round(iptm_nb,  4),
-            "sc_rmsd_A": round(sc_rmsd, 3),
+            "global_rmsd_A": round(global_rmsd, 3),
             "pass_filter": passed,
         })
 
-    results.sort(key=lambda x: (x["sc_rmsd_A"] if x["sc_rmsd_A"] < 900 else 999,
+    results.sort(key=lambda x: (x["global_rmsd_A"] if x["global_rmsd_A"] < 900 else 999,
                                  -x["boltz_plddt_pct"]))
 
     results_path = FINAL / results_filename
@@ -373,7 +352,7 @@ def score_all_designs(
     fasta_name = "validated_minibinders.fasta" if results_filename == "final_results.json" else f"validated_{results_filename.replace('.json', '')}.fasta"
     with open(FINAL / fasta_name, "w") as f:
         for r in passing:
-            f.write(f">{r['backbone']}__scRMSD{r['sc_rmsd_A']:.2f}"
+            f.write(f">{r['backbone']}__globalRMSD{r['global_rmsd_A']:.2f}"
                     f"__pLDDT{r['boltz_plddt_pct']:.0f}\n"
                     f"{r['minibinder_sequence']}\n")
 
@@ -394,32 +373,32 @@ def score_all_designs(
 
         summary_name = "top_summary.tsv" if results_filename == "final_results.json" else f"top_{results_filename.replace('.json', '')}.tsv"
         with open(STRUCTS / summary_name, "w") as f:
-            f.write("rank\tbackbone\tsc_rmsd_A\tboltz_plddt_pct\tboltz_ptm\t"
+            f.write("rank\tbackbone\tglobal_rmsd_A\tboltz_plddt_pct\tboltz_ptm\t"
                     "iptm_MB_VH1\tiptm_MB_Nb\tsequence_recovery\tminibinder_sequence\n")
             for i, r in enumerate(results[:n_top_cifs]):
-                f.write(f"{i+1}\t{r['backbone']}\t{r['sc_rmsd_A']}\t{r['boltz_plddt_pct']}\t"
+                f.write(f"{i+1}\t{r['backbone']}\t{r['global_rmsd_A']}\t{r['boltz_plddt_pct']}\t"
                         f"{r['boltz_ptm']}\t{r['iptm_MB_VH1']}\t{r['iptm_MB_Nb']}\t"
                         f"{r['sequence_recovery']}\t{r['minibinder_sequence']}\n")
 
     # Print table
     print(f"\n{'='*76}")
     col = "pTM" if boltz_mode == "single_chain" else "↔VH1/↔Nb"
-    print(f"{'R':>3}  {'Backbone':>28}  {'scRMSD':>7}  {'pLDDT%':>6}  {col:>10}  Pass")
+    print(f"{'R':>3}  {'Backbone':>28}  {'globalRMSD':>10}  {'pLDDT%':>6}  {col:>10}  Pass")
     print("  " + "-"*74)
     for r in results[:20]:
         if boltz_mode == "single_chain":
             extra = f"{r['boltz_ptm']:>10.4f}"
         else:
             extra = f"{r['iptm_MB_VH1']:>5.3f}/{r['iptm_MB_Nb']:>5.3f}"
-        print(f"{r['rank']:>3}.  {r['backbone']:>28}  {r['sc_rmsd_A']:>7.3f}  "
+        print(f"{r['rank']:>3}.  {r['backbone']:>28}  {r['global_rmsd_A']:>10.3f}  "
               f"{r['boltz_plddt_pct']:>6.1f}  {extra}{'  ✓' if r['pass_filter'] else ''}")
 
-    print(f"\nPassed (scRMSD<{scrmsd_threshold}Å & pLDDT>{plddt_threshold*100:.0f}%): "
+    print(f"\nPassed (global RMSD<{global_rmsd_threshold}Å & pLDDT>{plddt_threshold*100:.0f}%): "
           f"{len(passing)}/{len(results)}")
     print(f"Results written to {results_path}")
     if passing:
         p = passing[0]
-        print(f"\nBest: {p['backbone']}  scRMSD={p['sc_rmsd_A']:.2f}Å  pLDDT={p['boltz_plddt_pct']:.0f}%")
+        print(f"\nBest: {p['backbone']}  global RMSD={p['global_rmsd_A']:.2f}Å  pLDDT={p['boltz_plddt_pct']:.0f}%")
         print(f"  Sequence: {p['minibinder_sequence']}")
 
     return results
@@ -436,8 +415,10 @@ if __name__ == "__main__":
                    help="Boltz-2 prediction mode (single_chain = connected polypeptide).")
     p.add_argument("--plddt-threshold", type=float, default=0.60,
                    help="Min pLDDT to pass (0-1 scale; default 0.60 = 60%%).")
-    p.add_argument("--scrmsd-threshold", type=float, default=2.0,
-                   help="Max scRMSD to pass (Å).")
+    p.add_argument("--global-rmsd-threshold", type=float, default=20.0,
+                   help="Max global assembly RMSD to pass (Å).")
+    p.add_argument("--scrmsd-threshold", type=float, default=None,
+                   help="Deprecated alias for --global-rmsd-threshold.")
     p.add_argument("--n-top-cifs", type=int, default=10,
                    help="Number of top designs to copy CIF files for.")
     p.add_argument("--rfd3-subdir", default=None,
@@ -452,11 +433,13 @@ if __name__ == "__main__":
                    help="Skip copying top CIF files (use for intermediate round-1 scoring).")
     args = p.parse_args()
 
+    rmsd_threshold = (args.scrmsd_threshold if args.scrmsd_threshold is not None
+                      else args.global_rmsd_threshold)
     score_all_designs(
         pipeline_dir=Path(args.pipeline_dir),
         boltz_mode=args.mode,
         plddt_threshold=args.plddt_threshold,
-        scrmsd_threshold=args.scrmsd_threshold,
+        global_rmsd_threshold=rmsd_threshold,
         n_top_cifs=args.n_top_cifs,
         rfd3_subdir=args.rfd3_subdir,
         mpnn_subdir=args.mpnn_subdir,

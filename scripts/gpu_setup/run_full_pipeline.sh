@@ -1,12 +1,12 @@
 #!/bin/bash
 # ============================================================
 # run_full_pipeline.sh  v4
-# RFdiffusion3 → ProteinMPNN → Boltz-2 → scRMSD
+# RFdiffusion3 → ProteinMPNN → Boltz-2 → global assembly RMSD
 # Optional round 2: score round 1, then partial-diffusion on
-#   lowest-scRMSD round-1 RFd3 backbones (not Boltz structures)
+#   lowest global-RMSD round-1 RFd3 backbones (not Boltz structures)
 #
 # RFD3_ROUNDS=1 (default): single de novo pass + validation
-# RFD3_ROUNDS=2: round 1 → validate → top scRMSD RFd3 CIFs → round 2 → validate
+# RFD3_ROUNDS=2: round 1 → validate → top global RMSD RFd3 CIFs → round 2 → validate
 # ============================================================
 set -eo pipefail
 PIPELINE=/home/ubuntu/pipeline
@@ -35,7 +35,7 @@ echo "===== Full integrated pipeline v4: $(date) ====="
 echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
 echo "RFd3 rounds: $RFD3_ROUNDS | MB length range: $MB_LENGTH_RANGE"
 if [ "$RFD3_ROUNDS" = "2" ]; then
-    echo "Two-round mode: validate round 1 → top $RFD3_ROUND2_TEMPLATES by scRMSD → partial diffusion"
+    echo "Two-round mode: validate round 1 → top $RFD3_ROUND2_TEMPLATES by global RMSD → partial diffusion"
     echo "  round 2: $RFD3_ROUND2_DESIGNS_PER_TEMPLATE designs/template | partial_t=${RFD3_PARTIAL_T} Å"
 fi
 mkdir -p $PIPELINE/outputs/rfd3 $PIPELINE/outputs/rfd3_round2 \
@@ -250,12 +250,12 @@ run_validation_phase() {
         grep -E "Predicting|Saving|Done|Error" | head -20
 
     echo ""
-    echo "=== $PHASE_LABEL: scRMSD scoring ==="
+    echo "=== $PHASE_LABEL: global assembly RMSD scoring ==="
     local SCORE_ARGS=(
         --pipeline-dir /workspace
         --mode single_chain
         --plddt-threshold 0.60
-        --scrmsd-threshold 2.0
+        --global-rmsd-threshold 20.0
         --rfd3-subdir "$RFD3_SUBDIR"
         --mpnn-subdir "$MPNN_SUBDIR"
         --boltz-subdir "$BOLTZ_OUT_DIR"
@@ -294,9 +294,9 @@ if [ "$RFD3_ROUNDS" = "2" ]; then
         boltz_inputs_round1 boltz_outputs_round1 \
         round1_final_results.json no
 
-    # ── Step 2: RFdiffusion3 round 2 (partial diffusion on top scRMSD) ─
+    # ── Step 2: RFdiffusion3 round 2 (partial diffusion on top global RMSD) ─
     echo ""
-    echo "=== Step 2: RFdiffusion3 round 2 (top scRMSD round-1 RFd3 CIFs) ==="
+    echo "=== Step 2: RFdiffusion3 round 2 (top global RMSD round-1 RFd3 CIFs) ==="
     docker run --rm --gpus all \
         -v $PIPELINE:/workspace \
         -e RFD3_ROUND2_TEMPLATES=$RFD3_ROUND2_TEMPLATES \

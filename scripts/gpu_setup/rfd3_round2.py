@@ -71,7 +71,7 @@ def select_templates(round1_dir: Path) -> list[Path]:
                 print(f"  WARNING: template not found, skipping: {path}")
         return templates
 
-    # Prefer lowest scRMSD backbones from round-1 Boltz validation.
+    # Prefer lowest global assembly RMSD backbones from round-1 Boltz validation.
     results_path = Path(
         os.environ.get(
             "RFD3_ROUND1_RESULTS",
@@ -83,7 +83,9 @@ def select_templates(round1_dir: Path) -> list[Path]:
         results = json.load(open(results_path))
         results.sort(
             key=lambda r: (
-                r.get("sc_rmsd_A", 999) if r.get("sc_rmsd_A", 999) < 900 else 999,
+                r.get("global_rmsd_A", r.get("sc_rmsd_A", 999))
+                if r.get("global_rmsd_A", r.get("sc_rmsd_A", 999)) < 900
+                else 999,
                 -r.get("boltz_plddt_pct", 0),
             )
         )
@@ -93,8 +95,8 @@ def select_templates(round1_dir: Path) -> list[Path]:
             bb = row.get("backbone", "")
             if not bb or bb in seen:
                 continue
-            scrmsd = row.get("sc_rmsd_A", 999)
-            if scrmsd >= 900:
+            rmsd = row.get("global_rmsd_A", row.get("sc_rmsd_A", 999))
+            if rmsd >= 900:
                 continue
             path = round1_dir / f"{bb}.cif"
             if not path.exists():
@@ -102,11 +104,11 @@ def select_templates(round1_dir: Path) -> list[Path]:
                 continue
             templates.append(path)
             seen.add(bb)
-            print(f"  template {len(templates)}: {bb} (scRMSD={scrmsd:.2f} Å)")
+            print(f"  template {len(templates)}: {bb} (global RMSD={rmsd:.2f} Å)")
             if len(templates) >= n:
                 break
         if templates:
-            print(f"Selected {len(templates)} templates from round-1 scRMSD ranking")
+            print(f"Selected {len(templates)} templates from round-1 global RMSD ranking")
             return templates
         print("WARNING: round-1 results found but no valid templates — falling back")
 
