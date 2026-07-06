@@ -234,6 +234,7 @@ def main() -> None:
     )
     instance_id = inst["id"]
     print(f"Instance ID: {instance_id}")
+    ip = ""
 
     try:
         active = client.wait_until_active(instance_id)

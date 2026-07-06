@@ -1,35 +1,46 @@
-# Active Lambda Cloud Instance — VARIABLE-LENGTH + FIXED-ATOMS RUN
+# Pipeline Run — v5 Two-Round Partial Diffusion
 
-| Field | Value |
-|---|---|
-| Instance ID | `4d240eaac41b400aa781b393583fca80` |
-| IP | `129.146.177.146` |
-| Status | **Step 1/4: RFdiffusion3 batch ~2/20** |
+## Status: **Ready to launch** (waiting for `LAMBDA_API_KEY`)
 
-## New in this run
+Results will be saved to a **new folder** (does not overwrite previous runs):
+`pipeline_results/v5_two_round_refine/`
 
-1. **Variable-length minibinder** (`MB_LENGTH_RANGE=35-70`)
-   RFd3 samples a length from 35–70 residues per design.
-   Shorter designs → fewer DOF → expected lower scRMSD.
+## Launch command
 
-2. **`select_fixed_atoms` on chains A, B, C**
-   VH1, VL, Nanobody frozen at exact input coordinates (hard pin).
-   Previously `select_hotspots` was soft — chains could drift.
-
-## Monitor
+Add `LAMBDA_API_KEY` to your Cursor Cloud Agent secrets, then re-run the agent or:
 
 ```bash
-ssh -i $LAMBDA_SSH_KEY ubuntu@129.146.177.146 \
-  "grep -v 'WARNING\|Cached\|MACE\|not set\|bashrc\|networkx' \
-   ~/pipeline/full_pipeline.log | tail -5; \
-   echo CIFs: \$(ls ~/pipeline/outputs/rfd3/*.cif 2>/dev/null | wc -l)/200"
+export LAMBDA_API_KEY=<your-key>
+python scripts/launch_full_pipeline.py \
+    --ssh-key ~/.ssh/lambda_agent_key \
+    --rfd3-rounds 2 \
+    --results-dir pipeline_results/v5_two_round_refine
 ```
 
-## Terminate when done
+## Run configuration
+
+| Parameter | Value |
+|-----------|-------|
+| `RFD3_ROUNDS` | 2 |
+| Round 1 designs | 200 |
+| MB length range | 35–70 |
+| Round 2 templates | 5 (lowest round-1 scRMSD RFd3 backbones) |
+| Designs per template | 8 |
+| `partial_t` | 2.0 Å |
+
+## Workflow
+
+```
+Round 1 RFd3 → MPNN → Boltz → scRMSD
+         ↓ pick top 5 by scRMSD (RFd3 CIFs)
+Round 2 partial diffusion → MPNN → Boltz → final scRMSD
+         ↓
+GitHub: pipeline_results/v5_two_round_refine/
+```
+
+## Monitor / terminate
 
 ```bash
-curl -X POST https://cloud.lambda.ai/api/v1/instance-operations/terminate \
-  -H "Authorization: Bearer $LAMBDA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"instance_ids": ["4d240eaac41b400aa781b393583fca80"]}'
+python scripts/launch_full_pipeline.py --status
+python scripts/launch_full_pipeline.py --terminate --instance-id <id>
 ```
