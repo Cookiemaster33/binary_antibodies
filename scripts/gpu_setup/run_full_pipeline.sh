@@ -387,7 +387,6 @@ docker run --rm --gpus all \
     -v $PIPELINE:/workspace \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \
     rosettacommons/foundry:latest \
-    # Replace the final_score.py heredoc with a call to the tested scoring module
     python3 /workspace/binary_antibodies/scoring.py \
         --pipeline-dir /workspace \
         --mode single_chain \
