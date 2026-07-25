@@ -1,12 +1,14 @@
-# Active Lambda Instance — Stage A Hidden Minibinder
+# Active Lambda Instance — Stage A PoC (minibinder-first)
 
 | Field | Value |
 |---|---|
 | Instance ID | `0926bc09188c4cebb0cd8872131e29cb` |
 | IP | `150.136.64.212` |
-| Status | **Running — RFd3 Stage A in progress** |
-| Branch | `cursor/conditional-nanobody-design-992c` |
-| Designs | 200 (VH–hub–VL, CH1+VL hotspots) |
+| Status | **Running — Stage A PoC RFd3 (native Fab, exploratory)** |
+| Production order | **Stage 0 → Stage A** (see `docs/HIDDEN_MINIBINDER_PIPELINE.md`) |
+
+> This run uses native trastuzumab VH–VL as a feasibility check. After it finishes,
+> launch Stage 0 first, then rebuild Stage A with `--fab-pdb` from the top Stage 0 hit.
 
 ## What happened to the previous instance?
 

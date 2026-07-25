@@ -1,0 +1,72 @@
+{
+  "stage": "0",
+  "approach": "vh_vl_interface_weakening",
+  "description": "Stage 0: partial-diffusion redesign of VH\u2013VL framework interface (CDRs + constant domains + epitope stub fixed). Goal: reduce apo VH\u2013VL affinity while preserving target-bound closure geometry.",
+  "input_pdb": "structures/domains/fab_stage_0_vhvL_interface.pdb",
+  "source_fab": "1N8Z (trastuzumab)",
+  "chains": {
+    "A": "VH 1-113",
+    "B": "VL 1-107",
+    "C": "CH1 1-101",
+    "D": "CL 1-113 (steric context only)",
+    "T": "HER2 epitope stub 1-12 (hotspot / closure context)"
+  },
+  "rfd3": {
+    "contig": "A1-113/0,B1-107",
+    "partial_t": 12.0,
+    "select_hotspots": "T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12",
+    "select_fixed_atoms": {
+      "A26-35": "ALL",
+      "A50-65": "ALL",
+      "A95-102": "ALL",
+      "B24-34": "ALL",
+      "B50-56": "ALL",
+      "B89-97": "ALL",
+      "C1-101": "ALL",
+      "D1-113": "ALL",
+      "T1-12": "ALL"
+    },
+    "vh_interface_framework": [
+      "A34",
+      "A38",
+      "A42",
+      "A43",
+      "A44",
+      "A45",
+      "A46",
+      "A47",
+      "A49",
+      "A87",
+      "A89"
+    ],
+    "vl_interface_framework": [
+      "B35",
+      "B37",
+      "B39",
+      "B43",
+      "B44",
+      "B45",
+      "B46",
+      "B47",
+      "B104",
+      "B105",
+      "B106",
+      "B107"
+    ]
+  },
+  "validation": {
+    "apo_fold": "Boltz chains A+B+C+D (no T) \u2014 prefer fewer VH\u2013VL interface contacts",
+    "holo_fold": "Boltz chains A+B+C+D+T \u2014 prefer closed Fv around T without clashes",
+    "metrics": [
+      "vh_vl_interface_contacts",
+      "vh_vl_fr4_ca_distance",
+      "apo_minus_holo_contact_delta"
+    ],
+    "filters": {
+      "max_apo_interface_contacts": 12,
+      "min_holo_interface_contacts": 20,
+      "max_holo_clashes_4A": 0
+    }
+  },
+  "next_stage": "Feed top Stage 0 Fab (chains A\u2013D) into build_stage_a_design_target.py via --fab-pdb, then run Stage A minibinder design."
+}
