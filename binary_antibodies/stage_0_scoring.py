@@ -31,12 +31,28 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from binary_antibodies.fab_hidden_switch import (  # noqa: E402
-    VH_INTERFACE_FW,
-    VL_INTERFACE_FW,
-    cdr_residue_numbers,
-    fv_framework_residue_numbers,
-)
+# Inlined from fab_hidden_switch (no BioPython — runs in foundry Docker)
+VH_INTERFACE_FW = [34, 38, 42, 43, 44, 45, 46, 47, 49, 87, 89]
+VL_INTERFACE_FW = [35, 37, 39, 43, 44, 45, 46, 47, 104, 105, 106, 107, 108, 109, 110, 111, 112]
+VH_CDR_RANGES = [(26, 35), (50, 65), (95, 102)]
+VL_CDR_RANGES = [(24, 34), (50, 56), (89, 97)]
+
+
+def in_ranges(resnum: int, ranges: list[tuple[int, int]]) -> bool:
+    return any(lo <= resnum <= hi for lo, hi in ranges)
+
+
+def cdr_residue_numbers(chain: str) -> list[int]:
+    if chain == "A":
+        return [r for r in range(1, 114) if in_ranges(r, VH_CDR_RANGES)]
+    return [r for r in range(1, 108) if in_ranges(r, VL_CDR_RANGES)]
+
+
+def fv_framework_residue_numbers(chain: str) -> list[int]:
+    ranges = VH_CDR_RANGES if chain == "A" else VL_CDR_RANGES
+    length = 113 if chain == "A" else 107
+    return [r for r in range(1, length + 1) if not in_ranges(r, ranges)]
+
 
 CONTACT_CUTOFF_A = 6.0
 HEAVY_CONTACT_CUTOFF_A = 5.0
@@ -143,22 +159,27 @@ def count_inter_chain_clashes(
     exclude_chains: tuple[str, ...] = ("T",),
 ) -> int:
     """Inter-chain heavy-atom overlaps; exclude epitope stub (rough placeholder geometry)."""
+    from scipy.spatial import cKDTree
+
     skip = set(exclude_chains)
     heavy = aa[aa.element != "H"]
-    n = len(heavy)
-    clashes = 0
-    chain = heavy.chain_id
+    chains = heavy.chain_id
     coords = heavy.coord
-    for i in range(n):
-        if chain[i] in skip:
+    unique = [c for c in sorted(set(chains)) if c not in skip]
+    clashes = 0
+    for i, c1 in enumerate(unique):
+        m1 = chains == c1
+        pts1 = coords[m1]
+        if len(pts1) == 0:
             continue
-        for j in range(i + 1, n):
-            if chain[j] in skip:
+        for c2 in unique[i + 1 :]:
+            m2 = chains == c2
+            pts2 = coords[m2]
+            if len(pts2) == 0:
                 continue
-            if chain[i] == chain[j]:
-                continue
-            if np.linalg.norm(coords[i] - coords[j]) < cutoff:
-                clashes += 1
+            tree = cKDTree(pts2)
+            for neighbors in tree.query_ball_point(pts1, cutoff):
+                clashes += len(neighbors)
     return clashes
 
 
@@ -168,31 +189,23 @@ def _interface_residue_set(chain: str) -> set[int]:
 
 def count_vh_vl_interface_clashes(aa, cutoff: float = INTERFACE_CLASH_CUTOFF_A) -> int:
     """Cross-chain A↔B clashes involving at least one interface-framework residue."""
+    from scipy.spatial import cKDTree
+
     vh_iface = _interface_residue_set("A")
     vl_iface = _interface_residue_set("B")
     heavy = aa[aa.element != "H"]
+    vh_mask = (heavy.chain_id == "A") & np.isin(heavy.res_id, list(vh_iface))
+    vl_mask = (heavy.chain_id == "B") & np.isin(heavy.res_id, list(vl_iface))
+    ab_mask = (heavy.chain_id == "A") | (heavy.chain_id == "B")
+    ab = heavy[ab_mask]
+    iface = heavy[vh_mask | vl_mask]
+    if len(iface) == 0 or len(ab) == 0:
+        return 0
+    tree = cKDTree(ab.coord)
     clashes = 0
-    for i in range(len(heavy)):
-        if heavy.chain_id[i] not in ("A", "B"):
-            continue
-        ri = int(heavy.res_id[i])
-        for j in range(i + 1, len(heavy)):
-            cj = heavy.chain_id[j]
-            if (heavy.chain_id[i], cj) not in (("A", "B"), ("B", "A")):
-                continue
-            rj = int(heavy.res_id[j])
-            iface_i = (
-                (heavy.chain_id[i] == "A" and ri in vh_iface)
-                or (heavy.chain_id[i] == "B" and ri in vl_iface)
-            )
-            iface_j = (
-                (cj == "A" and rj in vh_iface)
-                or (cj == "B" and rj in vl_iface)
-            )
-            if not (iface_i or iface_j):
-                continue
-            if np.linalg.norm(heavy.coord[i] - heavy.coord[j]) < cutoff:
-                clashes += 1
+    for neighbors in tree.query_ball_point(iface.coord, cutoff):
+        # exclude same-atom (distance 0) and same-residue pairs
+        clashes += max(0, len(neighbors) - 1)
     return clashes
 
 
