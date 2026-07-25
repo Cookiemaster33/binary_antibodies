@@ -134,11 +134,14 @@ def _place_epitope_stub(vh_res: list, vl_res: list, seq: str = EPITOPE_SEQ) -> C
         bt_ca = bt_arr.coord[bt_arr.atom_name == "CA"][0]
         bt_arr.coord += ca_pos - bt_ca
 
-        new_res = Res.Residue((" ", i + 1, " "), aa, " ")
+        resname = _one_to_three(aa)
+        new_res = Res.Residue((" ", i + 1, " "), resname, " ")
         for j in range(bt_arr.array_length()):
             name = str(bt_arr.atom_name[j])
-            coord = bt_arr.coord[j]
             elem = str(bt_arr.element[j])
+            if name == "OXT" or elem == "H":
+                continue
+            coord = bt_arr.coord[j]
             atom = At.Atom(name, coord, 0.0, 1.0, " ", name, i + 1, elem)
             new_res.add(atom)
         chain.add(new_res)
