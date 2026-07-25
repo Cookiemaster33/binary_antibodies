@@ -257,6 +257,8 @@ docker run --rm --gpus all \
     rosettacommons/foundry:latest \
     python3 /workspace/binary_antibodies/stage_0_scoring.py \
         --pipeline-dir /workspace \
+        --reference-pdb /workspace/inputs/fab_stage_0_vhvL_interface.pdb \
+        --config-json /workspace/inputs/stage_0_vhvL_interface_config.json \
         --results-file final/stage_0_results.json
 
 echo ""

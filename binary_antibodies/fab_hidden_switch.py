@@ -48,6 +48,21 @@ def in_ranges(resnum: int, ranges: Iterable[tuple[int, int]]) -> bool:
     return any(lo <= resnum <= hi for lo, hi in ranges)
 
 
+def cdr_residue_numbers(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> list[int]:
+    ranges = VH_CDR_RANGES if chain == "A" else VL_CDR_RANGES if chain == "B" else None
+    if ranges is None:
+        raise ValueError(f"Unsupported chain: {chain}")
+    length = vh_len if chain == "A" else vl_len
+    return [r for r in range(1, length + 1) if in_ranges(r, ranges)]
+
+
+def fv_framework_residue_numbers(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> list[int]:
+    """Non-CDR Fv residues (for structural alignment)."""
+    length = vh_len if chain == "A" else vl_len
+    ranges = VH_CDR_RANGES if chain == "A" else VL_CDR_RANGES
+    return [r for r in range(1, length + 1) if not in_ranges(r, ranges)]
+
+
 def cdr_fixed_atoms(vh_len: int = VH_END, vl_len: int = VL_END) -> dict[str, str]:
     """RFd3 select_fixed_atoms entries for CDR regions on chains A and B."""
     fixed: dict[str, str] = {}

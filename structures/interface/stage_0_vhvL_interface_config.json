@@ -60,12 +60,22 @@
     "metrics": [
       "vh_vl_interface_contacts",
       "vh_vl_fr4_ca_distance",
-      "apo_minus_holo_contact_delta"
+      "holo_minus_apo_contact_delta",
+      "holo_fv_framework_rmsd_A",
+      "cdr_epitope_contacts",
+      "vh_vl_interface_clashes",
+      "wedge_suspect"
     ],
     "filters": {
       "max_apo_interface_contacts": 12,
-      "min_holo_interface_contacts": 20,
-      "max_holo_clashes_4A": 0
+      "min_holo_interface_contacts": 50,
+      "max_holo_clashes_4A": 50,
+      "min_holo_minus_apo_contact_delta": 15,
+      "min_apo_interface_centroid_distance_A": 14.0,
+      "max_holo_interface_centroid_distance_A": 12.0,
+      "max_holo_fv_framework_rmsd_A": 3.5,
+      "min_holo_cdr_epitope_contacts": 6,
+      "max_holo_vh_vl_interface_clashes": 0
     }
   },
   "next_stage": "Feed top Stage 0 Fab (chains A\u2013D) into build_stage_a_design_target.py via --fab-pdb, then run Stage A minibinder design."

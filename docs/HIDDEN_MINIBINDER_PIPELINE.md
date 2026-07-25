@@ -31,10 +31,18 @@ weaken      hub design    (de novo)
 - Hotspots: epitope stub `T1–T12` (closure geometry)
 - Fixed: all CDRs, CH1, CL, epitope coordinates
 
-**Validation (apo vs holo):**
-- **Apo Boltz:** chains A+B+C+D → few VH–VL interface contacts
-- **Holo Boltz:** chains A+B+C+D+T → more contacts, zero clashes
-- Filter: `apo_contacts ≤ 12`, `holo_contacts ≥ 20`, `holo_clashes = 0`
+**Validation (apo vs holo differential):**
+
+| Metric | Apo | Holo | Purpose |
+|--------|-----|------|---------|
+| VH–VL interface contacts (heavy-atom) | ≤ 12 | ≥ 50 | Conditional pairing gap |
+| Interface centroid distance | ≥ 14 Å | ≤ 12 Å | Open vs closed |
+| Fv framework RMSD vs native | — | ≤ 3.5 Å | Holo looks like real Fab |
+| CDR ↔ epitope contacts | — | ≥ 6 | Co-binding, not just VH–VL slam |
+| VH–VL interface cross-clashes | — | 0 | Anti-wedge (no steric plugs) |
+| `wedge_suspect` flag | — | false | Reject plug-like false positives |
+
+We select on **maximum holo−apo contact delta** among designs passing all filters — not minimum apo affinity alone.
 
 **Build & launch:**
 ```bash
