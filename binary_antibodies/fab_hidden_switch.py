@@ -112,8 +112,15 @@ def _centroid(residues: list) -> np.ndarray:
     return np.mean(coords, axis=0)
 
 
+def _one_to_three(aa: str) -> str:
+    from Bio.SeqUtils import seq3
+    return seq3(aa).upper()
+
+
 def _place_epitope_stub(vh_res: list, vl_res: list, seq: str = EPITOPE_SEQ) -> Ch.Chain:
-    """Short peptide at the VH–VL groove centroid (fixed steric context for target)."""
+    """Full-atom epitope stub at the VH–VL groove (RFd3 requires complete residues)."""
+    from biotite.structure.info import residue as bt_residue
+
     vh_cent = _centroid(vh_res)
     vl_cent = _centroid(vl_res)
     groove = 0.5 * (vh_cent + vl_cent)
@@ -122,18 +129,19 @@ def _place_epitope_stub(vh_res: list, vl_res: list, seq: str = EPITOPE_SEQ) -> C
 
     chain = Ch.Chain("T")
     for i, aa in enumerate(seq):
-        res = Res.Residue((" ", i + 1, " "), aa, " ")
-        ca = groove + toward_vl * (i * 3.8) - toward_vl * 2.0
-        for name, offset in [
-            ("N", np.array([-1.5, 0.0, 0.0])),
-            ("CA", np.array([0.0, 0.0, 0.0])),
-            ("C", np.array([1.5, 0.0, 0.0])),
-            ("O", np.array([2.2, 1.1, 0.0])),
-        ]:
-            elem = name[0] if name != "CA" else "C"
-            atom = At.Atom(name, ca + offset, 0.0, 1.0, " ", name, i + 1, elem)
-            res.add(atom)
-        chain.add(res)
+        bt_arr = bt_residue(_one_to_three(aa)).copy()
+        ca_pos = groove + toward_vl * (i * 3.8) - toward_vl * 2.0
+        bt_ca = bt_arr.coord[bt_arr.atom_name == "CA"][0]
+        bt_arr.coord += ca_pos - bt_ca
+
+        new_res = Res.Residue((" ", i + 1, " "), aa, " ")
+        for j in range(bt_arr.array_length()):
+            name = str(bt_arr.atom_name[j])
+            coord = bt_arr.coord[j]
+            elem = str(bt_arr.element[j])
+            atom = At.Atom(name, coord, 0.0, 1.0, " ", name, i + 1, elem)
+            new_res.add(atom)
+        chain.add(new_res)
     return chain
 
 
