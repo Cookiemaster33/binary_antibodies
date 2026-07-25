@@ -2,31 +2,33 @@
 
 | Field | Value |
 |---|---|
-| Instance ID | `76af49c4b04046ea94ae0d97d84b1402` |
-| IP | `150.136.119.26` |
-| Status | **Running — cloud-init bootstrap → RFd3 Stage A** |
+| Instance ID | `0926bc09188c4cebb0cd8872131e29cb` |
+| IP | `150.136.64.212` |
+| Status | **Running — RFd3 Stage A in progress** |
 | Branch | `cursor/conditional-nanobody-design-992c` |
 | Designs | 200 (VH–hub–VL, CH1+VL hotspots) |
 
-## Bootstrap (automatic)
+## What happened to the previous instance?
 
-Cloud-init clones repo, builds design target, runs `setup_pipeline_rfd3.sh`, then Stage A RFd3 in tmux session `stage_a`.
+Instance `76af49c4...` @ `150.136.119.26` was terminated. Its cloud-init bootstrap never started RFd3 (likely failed on `build_stage_a_design_target.py` — BioPython not installed on a fresh Lambda image). Relaunched with SSH-based deploy (same pattern as the v6 full pipeline).
 
-## Monitor (from machine with Lambda SSH key)
+## Monitor (cloud agent ephemeral key)
 
 ```bash
-ssh -i ~/.ssh/lambda_agent_key ubuntu@150.136.119.26 \
-  "tail -f /home/ubuntu/stage_a_bootstrap.log"
-
-ssh -i ~/.ssh/lambda_agent_key ubuntu@150.136.119.26 \
+ssh -i ~/.ssh/cursor_lambda_ephemeral ubuntu@150.136.64.212 \
   "tail -f /home/ubuntu/pipeline/stage_a_pipeline.log"
 
-ssh -i ~/.ssh/lambda_agent_key ubuntu@150.136.119.26 \
+ssh -i ~/.ssh/cursor_lambda_ephemeral ubuntu@150.136.64.212 \
   "tmux attach -t stage_a"
+
+ssh -i ~/.ssh/cursor_lambda_ephemeral ubuntu@150.136.64.212 \
+  "nvidia-smi"
 ```
+
+If you use your local `cursor-agent` key, it will **not** work on this instance — only the ephemeral key registered at launch is authorized.
 
 ## Terminate when done
 
 ```bash
-python3 scripts/launch_full_pipeline.py --terminate --instance-id 76af49c4b04046ea94ae0d97d84b1402
+python3 scripts/launch_stage_a.py --terminate --instance-id 0926bc09188c4cebb0cd8872131e29cb
 ```
