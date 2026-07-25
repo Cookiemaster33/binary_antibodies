@@ -98,13 +98,13 @@ def ensure_ephemeral_ssh_key(client: LambdaClient) -> str:
     return str(EPHEMERAL_KEY_PATH)
 
 
-def resolve_ssh_key(client: LambdaClient, preferred: str) -> tuple[str, list[str]]:
-    """Return (private_key_path, ssh_key_names_for_launch)."""
+def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> tuple[str, str]:
+    """Return (private_key_path, ssh_key_name_for_launch). Lambda allows one key only."""
     if ssh_key_usable(preferred):
-        return os.path.expanduser(preferred), [os.environ.get("LAMBDA_SSH_KEY_NAME", "cursor-agent")]
+        return os.path.expanduser(preferred), ssh_key_name
     print(f"  SSH key not found at {preferred} — using ephemeral key.")
     key_path = ensure_ephemeral_ssh_key(client)
-    return key_path, ["cursor-agent", EPHEMERAL_KEY_NAME]
+    return key_path, EPHEMERAL_KEY_NAME
 
 
 def upload_stage_a(ip: str, key: str) -> None:
@@ -213,14 +213,12 @@ def main() -> None:
 
     subprocess.run([sys.executable, str(ROOT / "scripts/build_stage_a_design_target.py")], check=True)
 
-    ssh_key, launch_key_names = resolve_ssh_key(client, args.ssh_key)
-    if ssh_key_usable(args.ssh_key):
-        launch_key_names = [args.ssh_key_name]
+    ssh_key, launch_key_name = resolve_ssh_key(client, args.ssh_key, args.ssh_key_name)
 
     inst = client.launch(
         "gpu_1x_a100_sxm4",
         "us-east-1",
-        ssh_key_names=launch_key_names,
+        ssh_key_names=[launch_key_name],
         name="stage-a-hidden-minibinder",
     )
     iid = inst["id"]
