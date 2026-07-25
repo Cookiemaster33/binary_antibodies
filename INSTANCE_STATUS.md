@@ -1,18 +1,32 @@
-# Lambda Instance — v6 Global RMSD Rerun (complete)
+# Active Lambda Instance — Stage A Hidden Minibinder
 
 | Field | Value |
 |---|---|
-| Instance ID | `142cd0e053a947b093ef23dc2b18e051` |
-| Status | **Terminated** |
-| Results | `pipeline_results/v6_global_rmsd_rerun/` on branch `cursor/conditional-nanobody-design-992c` |
+| Instance ID | `76af49c4b04046ea94ae0d97d84b1402` |
+| IP | `150.136.119.26` |
+| Status | **Running — cloud-init bootstrap → RFd3 Stage A** |
+| Branch | `cursor/conditional-nanobody-design-992c` |
+| Designs | 200 (VH–hub–VL, CH1+VL hotspots) |
 
-## v6 Results Summary
+## Bootstrap (automatic)
 
-| Phase | Best design | Global RMSD | pLDDT |
-|---|---|---|---|
-| Round 1 | `mb_b019_009` | 9.76 Å | 80% |
-| Round 2 | `r2_mb_b019_009_004` | **9.56 Å** | 78% |
+Cloud-init clones repo, builds design target, runs `setup_pipeline_rfd3.sh`, then Stage A RFd3 in tmux session `stage_a`.
 
-Round-2 templates (by global RMSD): mb_b019_009, mb_b003_007, mb_b013_006, mb_b000_004, mb_b012_004
+## Monitor (from machine with Lambda SSH key)
 
-39/40 round-2 designs passed (global RMSD < 20 Å & pLDDT > 60%).
+```bash
+ssh -i ~/.ssh/lambda_agent_key ubuntu@150.136.119.26 \
+  "tail -f /home/ubuntu/stage_a_bootstrap.log"
+
+ssh -i ~/.ssh/lambda_agent_key ubuntu@150.136.119.26 \
+  "tail -f /home/ubuntu/pipeline/stage_a_pipeline.log"
+
+ssh -i ~/.ssh/lambda_agent_key ubuntu@150.136.119.26 \
+  "tmux attach -t stage_a"
+```
+
+## Terminate when done
+
+```bash
+python3 scripts/launch_full_pipeline.py --terminate --instance-id 76af49c4b04046ea94ae0d97d84b1402
+```
