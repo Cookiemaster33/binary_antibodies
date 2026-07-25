@@ -188,24 +188,18 @@ def _interface_residue_set(chain: str) -> set[int]:
 
 
 def count_vh_vl_interface_clashes(aa, cutoff: float = INTERFACE_CLASH_CUTOFF_A) -> int:
-    """Cross-chain A↔B clashes involving at least one interface-framework residue."""
+    """Severe cross-chain A↔B overlaps at VH/VL interface framework residues."""
     from scipy.spatial import cKDTree
 
-    vh_iface = _interface_residue_set("A")
-    vl_iface = _interface_residue_set("B")
     heavy = aa[aa.element != "H"]
-    vh_mask = (heavy.chain_id == "A") & np.isin(heavy.res_id, list(vh_iface))
-    vl_mask = (heavy.chain_id == "B") & np.isin(heavy.res_id, list(vl_iface))
-    ab_mask = (heavy.chain_id == "A") | (heavy.chain_id == "B")
-    ab = heavy[ab_mask]
-    iface = heavy[vh_mask | vl_mask]
-    if len(iface) == 0 or len(ab) == 0:
+    vh = heavy[(heavy.chain_id == "A") & np.isin(heavy.res_id, list(VH_INTERFACE_FW))]
+    vl = heavy[(heavy.chain_id == "B") & np.isin(heavy.res_id, list(VL_INTERFACE_FW))]
+    if len(vh) == 0 or len(vl) == 0:
         return 0
-    tree = cKDTree(ab.coord)
+    tree = cKDTree(vl.coord)
     clashes = 0
-    for neighbors in tree.query_ball_point(iface.coord, cutoff):
-        # exclude same-atom (distance 0) and same-residue pairs
-        clashes += max(0, len(neighbors) - 1)
+    for pt in vh.coord:
+        clashes += len(tree.query_ball_point(pt, cutoff))
     return clashes
 
 
