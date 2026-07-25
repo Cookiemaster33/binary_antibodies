@@ -1,0 +1,1769 @@
+{
+  "n_scored": 50,
+  "n_passing": 0,
+  "filters": {
+    "max_apo_interface_contacts": 12,
+    "min_holo_interface_contacts": 50,
+    "max_holo_clashes_4A": 50,
+    "max_holo_fv_framework_rmsd_A": 3.5,
+    "min_holo_cdr_epitope_contacts": 6,
+    "max_holo_vh_vl_interface_clashes": 0,
+    "min_holo_minus_apo_contact_delta": 15,
+    "min_apo_interface_centroid_distance_A": 14.0,
+    "max_holo_interface_centroid_distance_A": 12.0
+  },
+  "reference_pdb": "/workspace/inputs/fab_stage_0_vhvL_interface.pdb",
+  "native_apo_interface_contacts": 113,
+  "designs": [
+    {
+      "design_id": "rank32_s0_b014_003_s0",
+      "apo": {
+        "structure": "rank32_s0_b014_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 22,
+        "vh_vl_interface_centroid_distance": 8.939950942993164,
+        "vh_vl_fr4_ca_distance": 35.05707550048828,
+        "inter_chain_clashes_4A": 32
+      },
+      "holo": {
+        "structure": "rank32_s0_b014_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 7.312389850616455,
+        "vh_vl_fr4_ca_distance": 33.96320724487305,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 245,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 1.8629101065896005
+      },
+      "holo_minus_apo_contact_delta": 41,
+      "fr4_distance_delta": 1.0938682556152344,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank48_s0_b012_004_s0",
+      "apo": {
+        "structure": "rank48_s0_b012_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 86,
+        "vh_vl_interface_centroid_distance": 6.984992027282715,
+        "vh_vl_fr4_ca_distance": 34.54526138305664,
+        "inter_chain_clashes_4A": 32
+      },
+      "holo": {
+        "structure": "rank48_s0_b012_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 112,
+        "vh_vl_interface_centroid_distance": 6.636862277984619,
+        "vh_vl_fr4_ca_distance": 34.143917083740234,
+        "inter_chain_clashes_4A": 35,
+        "cdr_epitope_contacts": 364,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2585552445301746
+      },
+      "holo_minus_apo_contact_delta": 26,
+      "fr4_distance_delta": 0.40134429931640625,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank45_s0_b000_006_s0",
+      "apo": {
+        "structure": "rank45_s0_b000_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 87,
+        "vh_vl_interface_centroid_distance": 8.617997169494629,
+        "vh_vl_fr4_ca_distance": 33.04669189453125,
+        "inter_chain_clashes_4A": 26
+      },
+      "holo": {
+        "structure": "rank45_s0_b000_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 105,
+        "vh_vl_interface_centroid_distance": 8.093094825744629,
+        "vh_vl_fr4_ca_distance": 30.185426712036133,
+        "inter_chain_clashes_4A": 33,
+        "cdr_epitope_contacts": 225,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.721774121836411
+      },
+      "holo_minus_apo_contact_delta": 18,
+      "fr4_distance_delta": 2.861265182495117,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank41_s0_b017_005_s0",
+      "apo": {
+        "structure": "rank41_s0_b017_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 44,
+        "vh_vl_interface_centroid_distance": 9.197310447692871,
+        "vh_vl_fr4_ca_distance": 33.845882415771484,
+        "inter_chain_clashes_4A": 24
+      },
+      "holo": {
+        "structure": "rank41_s0_b017_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 59,
+        "vh_vl_interface_centroid_distance": 8.545816421508789,
+        "vh_vl_fr4_ca_distance": 33.92666244506836,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 154,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 3.2188216190301073
+      },
+      "holo_minus_apo_contact_delta": 15,
+      "fr4_distance_delta": -0.080780029296875,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank42_s0_b019_004_s0",
+      "apo": {
+        "structure": "rank42_s0_b019_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 60,
+        "vh_vl_interface_centroid_distance": 9.500411033630371,
+        "vh_vl_fr4_ca_distance": 31.88829803466797,
+        "inter_chain_clashes_4A": 27
+      },
+      "holo": {
+        "structure": "rank42_s0_b019_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 100,
+        "vh_vl_interface_centroid_distance": 7.605327129364014,
+        "vh_vl_fr4_ca_distance": 33.68095779418945,
+        "inter_chain_clashes_4A": 19,
+        "cdr_epitope_contacts": 339,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.539042601713329
+      },
+      "holo_minus_apo_contact_delta": 40,
+      "fr4_distance_delta": -1.7926597595214844,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank03_s0_b018_005_s0",
+      "apo": {
+        "structure": "rank03_s0_b018_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 7.331342697143555,
+        "vh_vl_fr4_ca_distance": 33.567588806152344,
+        "inter_chain_clashes_4A": 32
+      },
+      "holo": {
+        "structure": "rank03_s0_b018_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 108,
+        "vh_vl_interface_centroid_distance": 7.085533142089844,
+        "vh_vl_fr4_ca_distance": 32.07149124145508,
+        "inter_chain_clashes_4A": 47,
+        "cdr_epitope_contacts": 370,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.3681243384208748
+      },
+      "holo_minus_apo_contact_delta": 37,
+      "fr4_distance_delta": 1.4960975646972656,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank19_s0_b003_005_s0",
+      "apo": {
+        "structure": "rank19_s0_b003_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 76,
+        "vh_vl_interface_centroid_distance": 7.642035484313965,
+        "vh_vl_fr4_ca_distance": 31.677644729614258,
+        "inter_chain_clashes_4A": 25
+      },
+      "holo": {
+        "structure": "rank19_s0_b003_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 100,
+        "vh_vl_interface_centroid_distance": 7.348535537719727,
+        "vh_vl_fr4_ca_distance": 31.835132598876953,
+        "inter_chain_clashes_4A": 35,
+        "cdr_epitope_contacts": 209,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.2205365457041415
+      },
+      "holo_minus_apo_contact_delta": 24,
+      "fr4_distance_delta": -0.1574878692626953,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank30_s0_b001_008_s0",
+      "apo": {
+        "structure": "rank30_s0_b001_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 12,
+        "vh_vl_interface_centroid_distance": 8.132312774658203,
+        "vh_vl_fr4_ca_distance": 30.679733276367188,
+        "inter_chain_clashes_4A": 26
+      },
+      "holo": {
+        "structure": "rank30_s0_b001_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 28,
+        "vh_vl_interface_centroid_distance": 7.721088886260986,
+        "vh_vl_fr4_ca_distance": 33.68205642700195,
+        "inter_chain_clashes_4A": 21,
+        "cdr_epitope_contacts": 334,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 3.9850976850694666
+      },
+      "holo_minus_apo_contact_delta": 16,
+      "fr4_distance_delta": -3.0023231506347656,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": true,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank31_s0_b007_005_s0",
+      "apo": {
+        "structure": "rank31_s0_b007_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 56,
+        "vh_vl_interface_centroid_distance": 8.281994819641113,
+        "vh_vl_fr4_ca_distance": 31.99779510498047,
+        "inter_chain_clashes_4A": 33
+      },
+      "holo": {
+        "structure": "rank31_s0_b007_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 7.587249755859375,
+        "vh_vl_fr4_ca_distance": 32.1061897277832,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 268,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.042844642531511
+      },
+      "holo_minus_apo_contact_delta": 8,
+      "fr4_distance_delta": -0.10839462280273438,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank10_s0_b000_002_s0",
+      "apo": {
+        "structure": "rank10_s0_b000_002_s0_model_0.cif",
+        "vh_vl_interface_contacts": 97,
+        "vh_vl_interface_centroid_distance": 8.430537223815918,
+        "vh_vl_fr4_ca_distance": 33.40016174316406,
+        "inter_chain_clashes_4A": 22
+      },
+      "holo": {
+        "structure": "rank10_s0_b000_002_s0_model_0.cif",
+        "vh_vl_interface_contacts": 88,
+        "vh_vl_interface_centroid_distance": 8.611469268798828,
+        "vh_vl_fr4_ca_distance": 32.73908996582031,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 286,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 1.7835118521714972
+      },
+      "holo_minus_apo_contact_delta": -9,
+      "fr4_distance_delta": 0.66107177734375,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank50_s0_b018_000_s0",
+      "apo": {
+        "structure": "rank50_s0_b018_000_s0_model_0.cif",
+        "vh_vl_interface_contacts": 96,
+        "vh_vl_interface_centroid_distance": 6.435486793518066,
+        "vh_vl_fr4_ca_distance": 34.91827392578125,
+        "inter_chain_clashes_4A": 31
+      },
+      "holo": {
+        "structure": "rank50_s0_b018_000_s0_model_0.cif",
+        "vh_vl_interface_contacts": 84,
+        "vh_vl_interface_centroid_distance": 7.553472995758057,
+        "vh_vl_fr4_ca_distance": 32.28483581542969,
+        "inter_chain_clashes_4A": 34,
+        "cdr_epitope_contacts": 201,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.8146336995695194
+      },
+      "holo_minus_apo_contact_delta": -12,
+      "fr4_distance_delta": 2.6334381103515625,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank47_s0_b011_009_s0",
+      "apo": {
+        "structure": "rank47_s0_b011_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 94,
+        "vh_vl_interface_centroid_distance": 8.10688304901123,
+        "vh_vl_fr4_ca_distance": 33.69700622558594,
+        "inter_chain_clashes_4A": 27
+      },
+      "holo": {
+        "structure": "rank47_s0_b011_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 8.685283660888672,
+        "vh_vl_fr4_ca_distance": 32.880638122558594,
+        "inter_chain_clashes_4A": 19,
+        "cdr_epitope_contacts": 356,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 1.3217215895540955
+      },
+      "holo_minus_apo_contact_delta": -29,
+      "fr4_distance_delta": 0.8163681030273438,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank27_s0_b016_009_s0",
+      "apo": {
+        "structure": "rank27_s0_b016_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 10.175542831420898,
+        "vh_vl_fr4_ca_distance": 33.12110137939453,
+        "inter_chain_clashes_4A": 29
+      },
+      "holo": {
+        "structure": "rank27_s0_b016_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 84,
+        "vh_vl_interface_centroid_distance": 8.33624267578125,
+        "vh_vl_fr4_ca_distance": 34.05995178222656,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 328,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 1.2052893787307355
+      },
+      "holo_minus_apo_contact_delta": 14,
+      "fr4_distance_delta": -0.9388504028320312,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank18_s0_b000_003_s0",
+      "apo": {
+        "structure": "rank18_s0_b000_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 53,
+        "vh_vl_interface_centroid_distance": 8.447094917297363,
+        "vh_vl_fr4_ca_distance": 32.93701934814453,
+        "inter_chain_clashes_4A": 31
+      },
+      "holo": {
+        "structure": "rank18_s0_b000_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 61,
+        "vh_vl_interface_centroid_distance": 7.553515911102295,
+        "vh_vl_fr4_ca_distance": 33.73635482788086,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 418,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 3.0447125168440947
+      },
+      "holo_minus_apo_contact_delta": 8,
+      "fr4_distance_delta": -0.7993354797363281,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank38_s0_b007_007_s0",
+      "apo": {
+        "structure": "rank38_s0_b007_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 61,
+        "vh_vl_interface_centroid_distance": 10.641850471496582,
+        "vh_vl_fr4_ca_distance": 35.11139678955078,
+        "inter_chain_clashes_4A": 30
+      },
+      "holo": {
+        "structure": "rank38_s0_b007_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 69,
+        "vh_vl_interface_centroid_distance": 10.1707124710083,
+        "vh_vl_fr4_ca_distance": 35.56037521362305,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 185,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 3.8085918152025946
+      },
+      "holo_minus_apo_contact_delta": 8,
+      "fr4_distance_delta": -0.4489784240722656,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank06_s0_b001_006_s0",
+      "apo": {
+        "structure": "rank06_s0_b001_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 89,
+        "vh_vl_interface_centroid_distance": 8.235522270202637,
+        "vh_vl_fr4_ca_distance": 32.451168060302734,
+        "inter_chain_clashes_4A": 23
+      },
+      "holo": {
+        "structure": "rank06_s0_b001_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 96,
+        "vh_vl_interface_centroid_distance": 7.0714111328125,
+        "vh_vl_fr4_ca_distance": 35.5513801574707,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 197,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.351045998117194
+      },
+      "holo_minus_apo_contact_delta": 7,
+      "fr4_distance_delta": -3.1002120971679688,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank43_s0_b019_006_s0",
+      "apo": {
+        "structure": "rank43_s0_b019_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 69,
+        "vh_vl_interface_centroid_distance": 6.871135711669922,
+        "vh_vl_fr4_ca_distance": 32.50369644165039,
+        "inter_chain_clashes_4A": 42
+      },
+      "holo": {
+        "structure": "rank43_s0_b019_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 6.943644046783447,
+        "vh_vl_fr4_ca_distance": 33.18735122680664,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 409,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 3.398088073418034
+      },
+      "holo_minus_apo_contact_delta": 2,
+      "fr4_distance_delta": -0.68365478515625,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank20_s0_b007_004_s0",
+      "apo": {
+        "structure": "rank20_s0_b007_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 8,
+        "vh_vl_interface_centroid_distance": 8.040450096130371,
+        "vh_vl_fr4_ca_distance": 34.873653411865234,
+        "inter_chain_clashes_4A": 22
+      },
+      "holo": {
+        "structure": "rank20_s0_b007_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 7,
+        "vh_vl_interface_centroid_distance": 8.942073822021484,
+        "vh_vl_fr4_ca_distance": 34.403167724609375,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 306,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.81135293935719
+      },
+      "holo_minus_apo_contact_delta": -1,
+      "fr4_distance_delta": 0.4704856872558594,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": true,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank02_s0_b009_007_s0",
+      "apo": {
+        "structure": "rank02_s0_b009_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 21,
+        "vh_vl_interface_centroid_distance": 7.972048759460449,
+        "vh_vl_fr4_ca_distance": 33.37547302246094,
+        "inter_chain_clashes_4A": 28
+      },
+      "holo": {
+        "structure": "rank02_s0_b009_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 17,
+        "vh_vl_interface_centroid_distance": 8.383106231689453,
+        "vh_vl_fr4_ca_distance": 33.61613082885742,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 235,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.0317372547681045
+      },
+      "holo_minus_apo_contact_delta": -4,
+      "fr4_distance_delta": -0.24065780639648438,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank05_s0_b012_003_s0",
+      "apo": {
+        "structure": "rank05_s0_b012_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 103,
+        "vh_vl_interface_centroid_distance": 8.391160011291504,
+        "vh_vl_fr4_ca_distance": 33.987937927246094,
+        "inter_chain_clashes_4A": 36
+      },
+      "holo": {
+        "structure": "rank05_s0_b012_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 99,
+        "vh_vl_interface_centroid_distance": 8.216264724731445,
+        "vh_vl_fr4_ca_distance": 33.854000091552734,
+        "inter_chain_clashes_4A": 35,
+        "cdr_epitope_contacts": 214,
+        "vh_vl_interface_clashes": 5,
+        "holo_fv_framework_rmsd_A": 2.7318169501125453
+      },
+      "holo_minus_apo_contact_delta": -4,
+      "fr4_distance_delta": 0.13393783569335938,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank37_s0_b004_008_s0",
+      "apo": {
+        "structure": "rank37_s0_b004_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 132,
+        "vh_vl_interface_centroid_distance": 7.820840835571289,
+        "vh_vl_fr4_ca_distance": 33.610984802246094,
+        "inter_chain_clashes_4A": 28
+      },
+      "holo": {
+        "structure": "rank37_s0_b004_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 123,
+        "vh_vl_interface_centroid_distance": 7.626065254211426,
+        "vh_vl_fr4_ca_distance": 32.717472076416016,
+        "inter_chain_clashes_4A": 33,
+        "cdr_epitope_contacts": 330,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.539782357908271
+      },
+      "holo_minus_apo_contact_delta": -9,
+      "fr4_distance_delta": 0.8935127258300781,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank36_s0_b002_008_s0",
+      "apo": {
+        "structure": "rank36_s0_b002_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 39,
+        "vh_vl_interface_centroid_distance": 7.44877290725708,
+        "vh_vl_fr4_ca_distance": 32.84512710571289,
+        "inter_chain_clashes_4A": 24
+      },
+      "holo": {
+        "structure": "rank36_s0_b002_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 12,
+        "vh_vl_interface_centroid_distance": 8.494392395019531,
+        "vh_vl_fr4_ca_distance": 33.16476821899414,
+        "inter_chain_clashes_4A": 21,
+        "cdr_epitope_contacts": 214,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1439278215943864
+      },
+      "holo_minus_apo_contact_delta": -27,
+      "fr4_distance_delta": -0.31964111328125,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank09_s0_b015_003_s0",
+      "apo": {
+        "structure": "rank09_s0_b015_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 126,
+        "vh_vl_interface_centroid_distance": 7.866672992706299,
+        "vh_vl_fr4_ca_distance": 34.98804473876953,
+        "inter_chain_clashes_4A": 34
+      },
+      "holo": {
+        "structure": "rank09_s0_b015_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 97,
+        "vh_vl_interface_centroid_distance": 8.48654842376709,
+        "vh_vl_fr4_ca_distance": 33.56657791137695,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 0,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.3321626814967416
+      },
+      "holo_minus_apo_contact_delta": -29,
+      "fr4_distance_delta": 1.4214668273925781,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": false,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank39_s0_b010_001_s0",
+      "apo": {
+        "structure": "rank39_s0_b010_001_s0_model_0.cif",
+        "vh_vl_interface_contacts": 105,
+        "vh_vl_interface_centroid_distance": 7.543493747711182,
+        "vh_vl_fr4_ca_distance": 34.107276916503906,
+        "inter_chain_clashes_4A": 26
+      },
+      "holo": {
+        "structure": "rank39_s0_b010_001_s0_model_0.cif",
+        "vh_vl_interface_contacts": 59,
+        "vh_vl_interface_centroid_distance": 8.550878524780273,
+        "vh_vl_fr4_ca_distance": 33.709938049316406,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 314,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 1.3443774197572782
+      },
+      "holo_minus_apo_contact_delta": -46,
+      "fr4_distance_delta": 0.3973388671875,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank22_s0_b014_007_s0",
+      "apo": {
+        "structure": "rank22_s0_b014_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 78,
+        "vh_vl_interface_centroid_distance": 8.704352378845215,
+        "vh_vl_fr4_ca_distance": 33.39540481567383,
+        "inter_chain_clashes_4A": 19
+      },
+      "holo": {
+        "structure": "rank22_s0_b014_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 91,
+        "vh_vl_interface_centroid_distance": 8.50916862487793,
+        "vh_vl_fr4_ca_distance": 32.281734466552734,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 0,
+        "vh_vl_interface_clashes": 5,
+        "holo_fv_framework_rmsd_A": 2.4855958476836304
+      },
+      "holo_minus_apo_contact_delta": 13,
+      "fr4_distance_delta": 1.1136703491210938,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": false,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank04_s0_b007_000_s0",
+      "apo": {
+        "structure": "rank04_s0_b007_000_s0_model_0.cif",
+        "vh_vl_interface_contacts": 75,
+        "vh_vl_interface_centroid_distance": 7.034185409545898,
+        "vh_vl_fr4_ca_distance": 32.968387603759766,
+        "inter_chain_clashes_4A": 30
+      },
+      "holo": {
+        "structure": "rank04_s0_b007_000_s0_model_0.cif",
+        "vh_vl_interface_contacts": 84,
+        "vh_vl_interface_centroid_distance": 7.094541072845459,
+        "vh_vl_fr4_ca_distance": 35.36806869506836,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 313,
+        "vh_vl_interface_clashes": 4,
+        "holo_fv_framework_rmsd_A": 3.8056103738664424
+      },
+      "holo_minus_apo_contact_delta": 9,
+      "fr4_distance_delta": -2.3996810913085938,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank21_s0_b012_002_s0",
+      "apo": {
+        "structure": "rank21_s0_b012_002_s0_model_0.cif",
+        "vh_vl_interface_contacts": 32,
+        "vh_vl_interface_centroid_distance": 8.119868278503418,
+        "vh_vl_fr4_ca_distance": 36.19731903076172,
+        "inter_chain_clashes_4A": 17
+      },
+      "holo": {
+        "structure": "rank21_s0_b012_002_s0_model_0.cif",
+        "vh_vl_interface_contacts": 40,
+        "vh_vl_interface_centroid_distance": 7.878202438354492,
+        "vh_vl_fr4_ca_distance": 32.0677490234375,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 206,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.656187095754994
+      },
+      "holo_minus_apo_contact_delta": 8,
+      "fr4_distance_delta": 4.129570007324219,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank01_s0_b001_003_s0",
+      "apo": {
+        "structure": "rank01_s0_b001_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 48,
+        "vh_vl_interface_centroid_distance": 8.206180572509766,
+        "vh_vl_fr4_ca_distance": 31.71605682373047,
+        "inter_chain_clashes_4A": 17
+      },
+      "holo": {
+        "structure": "rank01_s0_b001_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 42,
+        "vh_vl_interface_centroid_distance": 4.347912788391113,
+        "vh_vl_fr4_ca_distance": 31.55759048461914,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 286,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.257030140141017
+      },
+      "holo_minus_apo_contact_delta": -6,
+      "fr4_distance_delta": 0.15846633911132812,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank46_s0_b000_009_s0",
+      "apo": {
+        "structure": "rank46_s0_b000_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 56,
+        "vh_vl_interface_centroid_distance": 9.540190696716309,
+        "vh_vl_fr4_ca_distance": 34.73444366455078,
+        "inter_chain_clashes_4A": 26
+      },
+      "holo": {
+        "structure": "rank46_s0_b000_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 48,
+        "vh_vl_interface_centroid_distance": 9.546489715576172,
+        "vh_vl_fr4_ca_distance": 36.742122650146484,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 230,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.136695258841814
+      },
+      "holo_minus_apo_contact_delta": -8,
+      "fr4_distance_delta": -2.007678985595703,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank24_s0_b005_002_s0",
+      "apo": {
+        "structure": "rank24_s0_b005_002_s0_model_0.cif",
+        "vh_vl_interface_contacts": 37,
+        "vh_vl_interface_centroid_distance": 8.678958892822266,
+        "vh_vl_fr4_ca_distance": 30.216102600097656,
+        "inter_chain_clashes_4A": 34
+      },
+      "holo": {
+        "structure": "rank24_s0_b005_002_s0_model_0.cif",
+        "vh_vl_interface_contacts": 26,
+        "vh_vl_interface_centroid_distance": 8.24881649017334,
+        "vh_vl_fr4_ca_distance": 31.73102378845215,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 322,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.3836047167141223
+      },
+      "holo_minus_apo_contact_delta": -11,
+      "fr4_distance_delta": -1.5149211883544922,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank29_s0_b019_003_s0",
+      "apo": {
+        "structure": "rank29_s0_b019_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 52,
+        "vh_vl_interface_centroid_distance": 7.188075065612793,
+        "vh_vl_fr4_ca_distance": 31.417049407958984,
+        "inter_chain_clashes_4A": 28
+      },
+      "holo": {
+        "structure": "rank29_s0_b019_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 41,
+        "vh_vl_interface_centroid_distance": 7.444304943084717,
+        "vh_vl_fr4_ca_distance": 30.497488021850586,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 247,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 3.5147636859891946
+      },
+      "holo_minus_apo_contact_delta": -11,
+      "fr4_distance_delta": 0.9195613861083984,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank34_s0_b016_003_s0",
+      "apo": {
+        "structure": "rank34_s0_b016_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 34,
+        "vh_vl_interface_centroid_distance": 8.353610038757324,
+        "vh_vl_fr4_ca_distance": 33.35978698730469,
+        "inter_chain_clashes_4A": 22
+      },
+      "holo": {
+        "structure": "rank34_s0_b016_003_s0_model_0.cif",
+        "vh_vl_interface_contacts": 21,
+        "vh_vl_interface_centroid_distance": 4.898026466369629,
+        "vh_vl_fr4_ca_distance": 32.78385925292969,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 369,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.763492783277115
+      },
+      "holo_minus_apo_contact_delta": -13,
+      "fr4_distance_delta": 0.575927734375,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank12_s0_b007_009_s0",
+      "apo": {
+        "structure": "rank12_s0_b007_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 26,
+        "vh_vl_interface_centroid_distance": 9.3218412399292,
+        "vh_vl_fr4_ca_distance": 33.702392578125,
+        "inter_chain_clashes_4A": 22
+      },
+      "holo": {
+        "structure": "rank12_s0_b007_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 11,
+        "vh_vl_interface_centroid_distance": 8.42819881439209,
+        "vh_vl_fr4_ca_distance": 35.47229766845703,
+        "inter_chain_clashes_4A": 22,
+        "cdr_epitope_contacts": 312,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.267114244008196
+      },
+      "holo_minus_apo_contact_delta": -15,
+      "fr4_distance_delta": -1.7699050903320312,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank15_s0_b002_004_s0",
+      "apo": {
+        "structure": "rank15_s0_b002_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 37,
+        "vh_vl_interface_centroid_distance": 11.320566177368164,
+        "vh_vl_fr4_ca_distance": 38.86740493774414,
+        "inter_chain_clashes_4A": 26
+      },
+      "holo": {
+        "structure": "rank15_s0_b002_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 20,
+        "vh_vl_interface_centroid_distance": 11.032155990600586,
+        "vh_vl_fr4_ca_distance": 41.294918060302734,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 267,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 6.648397520334209
+      },
+      "holo_minus_apo_contact_delta": -17,
+      "fr4_distance_delta": -2.4275131225585938,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank25_s0_b008_007_s0",
+      "apo": {
+        "structure": "rank25_s0_b008_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 37,
+        "vh_vl_interface_centroid_distance": 8.682358741760254,
+        "vh_vl_fr4_ca_distance": 33.881065368652344,
+        "inter_chain_clashes_4A": 33
+      },
+      "holo": {
+        "structure": "rank25_s0_b008_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 19,
+        "vh_vl_interface_centroid_distance": 8.933279037475586,
+        "vh_vl_fr4_ca_distance": 34.51872253417969,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 386,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.514524620780093
+      },
+      "holo_minus_apo_contact_delta": -18,
+      "fr4_distance_delta": -0.6376571655273438,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank49_s0_b012_006_s0",
+      "apo": {
+        "structure": "rank49_s0_b012_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 8.708178520202637,
+        "vh_vl_fr4_ca_distance": 31.198261260986328,
+        "inter_chain_clashes_4A": 19
+      },
+      "holo": {
+        "structure": "rank49_s0_b012_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 43,
+        "vh_vl_interface_centroid_distance": 11.826253890991211,
+        "vh_vl_fr4_ca_distance": 37.49604797363281,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 269,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.903449079458006
+      },
+      "holo_minus_apo_contact_delta": -21,
+      "fr4_distance_delta": -6.297786712646484,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank35_s0_b000_000_s0",
+      "apo": {
+        "structure": "rank35_s0_b000_000_s0_model_0.cif",
+        "vh_vl_interface_contacts": 81,
+        "vh_vl_interface_centroid_distance": 9.218137741088867,
+        "vh_vl_fr4_ca_distance": 33.81698989868164,
+        "inter_chain_clashes_4A": 35
+      },
+      "holo": {
+        "structure": "rank35_s0_b000_000_s0_model_0.cif",
+        "vh_vl_interface_contacts": 49,
+        "vh_vl_interface_centroid_distance": 9.222586631774902,
+        "vh_vl_fr4_ca_distance": 38.01326370239258,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 272,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.556332841926139
+      },
+      "holo_minus_apo_contact_delta": -32,
+      "fr4_distance_delta": -4.1962738037109375,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank11_s0_b001_007_s0",
+      "apo": {
+        "structure": "rank11_s0_b001_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 44,
+        "vh_vl_interface_centroid_distance": 6.98718786239624,
+        "vh_vl_fr4_ca_distance": 32.30440139770508,
+        "inter_chain_clashes_4A": 23
+      },
+      "holo": {
+        "structure": "rank11_s0_b001_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 11,
+        "vh_vl_interface_centroid_distance": 10.648837089538574,
+        "vh_vl_fr4_ca_distance": 40.642616271972656,
+        "inter_chain_clashes_4A": 19,
+        "cdr_epitope_contacts": 214,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.247897334268103
+      },
+      "holo_minus_apo_contact_delta": -33,
+      "fr4_distance_delta": -8.338214874267578,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank07_s0_b004_009_s0",
+      "apo": {
+        "structure": "rank07_s0_b004_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 96,
+        "vh_vl_interface_centroid_distance": 7.866270065307617,
+        "vh_vl_fr4_ca_distance": 33.8043212890625,
+        "inter_chain_clashes_4A": 30
+      },
+      "holo": {
+        "structure": "rank07_s0_b004_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 8.197328567504883,
+        "vh_vl_fr4_ca_distance": 40.09417724609375,
+        "inter_chain_clashes_4A": 22,
+        "cdr_epitope_contacts": 196,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 4.27837464225246
+      },
+      "holo_minus_apo_contact_delta": -34,
+      "fr4_distance_delta": -6.28985595703125,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank08_s0_b005_007_s0",
+      "apo": {
+        "structure": "rank08_s0_b005_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 8.280508041381836,
+        "vh_vl_fr4_ca_distance": 34.73453903198242,
+        "inter_chain_clashes_4A": 37
+      },
+      "holo": {
+        "structure": "rank08_s0_b005_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 26,
+        "vh_vl_interface_centroid_distance": 7.000687599182129,
+        "vh_vl_fr4_ca_distance": 34.3892936706543,
+        "inter_chain_clashes_4A": 20,
+        "cdr_epitope_contacts": 164,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.118841341871574
+      },
+      "holo_minus_apo_contact_delta": -53,
+      "fr4_distance_delta": 0.345245361328125,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank17_s0_b013_008_s0",
+      "apo": {
+        "structure": "rank17_s0_b013_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 117,
+        "vh_vl_interface_centroid_distance": 8.669864654541016,
+        "vh_vl_fr4_ca_distance": 34.157073974609375,
+        "inter_chain_clashes_4A": 34
+      },
+      "holo": {
+        "structure": "rank17_s0_b013_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 60,
+        "vh_vl_interface_centroid_distance": 10.390080451965332,
+        "vh_vl_fr4_ca_distance": 34.21537780761719,
+        "inter_chain_clashes_4A": 33,
+        "cdr_epitope_contacts": 310,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 4.463970931467216
+      },
+      "holo_minus_apo_contact_delta": -57,
+      "fr4_distance_delta": -0.0583038330078125,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank33_s0_b015_005_s0",
+      "apo": {
+        "structure": "rank33_s0_b015_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 115,
+        "vh_vl_interface_centroid_distance": 8.194534301757812,
+        "vh_vl_fr4_ca_distance": 34.42854309082031,
+        "inter_chain_clashes_4A": 18
+      },
+      "holo": {
+        "structure": "rank33_s0_b015_005_s0_model_0.cif",
+        "vh_vl_interface_contacts": 58,
+        "vh_vl_interface_centroid_distance": 11.161702156066895,
+        "vh_vl_fr4_ca_distance": 38.143157958984375,
+        "inter_chain_clashes_4A": 20,
+        "cdr_epitope_contacts": 136,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 5.293633993848864
+      },
+      "holo_minus_apo_contact_delta": -57,
+      "fr4_distance_delta": -3.7146148681640625,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank16_s0_b012_008_s0",
+      "apo": {
+        "structure": "rank16_s0_b012_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 74,
+        "vh_vl_interface_centroid_distance": 7.690597057342529,
+        "vh_vl_fr4_ca_distance": 31.72240447998047,
+        "inter_chain_clashes_4A": 32
+      },
+      "holo": {
+        "structure": "rank16_s0_b012_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 15,
+        "vh_vl_interface_centroid_distance": 7.287439823150635,
+        "vh_vl_fr4_ca_distance": 36.39375305175781,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 199,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.8992347684621995
+      },
+      "holo_minus_apo_contact_delta": -59,
+      "fr4_distance_delta": -4.671348571777344,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank40_s0_b010_009_s0",
+      "apo": {
+        "structure": "rank40_s0_b010_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 90,
+        "vh_vl_interface_centroid_distance": 8.70705795288086,
+        "vh_vl_fr4_ca_distance": 32.66959762573242,
+        "inter_chain_clashes_4A": 40
+      },
+      "holo": {
+        "structure": "rank40_s0_b010_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 24,
+        "vh_vl_interface_centroid_distance": 9.029740333557129,
+        "vh_vl_fr4_ca_distance": 37.09766387939453,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 253,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.181991935278128
+      },
+      "holo_minus_apo_contact_delta": -66,
+      "fr4_distance_delta": -4.428066253662109,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank13_s0_b013_006_s0",
+      "apo": {
+        "structure": "rank13_s0_b013_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 102,
+        "vh_vl_interface_centroid_distance": 7.156846046447754,
+        "vh_vl_fr4_ca_distance": 33.395103454589844,
+        "inter_chain_clashes_4A": 39
+      },
+      "holo": {
+        "structure": "rank13_s0_b013_006_s0_model_0.cif",
+        "vh_vl_interface_contacts": 29,
+        "vh_vl_interface_centroid_distance": 10.352404594421387,
+        "vh_vl_fr4_ca_distance": 41.638893127441406,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 245,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 6.284553395044072
+      },
+      "holo_minus_apo_contact_delta": -73,
+      "fr4_distance_delta": -8.243789672851562,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank14_s0_b001_009_s0",
+      "apo": {
+        "structure": "rank14_s0_b001_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 108,
+        "vh_vl_interface_centroid_distance": 8.747457504272461,
+        "vh_vl_fr4_ca_distance": 34.75526428222656,
+        "inter_chain_clashes_4A": 44
+      },
+      "holo": {
+        "structure": "rank14_s0_b001_009_s0_model_0.cif",
+        "vh_vl_interface_contacts": 27,
+        "vh_vl_interface_centroid_distance": 6.703553676605225,
+        "vh_vl_fr4_ca_distance": 36.61810302734375,
+        "inter_chain_clashes_4A": 38,
+        "cdr_epitope_contacts": 218,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.6313322778743125
+      },
+      "holo_minus_apo_contact_delta": -81,
+      "fr4_distance_delta": -1.8628387451171875,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank44_s0_b019_007_s0",
+      "apo": {
+        "structure": "rank44_s0_b019_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 41,
+        "vh_vl_interface_centroid_distance": 8.457489013671875,
+        "vh_vl_fr4_ca_distance": 32.1478271484375,
+        "inter_chain_clashes_4A": 31
+      },
+      "holo": {
+        "structure": "rank44_s0_b019_007_s0_model_0.cif",
+        "vh_vl_interface_contacts": 45,
+        "vh_vl_interface_centroid_distance": 6.633736610412598,
+        "vh_vl_fr4_ca_distance": 34.3527946472168,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 347,
+        "vh_vl_interface_clashes": 3,
+        "holo_fv_framework_rmsd_A": 3.8382446458816304
+      },
+      "holo_minus_apo_contact_delta": 4,
+      "fr4_distance_delta": -2.204967498779297,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank26_s0_b009_008_s0",
+      "apo": {
+        "structure": "rank26_s0_b009_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 55,
+        "vh_vl_interface_centroid_distance": 10.584830284118652,
+        "vh_vl_fr4_ca_distance": 36.13766098022461,
+        "inter_chain_clashes_4A": 25
+      },
+      "holo": {
+        "structure": "rank26_s0_b009_008_s0_model_0.cif",
+        "vh_vl_interface_contacts": 54,
+        "vh_vl_interface_centroid_distance": 12.39865493774414,
+        "vh_vl_fr4_ca_distance": 42.01896667480469,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 213,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 6.525252367464802
+      },
+      "holo_minus_apo_contact_delta": -1,
+      "fr4_distance_delta": -5.881305694580078,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank23_s0_b017_004_s0",
+      "apo": {
+        "structure": "rank23_s0_b017_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 56,
+        "vh_vl_interface_centroid_distance": 7.480193138122559,
+        "vh_vl_fr4_ca_distance": 32.7804069519043,
+        "inter_chain_clashes_4A": 27
+      },
+      "holo": {
+        "structure": "rank23_s0_b017_004_s0_model_0.cif",
+        "vh_vl_interface_contacts": 44,
+        "vh_vl_interface_centroid_distance": 6.17834997177124,
+        "vh_vl_fr4_ca_distance": 33.408504486083984,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 156,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 4.185910117718369
+      },
+      "holo_minus_apo_contact_delta": -12,
+      "fr4_distance_delta": -0.6280975341796875,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank28_s0_b018_001_s0",
+      "apo": {
+        "structure": "rank28_s0_b018_001_s0_model_0.cif",
+        "vh_vl_interface_contacts": 75,
+        "vh_vl_interface_centroid_distance": 7.487858295440674,
+        "vh_vl_fr4_ca_distance": 33.73216247558594,
+        "inter_chain_clashes_4A": 22
+      },
+      "holo": {
+        "structure": "rank28_s0_b018_001_s0_model_0.cif",
+        "vh_vl_interface_contacts": 42,
+        "vh_vl_interface_centroid_distance": 8.755152702331543,
+        "vh_vl_fr4_ca_distance": 35.44601821899414,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 441,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 4.373383515350188
+      },
+      "holo_minus_apo_contact_delta": -33,
+      "fr4_distance_delta": -1.7138557434082031,
+      "wedge_suspect": false,
+      "filter_checks": {
+        "passes_apo_contacts": false,
+        "passes_holo_contacts": false,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_apo_open": false,
+        "passes_holo_closed": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "results_dir": "pipeline_results/stage_0_vhvL_interface",
+  "stage": "0",
+  "approach": "vh_vl_interface_weakening",
+  "instance_id": "5400b4d26ae3488e9f418f7666d9268e",
+  "instance_ip": "129.213.129.28",
+  "n_designs_rfd3": 200,
+  "partial_t": 12.0,
+  "n_mpnn_sequences": 1600,
+  "n_boltz_validated": 50,
+  "n_passing_all_filters": 0,
+  "completed_at": "2026-07-25T22:10:00Z",
+  "notes": "0/50 passed strict apo/holo differential filters. Best hit: rank32_s0_b014_003_s0 (holo-apo delta=41, holo RMSD=1.86 A, apo contacts=22)."
+}
