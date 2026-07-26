@@ -1,0 +1,196 @@
+{
+  "designs": [
+    {
+      "rank": 1,
+      "name": "rank01_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 2,
+      "name": "rank02_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 3,
+      "name": "rank03_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 4,
+      "name": "rank04_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 5,
+      "name": "rank05_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 6,
+      "name": "rank06_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 7,
+      "name": "rank07_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 8,
+      "name": "rank08_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 9,
+      "name": "rank09_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 10,
+      "name": "rank10_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 11,
+      "name": "rank11_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 12,
+      "name": "rank12_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 13,
+      "name": "rank13_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 14,
+      "name": "rank14_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 15,
+      "name": "rank15_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 16,
+      "name": "rank16_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 17,
+      "name": "rank17_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 18,
+      "name": "rank18_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 19,
+      "name": "rank19_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 20,
+      "name": "rank20_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 21,
+      "name": "rank21_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 22,
+      "name": "rank22_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 23,
+      "name": "rank23_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 24,
+      "name": "rank24_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 25,
+      "name": "rank25_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 26,
+      "name": "rank26_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 27,
+      "name": "rank27_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 28,
+      "name": "rank28_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 29,
+      "name": "rank29_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 30,
+      "name": "rank30_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 31,
+      "name": "rank31_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    },
+    {
+      "rank": 32,
+      "name": "rank32_s0_native_split_s0",
+      "backbone": "native_split",
+      "seq_idx": 0
+    }
+  ]
+}
