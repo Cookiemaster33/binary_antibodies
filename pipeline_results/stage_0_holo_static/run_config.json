@@ -1,0 +1,14 @@
+{
+  "instance_id": "bfffb352fc8c450684b1d9cb39d301e9",
+  "ip": "157.151.241.144",
+  "region": "us-east-1",
+  "instance_type": "gpu_1x_a10",
+  "approach": "holo_only_static_interface",
+  "n_mpnn_seqs": 1000,
+  "top_n_boltz": 100,
+  "boltz_flags": "--no_kernels",
+  "completed_at": "2026-07-26T23:00:42Z",
+  "n_scored": 100,
+  "n_passing": 0,
+  "best_design": "rank009_s0_native_split_s682"
+}
