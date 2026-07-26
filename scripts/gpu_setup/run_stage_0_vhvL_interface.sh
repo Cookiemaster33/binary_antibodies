@@ -150,13 +150,33 @@ docker run --rm --gpus all \
 pip install boltz[cuda] -U -q > "$PIPELINE/boltz_install.log" 2>&1 || true
 pip install -q 'networkx>=3.0' 'platformdirs>=3.0' 2>/dev/null || true
 
+# cuequivariance kernels need SM100 on recent boltz; A10 and version skew crash with
+# triangle_attention(..., kv_lengths=...). Fall back to PyTorch attention on non-A100.
+GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo "unknown")
+BOLTZ_EXTRA_ARGS=()
+if [[ "$GPU_NAME" != *"A100"* ]]; then
+  echo "GPU=$GPU_NAME — using boltz --no_kernels (cuequivariance incompatible)"
+  BOLTZ_EXTRA_ARGS+=(--no_kernels)
+fi
+
 N_HOLO=$(ls $PIPELINE/boltz_inputs_holo/*.yaml 2>/dev/null | wc -l)
 echo ""
 echo "=== Step 3: Boltz holo (A+B+C+D+T) — $N_HOLO designs ==="
+set +e
 $HOME/.local/bin/boltz predict $PIPELINE/boltz_inputs_holo \
     --out_dir $PIPELINE/boltz_outputs_holo \
-    --devices 1 --num_workers 2 --override 2>&1 | \
-    grep -E "Predicting|Saving|Done|Error|failed" | tail -20 || true
+    --devices 1 --num_workers 2 --override \
+    "${BOLTZ_EXTRA_ARGS[@]}" 2>&1 | tee "$PIPELINE/boltz_holo_run.log" | \
+    grep -E "Predicting|Saving|Done|Error|failed|Traceback" | tail -30
+BOLTZ_RC=${PIPESTATUS[0]}
+set -e
+N_CIF=$(find "$PIPELINE/boltz_outputs_holo" -name "*_model_0.cif" 2>/dev/null | wc -l)
+echo "Boltz holo exit=$BOLTZ_RC structures=$N_CIF / $N_HOLO"
+if [[ $BOLTZ_RC -ne 0 || "$N_CIF" -eq 0 ]]; then
+  echo "ERROR: Boltz holo failed or produced no structures. See $PIPELINE/boltz_holo_run.log"
+  tail -40 "$PIPELINE/boltz_holo_run.log" || true
+  exit 1
+fi
 
 echo ""
 echo "=== Step 4: Stage 0 scoring (static interface + holo binding) ==="
