@@ -147,6 +147,13 @@ def split_mpnn_designed_residues(
     )
 
 
+def interface_design_residues(vh_len: int = VH_END, vl_len: int = VL_END) -> list[str]:
+    """All VH/VL framework interface positions on-chain (CDRs excluded)."""
+    vh = [f"A{r}" for r in VH_INTERFACE_FW if r <= vh_len]
+    vl = [f"B{r}" for r in VL_INTERFACE_FW if r <= vl_len]
+    return vh + vl
+
+
 def extract_chain_sequences(pdb_path: Path) -> dict[str, str]:
     """One-letter sequences per chain id from a PDB/mmCIF."""
     from Bio.SeqUtils import seq1

@@ -1,7 +1,7 @@
 {
   "stage": "0",
-  "approach": "split_mpnn_aggressive_degrease",
-  "description": "Stage 0: split-chain ProteinMPNN de-greasing of the VH\u2013VL framework interface. Aggressive mode: 19 rim residues redesigned; 4 closure-core positions fixed (min heavy distance \u2264 3.2 \u00c5). Skips RFd3.",
+  "approach": "split_mpnn_whole_interface",
+  "description": "Whole-interface brute force: all 23 VH/VL framework interface residues redesigned on split Fv; top 100 MPNN scorers \u2192 Boltz.",
   "input_pdb": "structures/domains/fab_stage_0_vhvL_interface.pdb",
   "split_mpnn_pdb": "structures/domains/fab_stage_0_split_mpnn.pdb",
   "source_fab": "1N8Z (trastuzumab)",
@@ -14,10 +14,12 @@
   },
   "split_mpnn": {
     "separation_A": 30.0,
-    "core_max_heavy_A": 3.2,
+    "core_max_heavy_A": null,
     "designed_residues": [
       "A34",
+      "A38",
       "A42",
+      "A43",
       "A44",
       "A45",
       "A46",
@@ -27,6 +29,7 @@
       "A89",
       "B35",
       "B37",
+      "B39",
       "B43",
       "B44",
       "B45",
@@ -34,40 +37,14 @@
       "B47",
       "B104",
       "B105",
-      "B106"
-    ],
-    "vh_closure_core": [
-      "A38",
-      "A43"
-    ],
-    "vl_closure_core": [
-      "B39",
+      "B106",
       "B107"
     ],
-    "vh_degrease": [
-      "A34",
-      "A42",
-      "A44",
-      "A45",
-      "A46",
-      "A47",
-      "A49",
-      "A87",
-      "A89"
-    ],
-    "vl_degrease": [
-      "B35",
-      "B37",
-      "B43",
-      "B44",
-      "B45",
-      "B46",
-      "B47",
-      "B104",
-      "B105",
-      "B106"
-    ],
-    "n_sequences": 64
+    "vh_closure_core": [],
+    "vl_closure_core": [],
+    "n_sequences": 1000,
+    "top_n_boltz": 100,
+    "mpnn_rank_by": "mpnn_score_desc"
   },
   "native_chain_sequences": {
     "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",

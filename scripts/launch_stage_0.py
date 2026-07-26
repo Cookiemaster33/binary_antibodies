@@ -135,9 +135,10 @@ def run_setup(ip: str, key: str) -> None:
         time.sleep(20)
 
 
-def run_stage_0(ip: str, key: str, n_mpnn_seqs: int) -> None:
+def run_stage_0(ip: str, key: str, n_mpnn_seqs: int, top_n: int) -> None:
     env = " ".join([
         f"N_MPNN_SEQS={n_mpnn_seqs}",
+        f"TOP_N={top_n}",
         f"INPUT_PDB={INPUT_PDB}",
         f"SPLIT_PDB={SPLIT_PDB}",
         f"CONFIG_JSON={CONFIG_JSON}",
@@ -171,7 +172,8 @@ def main() -> None:
     p = argparse.ArgumentParser(description="Launch Stage 0 VH–VL interface design on Lambda.")
     p.add_argument("--ssh-key", default=os.environ.get("LAMBDA_SSH_KEY", "~/.ssh/lambda_agent_key"))
     p.add_argument("--ssh-key-name", default="cursor-agent")
-    p.add_argument("--n-mpnn-seqs", type=int, default=64, help="ProteinMPNN sequences per backbone")
+    p.add_argument("--n-mpnn-seqs", type=int, default=1000, help="ProteinMPNN sequences to generate")
+    p.add_argument("--top-n", type=int, default=100, help="Top MPNN scorers to send to Boltz")
     p.add_argument("--region", default="us-east-1", help="Preferred Lambda region")
     p.add_argument("--instance-type", default="gpu_1x_a100_sxm4", help="Lambda instance type")
     p.add_argument("--no-terminate", action="store_true")
@@ -215,12 +217,12 @@ def main() -> None:
         ip = active["ip"]
         print(f"\nInstance {iid} @ {ip}")
         print(f"  Region: {region} | type: {args.instance_type}")
-        print(f"  MPNN sequences: {args.n_mpnn_seqs}")
+        print(f"  MPNN sequences: {args.n_mpnn_seqs} → Boltz top {args.top_n}")
 
         wait_ssh(ip, ssh_key)
         upload_stage_0(ip, ssh_key)
         run_setup(ip, ssh_key)
-        run_stage_0(ip, ssh_key, args.n_mpnn_seqs)
+        run_stage_0(ip, ssh_key, args.n_mpnn_seqs, args.top_n)
 
         print("\nMonitor:")
         print(f"  ssh -i {ssh_key} {REMOTE_USER}@{ip} 'tail -f {REMOTE_PIPELINE}/stage_0_pipeline.log'")

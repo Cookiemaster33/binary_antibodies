@@ -2,19 +2,18 @@
 """
 build_stage_0_design_target.py
 ------------------------------
-Stage 0: partial de-greasing of the VH–VL framework interface via split-chain
-ProteinMPNN (no RFd3). CDRs, CH1, CL, and epitope stub stay native.
+Stage 0: split-chain ProteinMPNN on the VH–VL framework interface (no RFd3).
+
+Modes
+-----
+  --whole-interface   redesign all ~23 interface FW residues (default for brute-force)
+  --conservative      partial de-grease (3.35 Å core, 14 rim residues)
 
 Outputs
 -------
-  structures/domains/fab_stage_0_vhvL_interface.pdb   — full Fab context (Boltz / scoring)
-  structures/domains/fab_stage_0_split_mpnn.pdb     — separated Fv for MPNN
+  structures/domains/fab_stage_0_vhvL_interface.pdb
+  structures/domains/fab_stage_0_split_mpnn.pdb
   structures/interface/stage_0_vhvL_interface_config.json
-
-Usage
------
-    python scripts/build_stage_0_design_target.py
-    python scripts/build_stage_0_design_target.py --source-pdb path/to/parent.pdb
 """
 
 from __future__ import annotations
@@ -36,6 +35,7 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     extract_chain_sequences,
     interface_closure_core,
     interface_degrease_residues,
+    interface_design_residues,
     split_mpnn_designed_residues,
     write_json,
 )
@@ -52,22 +52,23 @@ def build_config(
     cl_len: int,
     source: str,
     separation_a: float,
-    core_max_heavy_a: float,
+    designed: list[str],
+    approach: str,
+    description: str,
     n_mpnn_seqs: int,
+    top_n_boltz: int,
+    core_max_heavy_a: float | None,
 ) -> dict:
-    vh_core, vl_core = interface_closure_core(vh_len, vl_len, max_heavy_a=core_max_heavy_a)
-    designed = split_mpnn_designed_residues(vh_len, vl_len, max_heavy_a=core_max_heavy_a)
-    aggressive = core_max_heavy_a <= INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE
+    vh_core, vl_core = (
+        interface_closure_core(vh_len, vl_len, max_heavy_a=core_max_heavy_a)
+        if core_max_heavy_a is not None
+        else ([], [])
+    )
 
     return {
         "stage": "0",
-        "approach": "split_mpnn_aggressive_degrease" if aggressive else "split_mpnn_partial_degrease",
-        "description": (
-            "Stage 0: split-chain ProteinMPNN de-greasing of the VH–VL framework interface. "
-            f"{'Aggressive' if aggressive else 'Partial'} mode: {len(designed)} rim residues "
-            f"redesigned; {len(vh_core) + len(vl_core)} closure-core positions fixed "
-            f"(min heavy distance ≤ {core_max_heavy_a} Å). Skips RFd3."
-        ),
+        "approach": approach,
+        "description": description,
         "input_pdb": str(OUT_PDB.relative_to(ROOT)),
         "split_mpnn_pdb": str(OUT_SPLIT_PDB.relative_to(ROOT)),
         "source_fab": source,
@@ -84,13 +85,9 @@ def build_config(
             "designed_residues": designed,
             "vh_closure_core": [f"A{r}" for r in vh_core],
             "vl_closure_core": [f"B{r}" for r in vl_core],
-            "vh_degrease": interface_degrease_residues(
-                "A", vh_len, vl_len, max_heavy_a=core_max_heavy_a
-            ),
-            "vl_degrease": interface_degrease_residues(
-                "B", vh_len, vl_len, max_heavy_a=core_max_heavy_a
-            ),
             "n_sequences": n_mpnn_seqs,
+            "top_n_boltz": top_n_boltz,
+            "mpnn_rank_by": "mpnn_score_desc",
         },
         "native_chain_sequences": {},
         "validation": {
@@ -129,41 +126,50 @@ def main() -> None:
     p.add_argument("--out-pdb", type=Path, default=OUT_PDB)
     p.add_argument("--out-split-pdb", type=Path, default=OUT_SPLIT_PDB)
     p.add_argument("--out-json", type=Path, default=OUT_JSON)
-    p.add_argument(
-        "--separation-A",
-        type=float,
-        default=DEFAULT_SPLIT_SEPARATION_A,
-        help="VH–VL translation for split MPNN input (Å)",
-    )
-    p.add_argument(
-        "--core-max-heavy-A",
-        type=float,
-        default=INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE,
-        help="Keep framework pairs with min heavy distance ≤ this value native (Å)",
-    )
+    p.add_argument("--separation-A", type=float, default=DEFAULT_SPLIT_SEPARATION_A)
     p.add_argument(
         "--conservative",
         action="store_true",
-        help="Use conservative core cutoff (3.35 Å, 14 rim residues)",
+        help="Partial de-grease with 3.35 Å core (14 rim residues)",
     )
-    p.add_argument("--n-mpnn-seqs", type=int, default=64, help="MPNN sequences to generate")
+    p.add_argument(
+        "--aggressive",
+        action="store_true",
+        help="Aggressive de-grease with 3.20 Å core (19 rim residues)",
+    )
+    p.add_argument("--core-max-heavy-A", type=float, default=None)
+    p.add_argument("--n-mpnn-seqs", type=int, default=1000)
+    p.add_argument("--top-n-boltz", type=int, default=100)
     args = p.parse_args()
-
-    core_max = INTERFACE_CORE_MAX_HEAVY_A if args.conservative else args.core_max_heavy_A
 
     source = str(args.source_pdb) if args.source_pdb else "1N8Z (trastuzumab)"
     vh_len, vl_len, ch1_len, cl_len = build_fab_context_pdb(
-        args.out_pdb,
-        source_pdb=args.source_pdb,
-        struct_name="stage_0",
+        args.out_pdb, source_pdb=args.source_pdb, struct_name="stage_0"
     )
-    build_split_fv_mpnn_pdb(
-        args.out_split_pdb,
-        source_pdb=args.out_pdb,
-        separation_a=args.separation_A,
-    )
+    build_split_fv_mpnn_pdb(args.out_split_pdb, source_pdb=args.out_pdb, separation_a=args.separation_A)
+
+    if args.conservative:
+        core = INTERFACE_CORE_MAX_HEAVY_A
+        designed = split_mpnn_designed_residues(vh_len, vl_len, max_heavy_a=core)
+        approach = "split_mpnn_partial_degrease"
+        desc = f"Partial de-grease: {len(designed)} rim residues; core ≤ {core} Å fixed."
+    elif args.aggressive:
+        core = INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE
+        designed = split_mpnn_designed_residues(vh_len, vl_len, max_heavy_a=core)
+        approach = "split_mpnn_aggressive_degrease"
+        desc = f"Aggressive de-grease: {len(designed)} rim residues; core ≤ {core} Å fixed."
+    else:
+        core = None
+        designed = interface_design_residues(vh_len, vl_len)
+        approach = "split_mpnn_whole_interface"
+        desc = (
+            f"Whole-interface brute force: all {len(designed)} VH/VL framework interface "
+            f"residues redesigned on split Fv; top {args.top_n_boltz} MPNN scorers → Boltz."
+        )
+
     config = build_config(
-        vh_len, vl_len, ch1_len, cl_len, source, args.separation_A, core_max, args.n_mpnn_seqs
+        vh_len, vl_len, ch1_len, cl_len, source, args.separation_A,
+        designed, approach, desc, args.n_mpnn_seqs, args.top_n_boltz, core,
     )
     config["native_chain_sequences"] = extract_chain_sequences(args.out_pdb)
     write_json(args.out_json, config)
@@ -172,11 +178,9 @@ def main() -> None:
     print(f"Wrote Fab context PDB  → {args.out_pdb}")
     print(f"Wrote split MPNN PDB   → {args.out_split_pdb}")
     print(f"Wrote config           → {args.out_json}")
-    print(f"  separation:   {sm['separation_A']} Å")
-    print(f"  degrease:     {len(sm['designed_residues'])} residues "
-          f"(VH core {len(sm['vh_closure_core'])}, VL core {len(sm['vl_closure_core'])})")
-    print(f"  designed:     {', '.join(sm['designed_residues'][:8])}"
-          f"{'...' if len(sm['designed_residues']) > 8 else ''}")
+    print(f"  approach:     {config['approach']}")
+    print(f"  designed:     {len(sm['designed_residues'])} residues")
+    print(f"  MPNN / Boltz: {sm['n_sequences']} → top {sm['top_n_boltz']}")
 
 
 if __name__ == "__main__":
