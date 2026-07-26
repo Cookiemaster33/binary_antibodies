@@ -64,6 +64,7 @@ DEFAULT_FILTERS = {
     "max_static_fraction_of_native_contacts": 0.45,
     "max_holo_clashes_4A": 50,
     "max_holo_fv_framework_rmsd_A": 3.5,
+    "max_holo_fv_cdr_rmsd_A": 6.0,
     "min_holo_cdr_epitope_contacts": 6,
     "max_holo_vh_vl_interface_clashes": 0,
 }
@@ -302,6 +303,25 @@ def static_interface_contacts_heavy(
     return total
 
 
+def _collect_fv_cdr_ca(aa, chain_id: str) -> dict[int, np.ndarray]:
+    return chain_ca(aa, chain_id, cdr_residue_numbers(chain_id))
+
+
+def _ca_rmsd(
+    aligned: dict[tuple[str, int], np.ndarray],
+    native_ca: dict[int, np.ndarray],
+    holo_ca: dict[int, np.ndarray],
+    resnums: list[int],
+    chain: str,
+) -> float:
+    common = sorted(set(holo_ca) & set(native_ca) & set(resnums))
+    if len(common) < 3:
+        return float("nan")
+    pts_p = np.vstack([aligned[(chain, r)] for r in common])
+    pts_q = np.vstack([native_ca[r] for r in common])
+    return float(np.sqrt(np.mean(np.sum((pts_p - pts_q) ** 2, axis=1))))
+
+
 class NativeFvReference:
     """Native VH+VL framework from the Stage 0 design target PDB."""
 
@@ -311,8 +331,14 @@ class NativeFvReference:
         self.aa = aa
         self.vh_ca = _collect_fv_framework_ca(aa, "A")
         self.vl_ca = _collect_fv_framework_ca(aa, "B")
+        self.vh_cdr_ca = _collect_fv_cdr_ca(aa, "A")
+        self.vl_cdr_ca = _collect_fv_cdr_ca(aa, "B")
         self.vh_iface_ca = chain_ca(aa, "A", VH_INTERFACE_FW)
         self.vl_iface_ca = chain_ca(aa, "B", VL_INTERFACE_FW)
+        self.vh_fw_nums = fv_framework_residue_numbers("A")
+        self.vl_fw_nums = fv_framework_residue_numbers("B")
+        self.vh_cdr_nums = cdr_residue_numbers("A")
+        self.vl_cdr_nums = cdr_residue_numbers("B")
         self.native_wt_contacts = interface_contacts_heavy(aa)
         self.native_seq_a = _chain_sequence(aa, "A")
         self.native_seq_b = _chain_sequence(aa, "B")
@@ -320,13 +346,26 @@ class NativeFvReference:
             aa, self.native_seq_a, self.native_seq_b, self.native_seq_a, self.native_seq_b
         )
 
-    def holo_fv_framework_rmsd(self, aa) -> float:
+    def holo_fv_rmsd_metrics(self, aa) -> dict[str, float]:
+        """
+        Align holo VH+VL to native on all framework Cα (CDRs excluded), then report:
+          - holo_fv_framework_rmsd_A: full Fv framework
+          - holo_fv_interface_framework_rmsd_A: VH–VL interface rim only
+          - holo_fv_cdr_rmsd_A: CDR loops (expected to move with epitope stub T)
+        """
         vh = _collect_fv_framework_ca(aa, "A")
         vl = _collect_fv_framework_ca(aa, "B")
+        vh_cdr = _collect_fv_cdr_ca(aa, "A")
+        vl_cdr = _collect_fv_cdr_ca(aa, "B")
         common_vh = sorted(set(vh) & set(self.vh_ca))
         common_vl = sorted(set(vl) & set(self.vl_ca))
         if len(common_vh) < 8 or len(common_vl) < 8:
-            return float("nan")
+            nan = float("nan")
+            return {
+                "holo_fv_framework_rmsd_A": nan,
+                "holo_fv_interface_framework_rmsd_A": nan,
+                "holo_fv_cdr_rmsd_A": nan,
+            }
 
         P = np.vstack([vh[r] for r in common_vh] + [vl[r] for r in common_vl])
         Q = np.vstack([self.vh_ca[r] for r in common_vh] + [self.vl_ca[r] for r in common_vl])
@@ -346,18 +385,50 @@ class NativeFvReference:
             aligned[("B", r)] = P_aligned[idx]
             idx += 1
 
+        # CDR coordinates after the same rigid-body transform (not used for alignment).
+        for r in sorted(set(vh_cdr) & set(self.vh_cdr_ca)):
+            aligned[("A", r)] = (vh_cdr[r] - P.mean(0)) @ R.T + Q.mean(0)
+        for r in sorted(set(vl_cdr) & set(self.vl_cdr_ca)):
+            aligned[("B", r)] = (vl_cdr[r] - P.mean(0)) @ R.T + Q.mean(0)
+
+        fw_rmsd = _ca_rmsd(aligned, self.vh_ca, vh, self.vh_fw_nums, "A")
+        vl_fw = _ca_rmsd(aligned, self.vl_ca, vl, self.vl_fw_nums, "B")
+        if not np.isnan(fw_rmsd) and not np.isnan(vl_fw):
+            fw_rmsd = float(np.sqrt((fw_rmsd**2 + vl_fw**2) / 2))
+        elif np.isnan(fw_rmsd):
+            fw_rmsd = vl_fw
+
         iface_vh = sorted(set(vh) & set(self.vh_iface_ca))
         iface_vl = sorted(set(vl) & set(self.vl_iface_ca))
-        if not iface_vh or not iface_vl:
-            return float("nan")
+        if iface_vh and iface_vl:
+            pts_p = np.vstack(
+                [aligned[("A", r)] for r in iface_vh] + [aligned[("B", r)] for r in iface_vl]
+            )
+            pts_q = np.vstack(
+                [self.vh_iface_ca[r] for r in iface_vh] + [self.vl_iface_ca[r] for r in iface_vl]
+            )
+            iface_rmsd = float(np.sqrt(np.mean(np.sum((pts_p - pts_q) ** 2, axis=1))))
+        else:
+            iface_rmsd = float("nan")
 
-        pts_p = np.vstack(
-            [aligned[("A", r)] for r in iface_vh] + [aligned[("B", r)] for r in iface_vl]
-        )
-        pts_q = np.vstack(
-            [self.vh_iface_ca[r] for r in iface_vh] + [self.vl_iface_ca[r] for r in iface_vl]
-        )
-        return float(np.sqrt(np.mean(np.sum((pts_p - pts_q) ** 2, axis=1))))
+        vh_cdr_r = _ca_rmsd(aligned, self.vh_cdr_ca, vh_cdr, self.vh_cdr_nums, "A")
+        vl_cdr_r = _ca_rmsd(aligned, self.vl_cdr_ca, vl_cdr, self.vl_cdr_nums, "B")
+        if not np.isnan(vh_cdr_r) and not np.isnan(vl_cdr_r):
+            cdr_rmsd = float(np.sqrt((vh_cdr_r**2 + vl_cdr_r**2) / 2))
+        elif not np.isnan(vh_cdr_r):
+            cdr_rmsd = vh_cdr_r
+        else:
+            cdr_rmsd = vl_cdr_r
+
+        return {
+            "holo_fv_framework_rmsd_A": fw_rmsd,
+            "holo_fv_interface_framework_rmsd_A": iface_rmsd,
+            "holo_fv_cdr_rmsd_A": cdr_rmsd,
+        }
+
+    def holo_fv_framework_rmsd(self, aa) -> float:
+        """Backward-compatible alias: full Fv framework RMSD."""
+        return self.holo_fv_rmsd_metrics(aa)["holo_fv_framework_rmsd_A"]
 
 
 def _chain_sequence(aa, chain_id: str) -> str:
@@ -405,7 +476,7 @@ def score_structure(
         metrics["cdr_epitope_contacts"] = count_cdr_epitope_contacts(aa)
         metrics["vh_vl_interface_clashes"] = count_vh_vl_interface_clashes(aa)
         if ref is not None:
-            metrics["holo_fv_framework_rmsd_A"] = holo_fv_framework_rmsd(aa, ref)
+            metrics.update(ref.holo_fv_rmsd_metrics(aa))
     return metrics
 
 
@@ -426,9 +497,13 @@ def apply_filters(rec: dict, filters: dict, native_contacts: int) -> dict:
     checks["passes_holo_global_clashes"] = holo.get("inter_chain_clashes_4A", 999) <= filters[
         "max_holo_clashes_4A"
     ]
-    checks["passes_holo_geometry"] = holo.get("holo_fv_framework_rmsd_A", 999) <= filters[
+    checks["passes_holo_framework_geometry"] = holo.get("holo_fv_framework_rmsd_A", 999) <= filters[
         "max_holo_fv_framework_rmsd_A"
     ]
+    if "max_holo_fv_cdr_rmsd_A" in filters:
+        checks["passes_holo_cdr_geometry"] = holo.get("holo_fv_cdr_rmsd_A", 999) <= filters[
+            "max_holo_fv_cdr_rmsd_A"
+        ]
     checks["passes_cdr_engagement"] = holo.get("cdr_epitope_contacts", 0) >= filters[
         "min_holo_cdr_epitope_contacts"
     ]
@@ -475,6 +550,7 @@ def rank_key(rec: dict) -> tuple:
         -static_c,
         rec.get("holo", {}).get("cdr_epitope_contacts", 0),
         -(rec.get("holo", {}).get("holo_fv_framework_rmsd_A", 999)),
+        -(rec.get("holo", {}).get("holo_fv_cdr_rmsd_A", 999)),
     )
 
 
@@ -560,12 +636,15 @@ def main() -> None:
     for r in top[:5]:
         static_c = r.get("static_vh_vl_interface_contacts", "?")
         static_f = r.get("static_fraction_of_native_contacts", "?")
-        rmsd = r.get("holo", {}).get("holo_fv_framework_rmsd_A", "?")
+        fw_rmsd = r.get("holo", {}).get("holo_fv_framework_rmsd_A", "?")
+        iface_rmsd = r.get("holo", {}).get("holo_fv_interface_framework_rmsd_A", "?")
+        cdr_rmsd = r.get("holo", {}).get("holo_fv_cdr_rmsd_A", "?")
         cdr_t = r.get("holo", {}).get("cdr_epitope_contacts", "?")
         holo_c = r.get("holo", {}).get("vh_vl_interface_contacts", "?")
         print(
-            f"  {r['design_id']}: static={static_c} ({static_f}×WT) "
-            f"holo_iface={holo_c} rmsd={rmsd} cdr-T={cdr_t} pass={r.get('passes_stage_0')}"
+            f"  {r['design_id']}: static={static_c} ({static_f}×WT) holo_iface={holo_c} "
+            f"fw_rmsd={fw_rmsd} iface_rmsd={iface_rmsd} cdr_rmsd={cdr_rmsd} cdr-T={cdr_t} "
+            f"pass={r.get('passes_stage_0')}"
         )
 
 
