@@ -26,6 +26,11 @@ except ImportError as e:
 
 ROOT = Path(__file__).resolve().parents[1]
 FAB_PDB = ROOT / "structures" / "1N8Z.pdb"
+VH_VL_CONTACTS_CSV = ROOT / "structures" / "interface" / "vh_vl_contacts.csv"
+
+# Tightest framework-interface pairs (min heavy-atom distance, Å) kept native during degrease.
+INTERFACE_CORE_MAX_HEAVY_A = 3.35
+DEFAULT_SPLIT_SEPARATION_A = 30.0
 
 VH_END = 113
 VL_END = 107
@@ -71,6 +76,153 @@ def cdr_fixed_atoms(vh_len: int = VH_END, vl_len: int = VL_END) -> dict[str, str
     for lo, hi in VL_CDR_RANGES:
         fixed[f"B{lo}-{min(hi, vl_len)}"] = "ALL"
     return fixed
+
+
+def _contact_rows() -> list[dict[str, str | float]]:
+    if not VH_VL_CONTACTS_CSV.exists():
+        return []
+    import csv
+
+    rows: list[dict[str, str | float]] = []
+    with VH_VL_CONTACTS_CSV.open() as fh:
+        for row in csv.DictReader(fh):
+            rows.append(
+                {
+                    "vh_resnum": int(row["vh_resnum"]),
+                    "vl_resnum": int(row["vl_resnum"]),
+                    "min_heavy_distance_A": float(row["min_heavy_distance_A"]),
+                }
+            )
+    return rows
+
+
+def interface_closure_core(
+    vh_len: int = VH_END,
+    vl_len: int = VL_END,
+    max_heavy_a: float = INTERFACE_CORE_MAX_HEAVY_A,
+) -> tuple[list[int], list[int]]:
+    """
+    Deepest-buried VH/VL framework-interface residues — keep native sequence during
+    partial de-greasing so holo closure remains plausible.
+    """
+    vh_set = {r for r in VH_INTERFACE_FW if r <= vh_len}
+    vl_set = {r for r in VL_INTERFACE_FW if r <= vl_len}
+    vh_core: set[int] = set()
+    vl_core: set[int] = set()
+    for row in _contact_rows():
+        if row["min_heavy_distance_A"] > max_heavy_a:
+            continue
+        vh, vl = int(row["vh_resnum"]), int(row["vl_resnum"])
+        if vh in vh_set:
+            vh_core.add(vh)
+        if vl in vl_set:
+            vl_core.add(vl)
+    return sorted(vh_core), sorted(vl_core)
+
+
+def interface_degrease_residues(
+    chain: str,
+    vh_len: int = VH_END,
+    vl_len: int = VL_END,
+    max_heavy_a: float = INTERFACE_CORE_MAX_HEAVY_A,
+) -> list[str]:
+    """Rim interface framework residues to redesign on separated Fv chains."""
+    if chain not in {"A", "B"}:
+        raise ValueError(f"Unsupported chain: {chain}")
+    iface = VH_INTERFACE_FW if chain == "A" else VL_INTERFACE_FW
+    length = vh_len if chain == "A" else vl_len
+    vh_core, vl_core = interface_closure_core(vh_len, vl_len, max_heavy_a=max_heavy_a)
+    core = vh_core if chain == "A" else vl_core
+    return [f"{chain}{r}" for r in iface if r <= length and r not in core]
+
+
+def split_mpnn_designed_residues(
+    vh_len: int = VH_END,
+    vl_len: int = VL_END,
+    max_heavy_a: float = INTERFACE_CORE_MAX_HEAVY_A,
+) -> list[str]:
+    return interface_degrease_residues("A", vh_len, vl_len, max_heavy_a) + interface_degrease_residues(
+        "B", vh_len, vl_len, max_heavy_a
+    )
+
+
+def extract_chain_sequences(pdb_path: Path) -> dict[str, str]:
+    """One-letter sequences per chain id from a PDB/mmCIF."""
+    from Bio.SeqUtils import seq1
+
+    parser = PDBParser(QUIET=True)
+    struct = parser.get_structure("seqs", str(pdb_path))
+    model = list(struct.get_models())[0]
+    out: dict[str, str] = {}
+    for chain in model:
+        letters: list[str] = []
+        for res in chain:
+            if res.id[0] != " ":
+                continue
+            try:
+                letters.append(seq1(res.get_resname()))
+            except Exception:
+                letters.append("X")
+        if letters:
+            out[chain.id] = "".join(letters)
+    return out
+
+
+def build_split_fv_mpnn_pdb(
+    out_pdb: Path,
+    source_pdb: Path | None = None,
+    separation_a: float = DEFAULT_SPLIT_SEPARATION_A,
+    struct_name: str = "split_fv_mpnn",
+) -> tuple[int, int]:
+    """
+    Build Fv-only PDB with VH (A) and VL (B) translated apart for split-chain MPNN.
+
+    VL is shifted along the axis perpendicular to the VH→VL vector so interface
+    residues become solvent-exposed on both chains.
+    """
+    parser = PDBParser(QUIET=True)
+    src_path = source_pdb or FAB_PDB
+    src = parser.get_structure("src", str(src_path))
+    model = list(src.get_models())[0]
+
+    if {"A", "B"}.issubset(model.child_dict):
+        heavy = model["A"]
+        light = model["B"]
+        vh_res = _residues(heavy, 1, VH_END)
+        vl_res = _residues(light, 1, VL_END)
+    else:
+        raise ValueError("Source PDB must contain chains A (VH) and B (VL)")
+
+    vh_cent = _centroid(vh_res)
+    vl_cent = _centroid(vl_res)
+    axis = vl_cent - vh_cent
+    axis /= np.linalg.norm(axis) + 1e-8
+    # Perpendicular shift (arbitrary but stable): cross with global Z unless parallel.
+    ref = np.array([0.0, 0.0, 1.0])
+    perp = np.cross(axis, ref)
+    if np.linalg.norm(perp) < 1e-6:
+        perp = np.cross(axis, np.array([0.0, 1.0, 0.0]))
+    perp = perp / (np.linalg.norm(perp) + 1e-8)
+    shift = perp * float(separation_a)
+
+    vl_shifted: list = []
+    for res in vl_res:
+        new_res = res.copy()
+        for atom in new_res:
+            atom.set_coord(atom.get_coord() + shift)
+        vl_shifted.append(new_res)
+
+    struct = S.Structure(struct_name)
+    model_out = M.Model(0)
+    model_out.add(_build_chain(vh_res, "A"))
+    model_out.add(_build_chain(vl_shifted, "B"))
+    struct.add(model_out)
+
+    out_pdb.parent.mkdir(parents=True, exist_ok=True)
+    io = PDBIO()
+    io.set_structure(struct)
+    io.save(str(out_pdb))
+    return len(vh_res), len(vl_res)
 
 
 def framework_design_residues(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> list[str]:

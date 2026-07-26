@@ -26,6 +26,7 @@ REMOTE_USER = "ubuntu"
 REMOTE_PIPELINE = "/home/ubuntu/pipeline"
 REMOTE_TMUX = "tmux"
 INPUT_PDB = "fab_stage_0_vhvL_interface.pdb"
+SPLIT_PDB = "fab_stage_0_split_mpnn.pdb"
 CONFIG_JSON = "stage_0_vhvL_interface_config.json"
 EPHEMERAL_KEY_NAME = "cursor-cloud-ephemeral-992c"
 EPHEMERAL_KEY_PATH = Path.home() / ".ssh" / "cursor_lambda_ephemeral"
@@ -102,6 +103,7 @@ def upload_stage_0(ip: str, key: str) -> None:
 
     files = [
         (ROOT / "structures/domains" / INPUT_PDB, f"{REMOTE_PIPELINE}/inputs/{INPUT_PDB}"),
+        (ROOT / "structures/domains" / SPLIT_PDB, f"{REMOTE_PIPELINE}/inputs/{SPLIT_PDB}"),
         (ROOT / "structures/interface" / CONFIG_JSON, f"{REMOTE_PIPELINE}/inputs/{CONFIG_JSON}"),
         (ROOT / "scripts/gpu_setup/run_stage_0_vhvL_interface.sh", f"{REMOTE_PIPELINE}/run_stage_0.sh"),
         (ROOT / "scripts/gpu_setup/setup_pipeline_rfd3.sh", f"{REMOTE_PIPELINE}/setup_pipeline_rfd3.sh"),
@@ -133,11 +135,11 @@ def run_setup(ip: str, key: str) -> None:
         time.sleep(20)
 
 
-def run_stage_0(ip: str, key: str, n_designs: int, partial_t: float) -> None:
+def run_stage_0(ip: str, key: str, n_mpnn_seqs: int) -> None:
     env = " ".join([
-        f"N_DESIGNS={n_designs}",
-        f"PARTIAL_T={partial_t}",
+        f"N_MPNN_SEQS={n_mpnn_seqs}",
         f"INPUT_PDB={INPUT_PDB}",
+        f"SPLIT_PDB={SPLIT_PDB}",
         f"CONFIG_JSON={CONFIG_JSON}",
     ])
     print("  Starting Stage 0 pipeline in tmux session 'stage_0' ...")
@@ -152,8 +154,7 @@ def main() -> None:
     p = argparse.ArgumentParser(description="Launch Stage 0 VH–VL interface design on Lambda.")
     p.add_argument("--ssh-key", default=os.environ.get("LAMBDA_SSH_KEY", "~/.ssh/lambda_agent_key"))
     p.add_argument("--ssh-key-name", default="cursor-agent")
-    p.add_argument("--n-designs", type=int, default=200)
-    p.add_argument("--partial-t", type=float, default=12.0)
+    p.add_argument("--n-mpnn-seqs", type=int, default=32, help="ProteinMPNN sequences per backbone")
     p.add_argument("--no-terminate", action="store_true")
     p.add_argument("--no-wait", action="store_true")
     p.add_argument("--status", action="store_true")
@@ -193,12 +194,12 @@ def main() -> None:
         active = client.wait_until_active(iid)
         ip = active["ip"]
         print(f"\nInstance {iid} @ {ip}")
-        print(f"  Designs: {args.n_designs} | partial_t: {args.partial_t} Å")
+        print(f"  MPNN sequences: {args.n_mpnn_seqs}")
 
         wait_ssh(ip, ssh_key)
         upload_stage_0(ip, ssh_key)
         run_setup(ip, ssh_key)
-        run_stage_0(ip, ssh_key, args.n_designs, args.partial_t)
+        run_stage_0(ip, ssh_key, args.n_mpnn_seqs)
 
         print("\nMonitor:")
         print(f"  ssh -i {ssh_key} {REMOTE_USER}@{ip} 'tail -f {REMOTE_PIPELINE}/stage_0_pipeline.log'")

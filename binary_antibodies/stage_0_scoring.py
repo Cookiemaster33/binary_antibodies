@@ -1,22 +1,13 @@
 """
 stage_0_scoring.py
 ------------------
-Score Stage 0 VH–VL interface weakening designs.
+Score Stage 0 VH–VL interface weakening designs (split MPNN partial de-grease).
 
 Core idea: select sequences with a large apo→holo pairing gap where holo still
 looks like a real closed Fab engaging the epitope — not steric wedges.
 
-Metrics (per design)
---------------------
-  vh_vl_interface_contacts     — framework Cα pairs < 6 Å (want apo low, holo high)
-  vh_vl_fr4_ca_distance      — FR4 centroid separation (want apo large, holo small)
-  holo_minus_apo_contact_delta — holo − apo contacts (want positive)
-  holo_fv_framework_rmsd_A     — Kabsch RMSD vs native Fab on VH+VL framework Cα
-  cdr_epitope_contacts         — holo only: CDR (A/B) ↔ epitope T heavy-atom contacts
-  holo_vh_vl_interface_clashes — holo only: cross-chain clashes at interface FW
-  wedge_suspect                — apo very open but holo geometry/clashes fail (plug-like)
-
-Run inside foundry Docker or any env with biotite + numpy.
+Metrics use contact counts relative to native where appropriate; we do not require
+Boltz apo to show physically dissociated Fv chains.
 """
 
 from __future__ import annotations
@@ -62,15 +53,13 @@ INTER_CHAIN_CLASH_CUTOFF_A = 3.0
 CDR_CONTACT_CUTOFF_A = 6.0
 
 DEFAULT_FILTERS = {
-    "max_apo_interface_contacts": 12,
-    "min_holo_interface_contacts": 50,
+    "max_apo_fraction_of_native_contacts": 0.45,
+    "min_holo_fraction_of_native_contacts": 0.45,
     "max_holo_clashes_4A": 50,
     "max_holo_fv_framework_rmsd_A": 3.5,
     "min_holo_cdr_epitope_contacts": 6,
     "max_holo_vh_vl_interface_clashes": 0,
     "min_holo_minus_apo_contact_delta": 15,
-    "min_apo_interface_centroid_distance_A": 14.0,
-    "max_holo_interface_centroid_distance_A": 12.0,
 }
 
 
@@ -311,9 +300,10 @@ def score_structure(
     return metrics
 
 
-def wedge_suspect(apo: dict, holo: dict) -> bool:
-    """Flag plug-like designs: very open apo but holo cannot close properly."""
-    apo_open = apo.get("vh_vl_interface_contacts", 99) <= 5
+def wedge_suspect(apo: dict, holo: dict, native_contacts: int) -> bool:
+    """Flag plug-like designs: very weak apo but holo cannot close properly."""
+    apo_c = apo.get("vh_vl_interface_contacts", 99)
+    apo_open = native_contacts > 0 and apo_c <= max(5, 0.15 * native_contacts)
     rmsd = holo.get("holo_fv_framework_rmsd_A", float("nan"))
     holo_bad_rmsd = not np.isnan(rmsd) and rmsd > 4.0
     holo_iface_clash = holo.get("vh_vl_interface_clashes", 0) > 0
@@ -321,30 +311,53 @@ def wedge_suspect(apo: dict, holo: dict) -> bool:
     return apo_open and (holo_bad_rmsd or holo_iface_clash or holo_low_cdr)
 
 
-def apply_filters(rec: dict, filters: dict) -> dict:
+def apply_filters(rec: dict, filters: dict, native_contacts: int) -> dict:
     apo = rec.get("apo", {})
     holo = rec.get("holo", {})
-    checks = {
-        "passes_apo_contacts": apo.get("vh_vl_interface_contacts", 999)
-        <= filters["max_apo_interface_contacts"],
-        "passes_holo_contacts": holo.get("vh_vl_interface_contacts", 0)
-        >= filters["min_holo_interface_contacts"],
-        "passes_holo_global_clashes": holo.get("inter_chain_clashes_4A", 999)
-        <= filters["max_holo_clashes_4A"],
-        "passes_contact_delta": rec.get("holo_minus_apo_contact_delta", -999)
-        >= filters["min_holo_minus_apo_contact_delta"],
-        "passes_apo_open": apo.get("vh_vl_interface_centroid_distance", 0)
-        >= filters["min_apo_interface_centroid_distance_A"],
-        "passes_holo_closed": holo.get("vh_vl_interface_centroid_distance", 999)
-        <= filters["max_holo_interface_centroid_distance_A"],
-        "passes_holo_geometry": holo.get("holo_fv_framework_rmsd_A", 999)
-        <= filters["max_holo_fv_framework_rmsd_A"],
-        "passes_cdr_engagement": holo.get("cdr_epitope_contacts", 0)
-        >= filters["min_holo_cdr_epitope_contacts"],
-        "passes_anti_wedge": holo.get("vh_vl_interface_clashes", 999)
-        <= filters["max_holo_vh_vl_interface_clashes"]
-        and not rec.get("wedge_suspect", True),
-    }
+    apo_c = apo.get("vh_vl_interface_contacts", 999)
+    holo_c = holo.get("vh_vl_interface_contacts", 0)
+    apo_frac = apo_c / native_contacts if native_contacts > 0 else 1.0
+    holo_frac = holo_c / native_contacts if native_contacts > 0 else 0.0
+
+    checks: dict[str, bool] = {}
+
+    if "max_apo_fraction_of_native_contacts" in filters:
+        checks["passes_apo_weakened"] = apo_frac <= filters["max_apo_fraction_of_native_contacts"]
+    elif "max_apo_interface_contacts" in filters:
+        checks["passes_apo_weakened"] = apo_c <= filters["max_apo_interface_contacts"]
+
+    if "min_holo_fraction_of_native_contacts" in filters:
+        checks["passes_holo_paired"] = holo_frac >= filters["min_holo_fraction_of_native_contacts"]
+    elif "min_holo_interface_contacts" in filters:
+        checks["passes_holo_paired"] = holo_c >= filters["min_holo_interface_contacts"]
+
+    checks["passes_holo_global_clashes"] = holo.get("inter_chain_clashes_4A", 999) <= filters[
+        "max_holo_clashes_4A"
+    ]
+    checks["passes_contact_delta"] = rec.get("holo_minus_apo_contact_delta", -999) >= filters[
+        "min_holo_minus_apo_contact_delta"
+    ]
+    checks["passes_holo_geometry"] = holo.get("holo_fv_framework_rmsd_A", 999) <= filters[
+        "max_holo_fv_framework_rmsd_A"
+    ]
+    checks["passes_cdr_engagement"] = holo.get("cdr_epitope_contacts", 0) >= filters[
+        "min_holo_cdr_epitope_contacts"
+    ]
+    checks["passes_anti_wedge"] = holo.get("vh_vl_interface_clashes", 999) <= filters[
+        "max_holo_vh_vl_interface_clashes"
+    ] and not rec.get("wedge_suspect", True)
+
+    if "min_apo_interface_centroid_distance_A" in filters:
+        checks["passes_apo_open"] = apo.get("vh_vl_interface_centroid_distance", 0) >= filters[
+            "min_apo_interface_centroid_distance_A"
+        ]
+    if "max_holo_interface_centroid_distance_A" in filters:
+        checks["passes_holo_closed"] = holo.get("vh_vl_interface_centroid_distance", 999) <= filters[
+            "max_holo_interface_centroid_distance_A"
+        ]
+
+    rec["apo_fraction_of_native_contacts"] = round(apo_frac, 4)
+    rec["holo_fraction_of_native_contacts"] = round(holo_frac, 4)
     rec["filter_checks"] = checks
     rec["passes_stage_0"] = all(checks.values())
     return rec
@@ -369,8 +382,8 @@ def score_design(
         rec["fr4_distance_delta"] = (
             rec["apo"]["vh_vl_fr4_ca_distance"] - rec["holo"]["vh_vl_fr4_ca_distance"]
         )
-        rec["wedge_suspect"] = wedge_suspect(rec["apo"], rec["holo"])
-        apply_filters(rec, filters)
+        rec["wedge_suspect"] = wedge_suspect(rec["apo"], rec["holo"], ref.native_apo_contacts)
+        apply_filters(rec, filters, ref.native_apo_contacts)
     return rec
 
 
@@ -434,12 +447,15 @@ def main() -> None:
         apo_c = r.get("apo", {}).get("vh_vl_interface_contacts", "?")
         holo_c = r.get("holo", {}).get("vh_vl_interface_contacts", "?")
         delta = r.get("holo_minus_apo_contact_delta", "?")
+        apo_f = r.get("apo_fraction_of_native_contacts", "?")
+        holo_f = r.get("holo_fraction_of_native_contacts", "?")
         rmsd = r.get("holo", {}).get("holo_fv_framework_rmsd_A", "?")
         cdr_t = r.get("holo", {}).get("cdr_epitope_contacts", "?")
         wedge = r.get("wedge_suspect", "?")
         print(
             f"  {r['design_id']}: apo={apo_c} holo={holo_c} Δ={delta} "
-            f"rmsd={rmsd} cdr-T={cdr_t} wedge={wedge} pass={r.get('passes_stage_0')}"
+            f"apo_frac={apo_f} holo_frac={holo_f} rmsd={rmsd} cdr-T={cdr_t} "
+            f"wedge={wedge} pass={r.get('passes_stage_0')}"
         )
 
 

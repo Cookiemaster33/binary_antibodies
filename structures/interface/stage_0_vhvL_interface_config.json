@@ -1,78 +1,93 @@
 {
   "stage": "0",
-  "approach": "vh_vl_interface_weakening",
-  "description": "Stage 0: partial-diffusion redesign of VH\u2013VL framework interface (CDRs + constant domains + epitope stub fixed). Goal: reduce apo VH\u2013VL affinity while preserving target-bound closure geometry.",
+  "approach": "split_mpnn_partial_degrease",
+  "description": "Stage 0: split-chain ProteinMPNN partial de-greasing of the VH\u2013VL framework interface (rim residues only; closure core fixed). Skips RFd3. Goal: weaken apo VH\u2013VL coupling while preserving holo closure.",
   "input_pdb": "structures/domains/fab_stage_0_vhvL_interface.pdb",
+  "split_mpnn_pdb": "structures/domains/fab_stage_0_split_mpnn.pdb",
   "source_fab": "1N8Z (trastuzumab)",
   "chains": {
     "A": "VH 1-113",
     "B": "VL 1-107",
     "C": "CH1 1-101",
     "D": "CL 1-113 (steric context only)",
-    "T": "HER2 epitope stub 1-12 (hotspot / closure context)"
+    "T": "HER2 epitope stub 1-12 (holo closure context)"
   },
-  "rfd3": {
-    "contig": "A1-113/0,B1-107",
-    "partial_t": 12.0,
-    "select_hotspots": "T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12",
-    "select_fixed_atoms": {
-      "A26-35": "ALL",
-      "A50-65": "ALL",
-      "A95-102": "ALL",
-      "B24-34": "ALL",
-      "B50-56": "ALL",
-      "B89-97": "ALL",
-      "C1-101": "ALL",
-      "D1-113": "ALL",
-      "T1-12": "ALL"
-    },
-    "vh_interface_framework": [
+  "split_mpnn": {
+    "separation_A": 30.0,
+    "designed_residues": [
       "A34",
-      "A38",
-      "A42",
-      "A43",
       "A44",
       "A45",
       "A46",
       "A47",
       "A49",
-      "A87",
-      "A89"
-    ],
-    "vl_interface_framework": [
       "B35",
       "B37",
-      "B39",
       "B43",
       "B44",
       "B45",
       "B46",
-      "B47",
       "B104",
+      "B106"
+    ],
+    "vh_closure_core": [
+      "A38",
+      "A42",
+      "A43",
+      "A87",
+      "A89"
+    ],
+    "vl_closure_core": [
+      "B39",
+      "B47",
       "B105",
-      "B106",
       "B107"
-    ]
+    ],
+    "vh_degrease": [
+      "A34",
+      "A44",
+      "A45",
+      "A46",
+      "A47",
+      "A49"
+    ],
+    "vl_degrease": [
+      "B35",
+      "B37",
+      "B43",
+      "B44",
+      "B45",
+      "B46",
+      "B104",
+      "B106"
+    ],
+    "n_sequences": 32
+  },
+  "native_chain_sequences": {
+    "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+    "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIHWVRQAPGKGLEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGFYAM",
+    "C": "SVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFNRGEC",
+    "D": "DYWGQGTLVTVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEP",
+    "T": "CPACPAPELLGG"
   },
   "validation": {
-    "apo_fold": "Boltz chains A+B+C+D (no T) \u2014 prefer fewer VH\u2013VL interface contacts",
-    "holo_fold": "Boltz chains A+B+C+D+T \u2014 prefer closed Fv around T without clashes",
+    "apo_fold": "Boltz A+B+C+D \u2014 prefer weaker VH\u2013VL contacts vs native",
+    "holo_fold": "Boltz A+B+C+D+T \u2014 prefer closed Fv engaging epitope",
     "metrics": [
       "vh_vl_interface_contacts",
-      "vh_vl_fr4_ca_distance",
       "holo_minus_apo_contact_delta",
+      "apo_fraction_of_native_contacts",
+      "holo_fraction_of_native_contacts",
       "holo_fv_framework_rmsd_A",
       "cdr_epitope_contacts",
       "vh_vl_interface_clashes",
       "wedge_suspect"
     ],
     "filters": {
-      "max_apo_interface_contacts": 12,
-      "min_holo_interface_contacts": 50,
-      "max_holo_clashes_4A": 50,
+      "max_apo_fraction_of_native_contacts": 0.45,
+      "min_holo_fraction_of_native_contacts": 0.45,
       "min_holo_minus_apo_contact_delta": 15,
-      "min_apo_interface_centroid_distance_A": 14.0,
-      "max_holo_interface_centroid_distance_A": 12.0,
+      "max_holo_clashes_4A": 50,
       "max_holo_fv_framework_rmsd_A": 3.5,
       "min_holo_cdr_epitope_contacts": 6,
       "max_holo_vh_vl_interface_clashes": 0

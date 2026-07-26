@@ -16,33 +16,33 @@ weaken      hub design    (de novo)
 
 | Stage | What is designed | What stays fixed |
 |-------|------------------|------------------|
-| **0** | VH + VL **framework** at the Fv interface | CDRs, CH1, CL, epitope stub T |
+| **0** | VH + VL **interface rim** (partial de-grease) | CDRs, closure-core interface, CH1, CL, epitope stub T |
 | **A** | VH–hub–VL **minibinder** (35–55 aa) | Stage 0 Fv, CH1, CL, epitope stub |
 | **B** | Third arm against epitope / target | Stage A assembly |
 
-## Stage 0 — VH–VL interface weakening
+## Stage 0 — Split-chain MPNN partial de-greasing
 
-**Goal:** Reduce spontaneous VH–VL pairing in apo while preserving a clash-free closed pose when epitope `T` is present.
+**Goal:** Reduce intrinsic VH–VL coupling in apo while preserving holo closure when epitope `T` is present. We do **not** expect Boltz apo to show fully dissociated Fv — success is **relative weakening** plus a large holo−apo contact delta.
 
-**RFd3 setup:**
-- Input: `structures/domains/fab_stage_0_vhvL_interface.pdb`
-- Contig: `A1-113/0,B1-107` (both Fv chains, no inserted domain)
-- `partial_t = 12 Å` — larger than round-2 refinement; explores frustrated interfaces
-- Hotspots: epitope stub `T1–T12` (closure geometry)
-- Fixed: all CDRs, CH1, CL, epitope coordinates
+**Design (no RFd3):**
+1. Build native Fab context PDB (`fab_stage_0_vhvL_interface.pdb`)
+2. Build **split Fv** PDB with VH/VL translated 30 Å apart (`fab_stage_0_split_mpnn.pdb`)
+3. **ProteinMPNN** redesigns **rim** interface framework residues only; **closure core** (tightest buried pairs from `vh_vl_contacts.csv`) stays native
+4. **Boltz** apo: A+B+C+D; holo: A+B+C+D+T
 
-**Validation (apo vs holo differential):**
+**Validation (apo vs holo differential, relative to native ~113 interface contacts):**
 
-| Metric | Apo | Holo | Purpose |
-|--------|-----|------|---------|
-| VH–VL interface contacts (heavy-atom) | ≤ 12 | ≥ 50 | Conditional pairing gap |
-| Interface centroid distance | ≥ 14 Å | ≤ 12 Å | Open vs closed |
-| Fv framework RMSD vs native | — | ≤ 3.5 Å | Holo looks like real Fab |
-| CDR ↔ epitope contacts | — | ≥ 6 | Co-binding, not just VH–VL slam |
-| VH–VL interface cross-clashes | — | 0 | Anti-wedge (no steric plugs) |
-| `wedge_suspect` flag | — | false | Reject plug-like false positives |
+| Metric | Target | Purpose |
+|--------|--------|---------|
+| Apo contacts / native | ≤ 45% | Weakened apo coupling |
+| Holo contacts / native | ≥ 45% | Holo still pairs |
+| Holo − apo contact delta | ≥ 15 | Conditional switch gap |
+| Fv framework RMSD vs native (holo) | ≤ 3.5 Å | Holo looks like real Fab |
+| CDR ↔ epitope contacts (holo) | ≥ 6 | Co-binding with target |
+| VH–VL interface cross-clashes (holo) | 0 | Anti-wedge |
+| `wedge_suspect` | false | Reject plug-like false positives |
 
-We select on **maximum holo−apo contact delta** among designs passing all filters — not minimum apo affinity alone.
+We select on **maximum holo−apo contact delta** among designs passing filters.
 
 **Build & launch:**
 ```bash
@@ -50,7 +50,7 @@ python scripts/build_stage_0_design_target.py
 python scripts/launch_stage_0.py --no-wait --no-terminate
 ```
 
-**Outputs:** `pipeline_results/stage_0_vhvL_interface/` (after push script, TBD)
+**Outputs:** `pipeline_results/stage_0_vhvL_interface/`
 
 ## Stage A — Hidden minibinder hub
 
@@ -69,19 +69,13 @@ python scripts/launch_stage_a.py --no-wait --no-terminate
 
 Add hotspots on chain `T` and extend contig with a third binding patch against the HER2 epitope stub.
 
-## Current PoC run (minibinder-first)
-
-Instance `0926bc09188c4cebb0cd8872131e29cb` is running **Stage A on native Fab** as a structural feasibility check. Results are exploratory only.
-
-**After PoC completes:** switch to Stage 0 → Stage A order using this document.
-
 ## Key files
 
 | File | Purpose |
 |------|---------|
-| `binary_antibodies/fab_hidden_switch.py` | Shared constants, PDB builder |
-| `scripts/build_stage_0_design_target.py` | Stage 0 PDB + JSON |
-| `scripts/gpu_setup/run_stage_0_vhvL_interface.sh` | Full Stage 0 GPU pipeline |
+| `binary_antibodies/fab_hidden_switch.py` | Shared constants, split PDB builder, degrease residue lists |
+| `scripts/build_stage_0_design_target.py` | Stage 0 PDBs + JSON config |
+| `scripts/gpu_setup/run_stage_0_vhvL_interface.sh` | Split MPNN → Boltz → scoring |
 | `scripts/launch_stage_0.py` | Lambda launcher |
 | `binary_antibodies/stage_0_scoring.py` | Apo/holo interface metrics |
 | `scripts/build_stage_a_design_target.py` | Stage A (accepts `--fab-pdb`) |
