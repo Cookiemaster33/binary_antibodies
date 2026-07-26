@@ -20,14 +20,16 @@ weaken      hub design    (de novo)
 | **A** | VH–hub–VL **minibinder** (35–55 aa) | Stage 0 Fv, CH1, CL, epitope stub |
 | **B** | Third arm against epitope / target | Stage A assembly |
 
-## Stage 0 — Split-chain MPNN partial de-greasing
+## Stage 0 — Split-chain MPNN de-greasing
 
 **Goal:** Reduce intrinsic VH–VL coupling in apo while preserving holo closure when epitope `T` is present. We do **not** expect Boltz apo to show fully dissociated Fv — success is **relative weakening** plus a large holo−apo contact delta.
 
 **Design (no RFd3):**
 1. Build native Fab context PDB (`fab_stage_0_vhvL_interface.pdb`)
 2. Build **split Fv** PDB with VH/VL translated 30 Å apart (`fab_stage_0_split_mpnn.pdb`)
-3. **ProteinMPNN** redesigns **rim** interface framework residues only; **closure core** (tightest buried pairs from `vh_vl_contacts.csv`) stays native
+3. **ProteinMPNN** redesigns **rim** interface framework residues; **closure core** (tightest buried pairs from `vh_vl_contacts.csv`) stays native
+   - **Aggressive (default):** core ≤ 3.20 Å → **19** rim residues; anchors A38, A43, B39, B107
+   - **Conservative:** `--conservative` → core ≤ 3.35 Å → **14** rim residues
 4. **Boltz** apo: A+B+C+D; holo: A+B+C+D+T
 
 **Validation (apo vs holo differential, relative to native ~113 interface contacts):**

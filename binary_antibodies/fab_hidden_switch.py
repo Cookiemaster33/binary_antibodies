@@ -29,7 +29,8 @@ FAB_PDB = ROOT / "structures" / "1N8Z.pdb"
 VH_VL_CONTACTS_CSV = ROOT / "structures" / "interface" / "vh_vl_contacts.csv"
 
 # Tightest framework-interface pairs (min heavy-atom distance, Å) kept native during degrease.
-INTERFACE_CORE_MAX_HEAVY_A = 3.35
+INTERFACE_CORE_MAX_HEAVY_A = 3.35  # conservative (14 rim residues)
+INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE = 3.20  # aggressive (19 rim residues)
 DEFAULT_SPLIT_SEPARATION_A = 30.0
 
 VH_END = 113

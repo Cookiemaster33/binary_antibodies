@@ -171,7 +171,7 @@ def main() -> None:
     p = argparse.ArgumentParser(description="Launch Stage 0 VH–VL interface design on Lambda.")
     p.add_argument("--ssh-key", default=os.environ.get("LAMBDA_SSH_KEY", "~/.ssh/lambda_agent_key"))
     p.add_argument("--ssh-key-name", default="cursor-agent")
-    p.add_argument("--n-mpnn-seqs", type=int, default=32, help="ProteinMPNN sequences per backbone")
+    p.add_argument("--n-mpnn-seqs", type=int, default=64, help="ProteinMPNN sequences per backbone")
     p.add_argument("--region", default="us-east-1", help="Preferred Lambda region")
     p.add_argument("--instance-type", default="gpu_1x_a100_sxm4", help="Lambda instance type")
     p.add_argument("--no-terminate", action="store_true")

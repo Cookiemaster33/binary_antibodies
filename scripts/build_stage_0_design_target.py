@@ -29,6 +29,8 @@ sys.path.insert(0, str(ROOT))
 from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     DEFAULT_SPLIT_SEPARATION_A,
     EPITOPE_SEQ,
+    INTERFACE_CORE_MAX_HEAVY_A,
+    INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE,
     build_fab_context_pdb,
     build_split_fv_mpnn_pdb,
     extract_chain_sequences,
@@ -50,17 +52,21 @@ def build_config(
     cl_len: int,
     source: str,
     separation_a: float,
+    core_max_heavy_a: float,
+    n_mpnn_seqs: int,
 ) -> dict:
-    vh_core, vl_core = interface_closure_core(vh_len, vl_len)
-    designed = split_mpnn_designed_residues(vh_len, vl_len)
+    vh_core, vl_core = interface_closure_core(vh_len, vl_len, max_heavy_a=core_max_heavy_a)
+    designed = split_mpnn_designed_residues(vh_len, vl_len, max_heavy_a=core_max_heavy_a)
+    aggressive = core_max_heavy_a <= INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE
 
     return {
         "stage": "0",
-        "approach": "split_mpnn_partial_degrease",
+        "approach": "split_mpnn_aggressive_degrease" if aggressive else "split_mpnn_partial_degrease",
         "description": (
-            "Stage 0: split-chain ProteinMPNN partial de-greasing of the VH–VL "
-            "framework interface (rim residues only; closure core fixed). Skips RFd3. "
-            "Goal: weaken apo VH–VL coupling while preserving holo closure."
+            "Stage 0: split-chain ProteinMPNN de-greasing of the VH–VL framework interface. "
+            f"{'Aggressive' if aggressive else 'Partial'} mode: {len(designed)} rim residues "
+            f"redesigned; {len(vh_core) + len(vl_core)} closure-core positions fixed "
+            f"(min heavy distance ≤ {core_max_heavy_a} Å). Skips RFd3."
         ),
         "input_pdb": str(OUT_PDB.relative_to(ROOT)),
         "split_mpnn_pdb": str(OUT_SPLIT_PDB.relative_to(ROOT)),
@@ -74,12 +80,17 @@ def build_config(
         },
         "split_mpnn": {
             "separation_A": separation_a,
+            "core_max_heavy_A": core_max_heavy_a,
             "designed_residues": designed,
             "vh_closure_core": [f"A{r}" for r in vh_core],
             "vl_closure_core": [f"B{r}" for r in vl_core],
-            "vh_degrease": interface_degrease_residues("A", vh_len, vl_len),
-            "vl_degrease": interface_degrease_residues("B", vh_len, vl_len),
-            "n_sequences": 32,
+            "vh_degrease": interface_degrease_residues(
+                "A", vh_len, vl_len, max_heavy_a=core_max_heavy_a
+            ),
+            "vl_degrease": interface_degrease_residues(
+                "B", vh_len, vl_len, max_heavy_a=core_max_heavy_a
+            ),
+            "n_sequences": n_mpnn_seqs,
         },
         "native_chain_sequences": {},
         "validation": {
@@ -124,7 +135,21 @@ def main() -> None:
         default=DEFAULT_SPLIT_SEPARATION_A,
         help="VH–VL translation for split MPNN input (Å)",
     )
+    p.add_argument(
+        "--core-max-heavy-A",
+        type=float,
+        default=INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE,
+        help="Keep framework pairs with min heavy distance ≤ this value native (Å)",
+    )
+    p.add_argument(
+        "--conservative",
+        action="store_true",
+        help="Use conservative core cutoff (3.35 Å, 14 rim residues)",
+    )
+    p.add_argument("--n-mpnn-seqs", type=int, default=64, help="MPNN sequences to generate")
     args = p.parse_args()
+
+    core_max = INTERFACE_CORE_MAX_HEAVY_A if args.conservative else args.core_max_heavy_A
 
     source = str(args.source_pdb) if args.source_pdb else "1N8Z (trastuzumab)"
     vh_len, vl_len, ch1_len, cl_len = build_fab_context_pdb(
@@ -137,7 +162,9 @@ def main() -> None:
         source_pdb=args.out_pdb,
         separation_a=args.separation_A,
     )
-    config = build_config(vh_len, vl_len, ch1_len, cl_len, source, args.separation_A)
+    config = build_config(
+        vh_len, vl_len, ch1_len, cl_len, source, args.separation_A, core_max, args.n_mpnn_seqs
+    )
     config["native_chain_sequences"] = extract_chain_sequences(args.out_pdb)
     write_json(args.out_json, config)
 

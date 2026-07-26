@@ -1,7 +1,7 @@
 {
   "stage": "0",
-  "approach": "split_mpnn_partial_degrease",
-  "description": "Stage 0: split-chain ProteinMPNN partial de-greasing of the VH\u2013VL framework interface (rim residues only; closure core fixed). Skips RFd3. Goal: weaken apo VH\u2013VL coupling while preserving holo closure.",
+  "approach": "split_mpnn_aggressive_degrease",
+  "description": "Stage 0: split-chain ProteinMPNN de-greasing of the VH\u2013VL framework interface. Aggressive mode: 19 rim residues redesigned; 4 closure-core positions fixed (min heavy distance \u2264 3.2 \u00c5). Skips RFd3.",
   "input_pdb": "structures/domains/fab_stage_0_vhvL_interface.pdb",
   "split_mpnn_pdb": "structures/domains/fab_stage_0_split_mpnn.pdb",
   "source_fab": "1N8Z (trastuzumab)",
@@ -14,42 +14,46 @@
   },
   "split_mpnn": {
     "separation_A": 30.0,
+    "core_max_heavy_A": 3.2,
     "designed_residues": [
       "A34",
+      "A42",
       "A44",
       "A45",
       "A46",
       "A47",
       "A49",
+      "A87",
+      "A89",
       "B35",
       "B37",
       "B43",
       "B44",
       "B45",
       "B46",
+      "B47",
       "B104",
+      "B105",
       "B106"
     ],
     "vh_closure_core": [
       "A38",
-      "A42",
-      "A43",
-      "A87",
-      "A89"
+      "A43"
     ],
     "vl_closure_core": [
       "B39",
-      "B47",
-      "B105",
       "B107"
     ],
     "vh_degrease": [
       "A34",
+      "A42",
       "A44",
       "A45",
       "A46",
       "A47",
-      "A49"
+      "A49",
+      "A87",
+      "A89"
     ],
     "vl_degrease": [
       "B35",
@@ -58,10 +62,12 @@
       "B44",
       "B45",
       "B46",
+      "B47",
       "B104",
+      "B105",
       "B106"
     ],
-    "n_sequences": 32
+    "n_sequences": 64
   },
   "native_chain_sequences": {
     "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
