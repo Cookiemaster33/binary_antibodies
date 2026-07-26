@@ -150,11 +150,30 @@ def run_stage_0(ip: str, key: str, n_mpnn_seqs: int) -> None:
     )
 
 
+def pick_region(client: LambdaClient, instance_type: str, preferred: str = "us-east-1") -> str:
+    """Choose a region with capacity for the requested instance type."""
+    types = client.list_instance_types()
+    info = types.get(instance_type, {})
+    regions = [r["name"] for r in info.get("regions_with_capacity_available", [])]
+    if preferred in regions:
+        return preferred
+    if regions:
+        print(f"  No {instance_type} capacity in {preferred}; using {regions[0]}")
+        return regions[0]
+    available = client.available_instance_types()
+    names = ", ".join(t["name"] for t in available[:5])
+    raise RuntimeError(
+        f"No Lambda capacity for {instance_type}. Available types: {names}"
+    )
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="Launch Stage 0 VH–VL interface design on Lambda.")
     p.add_argument("--ssh-key", default=os.environ.get("LAMBDA_SSH_KEY", "~/.ssh/lambda_agent_key"))
     p.add_argument("--ssh-key-name", default="cursor-agent")
     p.add_argument("--n-mpnn-seqs", type=int, default=32, help="ProteinMPNN sequences per backbone")
+    p.add_argument("--region", default="us-east-1", help="Preferred Lambda region")
+    p.add_argument("--instance-type", default="gpu_1x_a100_sxm4", help="Lambda instance type")
     p.add_argument("--no-terminate", action="store_true")
     p.add_argument("--no-wait", action="store_true")
     p.add_argument("--status", action="store_true")
@@ -182,9 +201,10 @@ def main() -> None:
     subprocess.run([sys.executable, str(ROOT / "scripts/build_stage_0_design_target.py")], check=True)
 
     ssh_key, launch_key_name = resolve_ssh_key(client, args.ssh_key, args.ssh_key_name)
+    region = pick_region(client, args.instance_type, args.region)
     inst = client.launch(
-        "gpu_1x_a100_sxm4",
-        "us-east-1",
+        args.instance_type,
+        region,
         ssh_key_names=[launch_key_name],
         name="stage-0-vhvL-interface",
     )
@@ -194,6 +214,7 @@ def main() -> None:
         active = client.wait_until_active(iid)
         ip = active["ip"]
         print(f"\nInstance {iid} @ {ip}")
+        print(f"  Region: {region} | type: {args.instance_type}")
         print(f"  MPNN sequences: {args.n_mpnn_seqs}")
 
         wait_ssh(ip, ssh_key)
