@@ -1,13 +1,16 @@
 """
 stage_0_scoring.py
 ------------------
-Score Stage 0 VH–VL interface weakening designs (split MPNN partial de-grease).
+Score Stage 0 VH–VL interface weakening designs (split MPNN de-grease).
 
-Core idea: select sequences with a large apo→holo pairing gap where holo still
-looks like a real closed Fab engaging the epitope — not steric wedges.
+Selection criteria
+------------------
+(a) Static VH–VL interface contacts on the native Fab backbone, weighted by the
+    designed sequence, should be much lower than WT (~113 heavy-atom contacts).
+(b) Holo-only Boltz (A+B+C+D+T) must preserve epitope engagement and Fab-like
+    geometry — the weakened interface must not block target binding.
 
-Metrics use contact counts relative to native where appropriate; we do not require
-Boltz apo to show physically dissociated Fv chains.
+Apo Boltz folds are not required.
 """
 
 from __future__ import annotations
@@ -27,6 +30,11 @@ VH_INTERFACE_FW = [34, 38, 42, 43, 44, 45, 46, 47, 49, 87, 89]
 VL_INTERFACE_FW = [35, 37, 39, 43, 44, 45, 46, 47, 104, 105, 106, 107, 108, 109, 110, 111, 112]
 VH_CDR_RANGES = [(26, 35), (50, 65), (95, 102)]
 VL_CDR_RANGES = [(24, 34), (50, 56), (89, 97)]
+
+HYDROPHOBIC = frozenset("AILMFWV")
+POSITIVE = frozenset("KRH")
+NEGATIVE = frozenset("DE")
+POLAR = frozenset("STNQ")
 
 
 def in_ranges(resnum: int, ranges: list[tuple[int, int]]) -> bool:
@@ -53,13 +61,11 @@ INTER_CHAIN_CLASH_CUTOFF_A = 3.0
 CDR_CONTACT_CUTOFF_A = 6.0
 
 DEFAULT_FILTERS = {
-    "max_apo_fraction_of_native_contacts": 0.45,
-    "min_holo_fraction_of_native_contacts": 0.45,
+    "max_static_fraction_of_native_contacts": 0.45,
     "max_holo_clashes_4A": 50,
     "max_holo_fv_framework_rmsd_A": 3.5,
     "min_holo_cdr_epitope_contacts": 6,
     "max_holo_vh_vl_interface_clashes": 0,
-    "min_holo_minus_apo_contact_delta": 15,
 }
 
 
@@ -96,16 +102,8 @@ def chain_ca(aa, chain_id: str, resnums: list[int] | None = None) -> dict[int, n
     return out
 
 
-def interface_contacts(vh_ca: dict[int, np.ndarray], vl_ca: dict[int, np.ndarray]) -> int:
-    """Legacy Cα contact count (kept for logging)."""
-    vh_keys = [r for r in VH_INTERFACE_FW if r in vh_ca]
-    vl_keys = [r for r in VL_INTERFACE_FW if r in vl_ca]
-    count = 0
-    for rv in vh_keys:
-        for rl in vl_keys:
-            if np.linalg.norm(vh_ca[rv] - vl_ca[rl]) < CONTACT_CUTOFF_A:
-                count += 1
-    return count
+def _interface_residue_set(chain: str) -> set[int]:
+    return set(VH_INTERFACE_FW if chain == "A" else VL_INTERFACE_FW)
 
 
 def interface_contacts_heavy(aa) -> int:
@@ -124,7 +122,6 @@ def interface_contacts_heavy(aa) -> int:
 
 
 def interface_centroid_distance(vh_ca: dict[int, np.ndarray], vl_ca: dict[int, np.ndarray]) -> float:
-    """Distance between VH/VL interface-framework Cα centroids (open vs closed)."""
     vh_pts = [vh_ca[r] for r in VH_INTERFACE_FW if r in vh_ca]
     vl_pts = [vl_ca[r] for r in VL_INTERFACE_FW if r in vl_ca]
     if not vh_pts or not vl_pts:
@@ -147,7 +144,6 @@ def count_inter_chain_clashes(
     cutoff: float = INTER_CHAIN_CLASH_CUTOFF_A,
     exclude_chains: tuple[str, ...] = ("T",),
 ) -> int:
-    """Inter-chain heavy-atom overlaps; exclude epitope stub (rough placeholder geometry)."""
     from scipy.spatial import cKDTree
 
     skip = set(exclude_chains)
@@ -172,12 +168,7 @@ def count_inter_chain_clashes(
     return clashes
 
 
-def _interface_residue_set(chain: str) -> set[int]:
-    return set(VH_INTERFACE_FW if chain == "A" else VL_INTERFACE_FW)
-
-
 def count_vh_vl_interface_clashes(aa, cutoff: float = INTERFACE_CLASH_CUTOFF_A) -> int:
-    """Severe cross-chain A↔B overlaps at VH/VL interface framework residues."""
     from scipy.spatial import cKDTree
 
     heavy = aa[aa.element != "H"]
@@ -193,7 +184,6 @@ def count_vh_vl_interface_clashes(aa, cutoff: float = INTERFACE_CLASH_CUTOFF_A) 
 
 
 def count_cdr_epitope_contacts(aa, cutoff: float = CDR_CONTACT_CUTOFF_A) -> int:
-    """Heavy-atom contacts between CDR residues (A/B) and epitope stub chain T."""
     cdr_nums_a = set(cdr_residue_numbers("A"))
     cdr_nums_b = set(cdr_residue_numbers("B"))
     cdr_mask = (
@@ -217,19 +207,120 @@ def _collect_fv_framework_ca(aa, chain_id: str) -> dict[int, np.ndarray]:
     return chain_ca(aa, chain_id, fw)
 
 
+def sequence_residue(chain_seq: str, resnum: int) -> str:
+    idx = resnum - 1
+    if 0 <= idx < len(chain_seq):
+        return chain_seq[idx]
+    return "X"
+
+
+def pair_contact_weight(aa_vh: str, aa_vl: str) -> float:
+    """Compatibility weight for a VH/VL residue pair maintaining a native geometry contact."""
+    if aa_vh == "X" or aa_vl == "X":
+        return 0.5
+    if aa_vh in POSITIVE and aa_vl in POSITIVE:
+        return 0.0
+    if aa_vh in NEGATIVE and aa_vl in NEGATIVE:
+        return 0.0
+    if (aa_vh in POSITIVE and aa_vl in NEGATIVE) or (aa_vh in NEGATIVE and aa_vl in POSITIVE):
+        return 0.55
+    if "G" in (aa_vh, aa_vl):
+        return 0.15
+    if "P" in (aa_vh, aa_vl):
+        return 0.25
+    if "A" in (aa_vh, aa_vl):
+        return 0.35
+    if aa_vh in HYDROPHOBIC and aa_vl in HYDROPHOBIC:
+        return 1.0
+    if aa_vh in POLAR and aa_vl in POLAR:
+        return 0.6
+    if (aa_vh in HYDROPHOBIC and aa_vl in POLAR) or (aa_vh in POLAR and aa_vl in HYDROPHOBIC):
+        return 0.45
+    return 0.5
+
+
+def contact_pair_weight(
+    seq_a: str,
+    seq_b: str,
+    wt_a: str,
+    wt_b: str,
+    vh_res: int,
+    vl_res: int,
+) -> float:
+    """
+    Weight for one native heavy-atom contact pair under a designed sequence.
+    Unchanged WT pairs count as 1.0; mutations scale by designed compatibility.
+    """
+    des_vh = sequence_residue(seq_a, vh_res)
+    des_vl = sequence_residue(seq_b, vl_res)
+    wt_vh = sequence_residue(wt_a, vh_res)
+    wt_vl = sequence_residue(wt_b, vl_res)
+    if des_vh == wt_vh and des_vl == wt_vl:
+        return 1.0
+    return pair_contact_weight(des_vh, des_vl)
+
+
+def static_interface_contacts_heavy(
+    aa_template,
+    seq_a: str,
+    seq_b: str,
+    wt_a: str | None = None,
+    wt_b: str | None = None,
+) -> float:
+    """
+    Predict VH–VL interface contacts on the native Fab geometry, weighting each
+    native heavy-atom pair by designed-sequence compatibility at those residues.
+    """
+    if wt_a is None or wt_b is None:
+        wt_a = seq_a
+        wt_b = seq_b
+    vh_iface = _interface_residue_set("A")
+    vl_iface = _interface_residue_set("B")
+    vh_atoms = aa_template[
+        (aa_template.chain_id == "A")
+        & np.isin(aa_template.res_id, list(vh_iface))
+        & (aa_template.element != "H")
+    ]
+    vl_atoms = aa_template[
+        (aa_template.chain_id == "B")
+        & np.isin(aa_template.res_id, list(vl_iface))
+        & (aa_template.element != "H")
+    ]
+    if len(vh_atoms) == 0 or len(vl_atoms) == 0:
+        return 0.0
+
+    total = 0.0
+    for vh_idx in range(len(vh_atoms)):
+        vh_res = int(vh_atoms.res_id[vh_idx])
+        aa_vh = sequence_residue(seq_a, vh_res)
+        coord = vh_atoms.coord[vh_idx]
+        d = np.linalg.norm(vl_atoms.coord - coord, axis=1)
+        close = np.where(d < HEAVY_CONTACT_CUTOFF_A)[0]
+        for j in close:
+            vl_res = int(vl_atoms.res_id[j])
+            total += contact_pair_weight(seq_a, seq_b, wt_a, wt_b, vh_res, vl_res)
+    return total
+
+
 class NativeFvReference:
-    """Native VH+VL framework Cα from the Stage 0 design target PDB."""
+    """Native VH+VL framework from the Stage 0 design target PDB."""
 
     def __init__(self, path: Path) -> None:
+        self.path = path
         aa = load_structure(path)
+        self.aa = aa
         self.vh_ca = _collect_fv_framework_ca(aa, "A")
         self.vl_ca = _collect_fv_framework_ca(aa, "B")
         self.vh_iface_ca = chain_ca(aa, "A", VH_INTERFACE_FW)
         self.vl_iface_ca = chain_ca(aa, "B", VL_INTERFACE_FW)
-        self.native_apo_contacts = interface_contacts_heavy(aa)
+        self.native_wt_contacts = interface_contacts_heavy(aa)
+        self.native_seq_a = _chain_sequence(aa, "A")
+        self.native_seq_b = _chain_sequence(aa, "B")
+        self.native_static_contacts = static_interface_contacts_heavy(
+            aa, self.native_seq_a, self.native_seq_b, self.native_seq_a, self.native_seq_b
+        )
 
     def holo_fv_framework_rmsd(self, aa) -> float:
-        """Align holo A+B framework to native, return interface-framework Cα RMSD."""
         vh = _collect_fv_framework_ca(aa, "A")
         vl = _collect_fv_framework_ca(aa, "B")
         common_vh = sorted(set(vh) & set(self.vh_ca))
@@ -269,6 +360,24 @@ class NativeFvReference:
         return float(np.sqrt(np.mean(np.sum((pts_p - pts_q) ** 2, axis=1))))
 
 
+def _chain_sequence(aa, chain_id: str) -> str:
+    three_to_one = {
+        "ALA": "A", "CYS": "C", "ASP": "D", "GLU": "E", "PHE": "F",
+        "GLY": "G", "HIS": "H", "ILE": "I", "LYS": "K", "LEU": "L",
+        "MET": "M", "ASN": "N", "PRO": "P", "GLN": "Q", "ARG": "R",
+        "SER": "S", "THR": "T", "VAL": "V", "TRP": "W", "TYR": "Y",
+    }
+    mask = aa.chain_id == chain_id
+    residues = sorted({int(r) for r in aa.res_id[mask]})
+    chars: list[str] = []
+    for resnum in residues:
+        res_mask = mask & (aa.res_id == resnum)
+        names = aa.res_name[res_mask]
+        res_name = str(names[0]).upper()
+        chars.append(three_to_one.get(res_name, "X"))
+    return "".join(chars)
+
+
 def holo_fv_framework_rmsd(aa, ref: NativeFvReference) -> float:
     return ref.holo_fv_framework_rmsd(aa)
 
@@ -300,42 +409,22 @@ def score_structure(
     return metrics
 
 
-def wedge_suspect(apo: dict, holo: dict, native_contacts: int) -> bool:
-    """Flag plug-like designs: very weak apo but holo cannot close properly."""
-    apo_c = apo.get("vh_vl_interface_contacts", 99)
-    apo_open = native_contacts > 0 and apo_c <= max(5, 0.15 * native_contacts)
-    rmsd = holo.get("holo_fv_framework_rmsd_A", float("nan"))
-    holo_bad_rmsd = not np.isnan(rmsd) and rmsd > 4.0
-    holo_iface_clash = holo.get("vh_vl_interface_clashes", 0) > 0
-    holo_low_cdr = holo.get("cdr_epitope_contacts", 0) < 3
-    return apo_open and (holo_bad_rmsd or holo_iface_clash or holo_low_cdr)
-
-
 def apply_filters(rec: dict, filters: dict, native_contacts: int) -> dict:
-    apo = rec.get("apo", {})
     holo = rec.get("holo", {})
-    apo_c = apo.get("vh_vl_interface_contacts", 999)
-    holo_c = holo.get("vh_vl_interface_contacts", 0)
-    apo_frac = apo_c / native_contacts if native_contacts > 0 else 1.0
-    holo_frac = holo_c / native_contacts if native_contacts > 0 else 0.0
+    static_c = rec.get("static_vh_vl_interface_contacts", 999)
+    static_frac = static_c / native_contacts if native_contacts > 0 else 1.0
 
     checks: dict[str, bool] = {}
 
-    if "max_apo_fraction_of_native_contacts" in filters:
-        checks["passes_apo_weakened"] = apo_frac <= filters["max_apo_fraction_of_native_contacts"]
-    elif "max_apo_interface_contacts" in filters:
-        checks["passes_apo_weakened"] = apo_c <= filters["max_apo_interface_contacts"]
-
-    if "min_holo_fraction_of_native_contacts" in filters:
-        checks["passes_holo_paired"] = holo_frac >= filters["min_holo_fraction_of_native_contacts"]
-    elif "min_holo_interface_contacts" in filters:
-        checks["passes_holo_paired"] = holo_c >= filters["min_holo_interface_contacts"]
+    if "max_static_fraction_of_native_contacts" in filters:
+        checks["passes_interface_weakened"] = (
+            static_frac <= filters["max_static_fraction_of_native_contacts"]
+        )
+    elif "max_static_interface_contacts" in filters:
+        checks["passes_interface_weakened"] = static_c <= filters["max_static_interface_contacts"]
 
     checks["passes_holo_global_clashes"] = holo.get("inter_chain_clashes_4A", 999) <= filters[
         "max_holo_clashes_4A"
-    ]
-    checks["passes_contact_delta"] = rec.get("holo_minus_apo_contact_delta", -999) >= filters[
-        "min_holo_minus_apo_contact_delta"
     ]
     checks["passes_holo_geometry"] = holo.get("holo_fv_framework_rmsd_A", 999) <= filters[
         "max_holo_fv_framework_rmsd_A"
@@ -343,67 +432,93 @@ def apply_filters(rec: dict, filters: dict, native_contacts: int) -> dict:
     checks["passes_cdr_engagement"] = holo.get("cdr_epitope_contacts", 0) >= filters[
         "min_holo_cdr_epitope_contacts"
     ]
-    checks["passes_anti_wedge"] = holo.get("vh_vl_interface_clashes", 999) <= filters[
+    checks["passes_holo_interface_clean"] = holo.get("vh_vl_interface_clashes", 999) <= filters[
         "max_holo_vh_vl_interface_clashes"
-    ] and not rec.get("wedge_suspect", True)
+    ]
 
-    if "min_apo_interface_centroid_distance_A" in filters:
-        checks["passes_apo_open"] = apo.get("vh_vl_interface_centroid_distance", 0) >= filters[
-            "min_apo_interface_centroid_distance_A"
-        ]
-    if "max_holo_interface_centroid_distance_A" in filters:
-        checks["passes_holo_closed"] = holo.get("vh_vl_interface_centroid_distance", 999) <= filters[
-            "max_holo_interface_centroid_distance_A"
-        ]
-
-    rec["apo_fraction_of_native_contacts"] = round(apo_frac, 4)
-    rec["holo_fraction_of_native_contacts"] = round(holo_frac, 4)
+    rec["static_fraction_of_native_contacts"] = round(static_frac, 4)
     rec["filter_checks"] = checks
     rec["passes_stage_0"] = all(checks.values())
     return rec
 
 
 def score_design(
-    apo_cif: Path | None,
     holo_cif: Path | None,
     design_id: str,
     ref: NativeFvReference,
     filters: dict,
+    *,
+    seq_a: str | None = None,
+    seq_b: str | None = None,
 ) -> dict:
     rec: dict = {"design_id": design_id}
-    if apo_cif and apo_cif.exists():
-        rec["apo"] = score_structure(apo_cif, has_epitope=False, ref=None)
+    if seq_a and seq_b:
+        static_c = static_interface_contacts_heavy(
+            ref.aa, seq_a, seq_b, ref.native_seq_a, ref.native_seq_b
+        )
+        rec["static_vh_vl_interface_contacts"] = round(static_c, 2)
+        rec["chains"] = {"A": seq_a, "B": seq_b}
     if holo_cif and holo_cif.exists():
         rec["holo"] = score_structure(holo_cif, has_epitope=True, ref=ref)
-    if "apo" in rec and "holo" in rec:
-        rec["holo_minus_apo_contact_delta"] = (
-            rec["holo"]["vh_vl_interface_contacts"] - rec["apo"]["vh_vl_interface_contacts"]
-        )
-        rec["fr4_distance_delta"] = (
-            rec["apo"]["vh_vl_fr4_ca_distance"] - rec["holo"]["vh_vl_fr4_ca_distance"]
-        )
-        rec["wedge_suspect"] = wedge_suspect(rec["apo"], rec["holo"], ref.native_apo_contacts)
-        apply_filters(rec, filters, ref.native_apo_contacts)
+    if "static_vh_vl_interface_contacts" in rec and "holo" in rec:
+        apply_filters(rec, filters, ref.native_wt_contacts)
     return rec
 
 
 def rank_key(rec: dict) -> tuple:
-    """Prefer large conditional gap with good holo geometry and CDR engagement."""
+    """Prefer filter passes, then weaker static interface, then holo binding quality."""
     checks = rec.get("filter_checks", {})
     n_pass = sum(1 for v in checks.values() if v)
+    static_c = rec.get("static_vh_vl_interface_contacts", 999)
     return (
         n_pass,
-        rec.get("holo_minus_apo_contact_delta") or -999,
+        -static_c,
         rec.get("holo", {}).get("cdr_epitope_contacts", 0),
         -(rec.get("holo", {}).get("holo_fv_framework_rmsd_A", 999)),
-        -(rec.get("apo", {}).get("vh_vl_interface_contacts", 999)),
     )
 
 
+def load_sequence_lookup(pipeline: Path) -> dict[str, tuple[str, str]]:
+    """Map design_id → (seq_a, seq_b) from MPNN output."""
+    mpnn_path = pipeline / "outputs" / "mpnn_stage_0" / "all_sequences.json"
+    top_path = pipeline / "final" / "top_designs_stage_0.json"
+    lookup: dict[str, tuple[str, str]] = {}
+
+    if top_path.exists():
+        top = json.loads(top_path.read_text())
+        for d in top.get("designs", []):
+            chains = d.get("chains", {})
+            if chains.get("A") and chains.get("B"):
+                lookup[d["name"]] = (chains["A"], chains["B"])
+
+    if mpnn_path.exists() and not lookup:
+        seqs = json.loads(mpnn_path.read_text())
+        if isinstance(seqs, dict):
+            seqs = seqs.get("sequences", [])
+        for d in seqs:
+            chains = d.get("chains", {})
+            if chains.get("A") and chains.get("B"):
+                key = f"s{d['seq_idx']}"
+                lookup[key] = (chains["A"], chains["B"])
+    return lookup
+
+
+def design_id_to_sequences(design_id: str, lookup: dict[str, tuple[str, str]]) -> tuple[str, str] | tuple[None, None]:
+    if design_id in lookup:
+        return lookup[design_id]
+    if "_s" in design_id:
+        suffix = design_id.rsplit("_s", 1)[-1]
+        if suffix.isdigit():
+            key = f"s{suffix}"
+            for k, val in lookup.items():
+                if k.endswith(suffix) or k == key:
+                    return val
+    return None, None
+
+
 def main() -> None:
-    p = argparse.ArgumentParser(description="Score Stage 0 VH–VL interface designs.")
+    p = argparse.ArgumentParser(description="Score Stage 0 VH–VL interface designs (holo-only).")
     p.add_argument("--pipeline-dir", type=Path, default=Path("/workspace"))
-    p.add_argument("--boltz-apo-subdir", default="boltz_outputs_apo")
     p.add_argument("--boltz-holo-subdir", default="boltz_outputs_holo")
     p.add_argument("--reference-pdb", type=Path, default=None)
     p.add_argument("--config-json", type=Path, default=None)
@@ -416,27 +531,26 @@ def main() -> None:
     config_path = args.config_json or (ROOT / "structures/interface/stage_0_vhvL_interface_config.json")
     filters = load_filters(config_path)
     ref = NativeFvReference(ref_path)
+    seq_lookup = load_sequence_lookup(pipeline)
 
-    apo_base = pipeline / args.boltz_apo_subdir
     holo_base = pipeline / args.boltz_holo_subdir
     results: list[dict] = []
 
     for holo_pred in sorted(holo_base.glob("boltz_results_*/predictions/*/*_model_0.cif")):
         name = holo_pred.parent.name
-        apo_pred = None
-        for candidate in apo_base.glob(f"boltz_results_*/predictions/{name}/*_model_0.cif"):
-            apo_pred = candidate
-            break
-        results.append(score_design(apo_pred, holo_pred, name, ref, filters))
+        seq_a, seq_b = design_id_to_sequences(name, seq_lookup)
+        results.append(score_design(holo_pred, name, ref, filters, seq_a=seq_a, seq_b=seq_b))
 
     results.sort(key=rank_key, reverse=True)
     top = results[: args.top_n]
     out = {
+        "scoring_mode": "holo_only_static_interface",
         "n_scored": len(results),
         "n_passing": sum(1 for r in results if r.get("passes_stage_0")),
         "filters": filters,
         "reference_pdb": str(ref_path),
-        "native_apo_interface_contacts": ref.native_apo_contacts,
+        "native_wt_interface_contacts": ref.native_wt_contacts,
+        "native_static_interface_contacts": round(ref.native_static_contacts, 2),
         "designs": top,
     }
     out_path = pipeline / args.results_file
@@ -444,18 +558,14 @@ def main() -> None:
     out_path.write_text(json.dumps(out, indent=2) + "\n")
     print(f"Stage 0 scoring: {out['n_passing']}/{out['n_scored']} pass all filters → {out_path}")
     for r in top[:5]:
-        apo_c = r.get("apo", {}).get("vh_vl_interface_contacts", "?")
-        holo_c = r.get("holo", {}).get("vh_vl_interface_contacts", "?")
-        delta = r.get("holo_minus_apo_contact_delta", "?")
-        apo_f = r.get("apo_fraction_of_native_contacts", "?")
-        holo_f = r.get("holo_fraction_of_native_contacts", "?")
+        static_c = r.get("static_vh_vl_interface_contacts", "?")
+        static_f = r.get("static_fraction_of_native_contacts", "?")
         rmsd = r.get("holo", {}).get("holo_fv_framework_rmsd_A", "?")
         cdr_t = r.get("holo", {}).get("cdr_epitope_contacts", "?")
-        wedge = r.get("wedge_suspect", "?")
+        holo_c = r.get("holo", {}).get("vh_vl_interface_contacts", "?")
         print(
-            f"  {r['design_id']}: apo={apo_c} holo={holo_c} Δ={delta} "
-            f"apo_frac={apo_f} holo_frac={holo_f} rmsd={rmsd} cdr-T={cdr_t} "
-            f"wedge={wedge} pass={r.get('passes_stage_0')}"
+            f"  {r['design_id']}: static={static_c} ({static_f}×WT) "
+            f"holo_iface={holo_c} rmsd={rmsd} cdr-T={cdr_t} pass={r.get('passes_stage_0')}"
         )
 
 

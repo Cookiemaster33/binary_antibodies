@@ -87,26 +87,22 @@ def build_config(
             "vl_closure_core": [f"B{r}" for r in vl_core],
             "n_sequences": n_mpnn_seqs,
             "top_n_boltz": top_n_boltz,
-            "mpnn_rank_by": "mpnn_score_desc",
+            "mpnn_rank_by": "static_vh_vl_interface_contacts_asc",
         },
         "native_chain_sequences": {},
         "validation": {
-            "apo_fold": "Boltz A+B+C+D — prefer weaker VH–VL contacts vs native",
-            "holo_fold": "Boltz A+B+C+D+T — prefer closed Fv engaging epitope",
+            "mode": "holo_only_static_interface",
+            "static_interface": "Weighted VH–VL contacts on native Fab geometry from designed A/B sequence",
+            "holo_fold": "Boltz A+B+C+D+T — epitope engagement and Fab-like geometry",
             "metrics": [
-                "vh_vl_interface_contacts",
-                "holo_minus_apo_contact_delta",
-                "apo_fraction_of_native_contacts",
-                "holo_fraction_of_native_contacts",
+                "static_vh_vl_interface_contacts",
+                "static_fraction_of_native_contacts",
                 "holo_fv_framework_rmsd_A",
                 "cdr_epitope_contacts",
                 "vh_vl_interface_clashes",
-                "wedge_suspect",
             ],
             "filters": {
-                "max_apo_fraction_of_native_contacts": 0.45,
-                "min_holo_fraction_of_native_contacts": 0.45,
-                "min_holo_minus_apo_contact_delta": 15,
+                "max_static_fraction_of_native_contacts": 0.45,
                 "max_holo_clashes_4A": 50,
                 "max_holo_fv_framework_rmsd_A": 3.5,
                 "min_holo_cdr_epitope_contacts": 6,
@@ -163,8 +159,8 @@ def main() -> None:
         designed = interface_design_residues(vh_len, vl_len)
         approach = "split_mpnn_whole_interface"
         desc = (
-            f"Whole-interface brute force: all {len(designed)} VH/VL framework interface "
-            f"residues redesigned on split Fv; top {args.top_n_boltz} MPNN scorers → Boltz."
+            f"Whole-interface: all {len(designed)} VH/VL framework interface residues redesigned; "
+            f"top {args.top_n_boltz} by static VH–VL weakening → holo Boltz."
         )
 
     config = build_config(

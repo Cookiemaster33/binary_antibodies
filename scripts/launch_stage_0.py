@@ -99,7 +99,7 @@ def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> 
 
 def upload_stage_0(ip: str, key: str) -> None:
     print("  Uploading Stage 0 pipeline files ...")
-    ssh(ip, key, f"mkdir -p {REMOTE_PIPELINE}/inputs {REMOTE_PIPELINE}/binary_antibodies")
+    ssh(ip, key, f"mkdir -p {REMOTE_PIPELINE}/inputs {REMOTE_PIPELINE}/binary_antibodies {REMOTE_PIPELINE}/scripts")
 
     files = [
         (ROOT / "structures/domains" / INPUT_PDB, f"{REMOTE_PIPELINE}/inputs/{INPUT_PDB}"),
@@ -109,6 +109,7 @@ def upload_stage_0(ip: str, key: str) -> None:
         (ROOT / "scripts/gpu_setup/setup_pipeline_rfd3.sh", f"{REMOTE_PIPELINE}/setup_pipeline_rfd3.sh"),
         (ROOT / "binary_antibodies/stage_0_scoring.py", f"{REMOTE_PIPELINE}/binary_antibodies/stage_0_scoring.py"),
         (ROOT / "binary_antibodies/fab_hidden_switch.py", f"{REMOTE_PIPELINE}/binary_antibodies/fab_hidden_switch.py"),
+        (ROOT / "scripts/build_boltz_stage_0_inputs.py", f"{REMOTE_PIPELINE}/scripts/build_boltz_stage_0_inputs.py"),
     ]
     for local, remote in files:
         if not local.exists():
@@ -217,7 +218,7 @@ def main() -> None:
         ip = active["ip"]
         print(f"\nInstance {iid} @ {ip}")
         print(f"  Region: {region} | type: {args.instance_type}")
-        print(f"  MPNN sequences: {args.n_mpnn_seqs} → Boltz top {args.top_n}")
+        print(f"  MPNN sequences: {args.n_mpnn_seqs} → holo Boltz top {args.top_n} (static rank)")
 
         wait_ssh(ip, ssh_key)
         upload_stage_0(ip, ssh_key)

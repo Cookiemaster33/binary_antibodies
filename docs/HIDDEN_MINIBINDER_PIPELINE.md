@@ -4,7 +4,7 @@
 
 A native Fab is re-engineered so that a **trivalent minibinder hub** (CH1-arm + VL-arm + target-arm) sits hidden in the VH–VL groove. VH–VL pairing is the **only** trigger: when antigen drives closure, the hub is ejected and the target face becomes available.
 
-Critical requirement: **apo VH–VL pairing must be weak**; target-bound closure must still be geometrically allowed.
+Critical requirement: **designed VH–VL interface must be much weaker than WT**, while **target-bound holo** must still engage the epitope normally.
 
 ## Pipeline order
 
@@ -22,29 +22,28 @@ weaken      hub design    (de novo)
 
 ## Stage 0 — Split-chain MPNN de-greasing
 
-**Goal:** Reduce intrinsic VH–VL coupling in apo while preserving holo closure when epitope `T` is present. We do **not** expect Boltz apo to show fully dissociated Fv — success is **relative weakening** plus a large holo−apo contact delta.
+**Goal:** Reduce intrinsic VH–VL coupling relative to WT while preserving epitope engagement when stub `T` is present. Apo Boltz folds are **not** required.
 
 **Design (no RFd3):**
 1. Build native Fab context PDB (`fab_stage_0_vhvL_interface.pdb`)
 2. Build **split Fv** PDB with VH/VL translated 30 Å apart (`fab_stage_0_split_mpnn.pdb`)
-3. **ProteinMPNN** redesigns **rim** interface framework residues; **closure core** (tightest buried pairs from `vh_vl_contacts.csv`) stays native
-   - **Aggressive (default):** core ≤ 3.20 Å → **19** rim residues; anchors A38, A43, B39, B107
+3. **ProteinMPNN** redesigns interface framework residues; **closure core** stays native in partial modes
+   - **Whole interface (default):** all ~23 interface FW residues
+   - **Aggressive:** core ≤ 3.20 Å → **19** rim residues
    - **Conservative:** `--conservative` → core ≤ 3.35 Å → **14** rim residues
-4. **Boltz** apo: A+B+C+D; holo: A+B+C+D+T
+4. Rank MPNN output by **predicted static VH–VL contacts** on the native Fab backbone (weakest first)
+5. **Boltz holo only:** A+B+C+D+T
 
-**Validation (apo vs holo differential, relative to native ~113 interface contacts):**
+**Validation:**
 
-| Metric | Target | Purpose |
-|--------|--------|---------|
-| Apo contacts / native | ≤ 45% | Weakened apo coupling |
-| Holo contacts / native | ≥ 45% | Holo still pairs |
-| Holo − apo contact delta | ≥ 15 | Conditional switch gap |
-| Fv framework RMSD vs native (holo) | ≤ 3.5 Å | Holo looks like real Fab |
-| CDR ↔ epitope contacts (holo) | ≥ 6 | Co-binding with target |
-| VH–VL interface cross-clashes (holo) | 0 | Anti-wedge |
-| `wedge_suspect` | false | Reject plug-like false positives |
+| Criterion | Metric | Target |
+|-----------|--------|--------|
+| (a) Weaker interface than WT | `static_vh_vl_interface_contacts` / native | ≤ 45% of WT |
+| (b) Target binding preserved | CDR ↔ epitope contacts (holo) | ≥ 6 |
+| (b) Fab-like holo geometry | Fv framework RMSD vs native (holo) | ≤ 3.5 Å |
+| (b) No interface steric block | VH–VL interface cross-clashes (holo) | 0 |
 
-We select on **maximum holo−apo contact delta** among designs passing filters.
+We select on **lowest static interface contacts** among designs passing holo filters.
 
 **Build & launch:**
 ```bash
