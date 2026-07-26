@@ -131,6 +131,9 @@ def run_setup(ip: str, key: str) -> None:
             print("  Setup complete.")
             return
         if ssh(ip, key, f"{REMOTE_TMUX} has-session -t setup", check=False) != 0:
+            if ssh(ip, key, f"grep -q 'Setup complete' {REMOTE_PIPELINE}/setup.log", check=False) == 0:
+                print("  Setup complete.")
+                return
             ssh(ip, key, f"tail -30 {REMOTE_PIPELINE}/setup.log", check=False)
             raise RuntimeError("Setup session ended unexpectedly")
         time.sleep(20)
