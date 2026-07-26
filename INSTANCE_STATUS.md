@@ -1,19 +1,31 @@
 # Lambda Instances
 
-No active instances.
-
-## Last run — Stage 0 split MPNN (terminated)
+## Active — Stage 0 aggressive split MPNN (running)
 
 | Field | Value |
 |---|---|
-| Instance ID | `feda9ebe3c464be69007fe9eec23ac2e` (terminated) |
+| Instance ID | `6195d0acc0ae4c1d9b038db8fc60ce15` |
+| IP | `150.136.35.109` |
+| Region | `us-east-1` |
+| Type | `gpu_1x_a100_sxm4` |
+| Mode | Aggressive de-grease (19 rim residues, core ≤ 3.20 Å) |
+| MPNN seqs | 64 |
+| SSH key | `~/.ssh/cursor_lambda_ephemeral` |
+
+**Monitor:**
+```bash
+ssh -i ~/.ssh/cursor_lambda_ephemeral ubuntu@150.136.35.109 'tail -f /home/ubuntu/pipeline/stage_0_pipeline.log'
+```
+
+**Terminate when done:**
+```bash
+python3 scripts/launch_stage_0.py --terminate --instance-id 6195d0acc0ae4c1d9b038db8fc60ce15
+```
+
+## Previous — Stage 0 partial split MPNN (terminated)
+
+| Field | Value |
+|---|---|
+| Instance ID | `feda9ebe3c464be69007fe9eec23ac2e` |
 | Results | `pipeline_results/stage_0_split_mpnn/` |
-| Outcome | 0/32 passed filters; best Δ=51 (`rank23`), apo still 60% native |
-
-## Previous — Stage 0 RFd3 run (terminated)
-
-| Field | Value |
-|---|---|
-| Instance ID | `5400b4d26ae3488e9f418f7666d9268e` |
-| Results | `pipeline_results/stage_0_vhvL_interface/` |
-| Outcome | 0/50 passed filters; best Δ=41, apo=22 contacts |
+| Outcome | 0/32 passed; best Δ=51, apo=62 (55% native) |
