@@ -48,3 +48,23 @@ Correlation r = −0.12 (weak): lowest-static designs (s805/s209 at 45.2%) do **
 1. **Advance rank010 (s913)** to Stage A with relaxed static filter (or replace static gate with PISA Δ ≥ +5 kcal/mol).
 2. Relax `max_static_fraction_of_native_contacts` to **0.48** — would pass 6/100 including rank010.
 3. Consider **partial interface** (14 rim residues) MPNN to push static below 45% while keeping holo fidelity.
+
+## Pulled artifacts
+
+| File | Description |
+|------|-------------|
+| `stage_0_results.json` | Full scoring for top 100 holo designs |
+| `top_designs_stage_0.json` | MPNN-ranked top 100 sent to Boltz |
+| `mpnn_all_sequences.json` | All 1000 MPNN sequences |
+| `top5_candidates.json` | Metadata for top 5 candidates below |
+| `structures/top5_holo/*.cif` | Holo Boltz model_0 CIFs (chains A+B+C+D+T) |
+
+### Top 5 holo CIFs
+
+| Rank | Design | CIF | PISA Δ |
+|------|--------|-----|--------|
+| 1 | rank010 s913 | `structures/top5_holo/rank010_s0_native_split_s913_model_0.cif` | +7.12 |
+| 2 | rank006 s175 | `structures/top5_holo/rank006_s0_native_split_s175_model_0.cif` | +5.93 |
+| 3 | rank008 s712 | `structures/top5_holo/rank008_s0_native_split_s712_model_0.cif` | +5.87 |
+| 4 | rank007 s264 | `structures/top5_holo/rank007_s0_native_split_s264_model_0.cif` | +4.44 |
+| 5 | rank009 s836 | `structures/top5_holo/rank009_s0_native_split_s836_model_0.cif` | +3.20 |

@@ -1,0 +1,102 @@
+{
+  "description": "Top 5 Stage 0 candidates (relaxed static \u226448%, ranked by PISA \u0394)",
+  "native_pisa": {
+    "pisa_status": "ok",
+    "pisa_int_area_A2": 663.38300397,
+    "pisa_int_solv_en_kcal": -10.533987074,
+    "pisa_stab_en_kcal": -13.642247218,
+    "pisa_pvalue": 0.16839606126,
+    "pisa_n_h_bonds": 7,
+    "pisa_n_salt_bridges": 0,
+    "pisa_n_ss_bonds": 0,
+    "pisa_interface_id": 1
+  },
+  "cif_dir": "structures/top5_holo",
+  "designs": [
+    {
+      "rank": 1,
+      "design_id": "rank010_s0_native_split_s913",
+      "cif": "structures/top5_holo/rank010_s0_native_split_s913_model_0.cif",
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNYTR"
+      },
+      "static_vh_vl_interface_contacts": 53.8,
+      "static_fraction_of_native_contacts": 0.4761,
+      "pisa_delta_int_solv_en_vs_native_kcal": 7.124,
+      "pisa_int_solv_en_kcal": -3.4099245546,
+      "holo_fv_framework_rmsd_A": 1.888677717287233,
+      "holo_fv_cdr_rmsd_A": 0.6620876585615119,
+      "cdr_epitope_contacts": 377,
+      "passes_stage_0": false
+    },
+    {
+      "rank": 2,
+      "design_id": "rank006_s0_native_split_s175",
+      "cif": "structures/top5_holo/rank006_s0_native_split_s175_model_0.cif",
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "static_vh_vl_interface_contacts": 53.8,
+      "static_fraction_of_native_contacts": 0.4761,
+      "pisa_delta_int_solv_en_vs_native_kcal": 5.93,
+      "pisa_int_solv_en_kcal": -4.6043311089,
+      "holo_fv_framework_rmsd_A": 2.4843114407723914,
+      "holo_fv_cdr_rmsd_A": 0.61089783690073,
+      "cdr_epitope_contacts": 102,
+      "passes_stage_0": false
+    },
+    {
+      "rank": 3,
+      "design_id": "rank008_s0_native_split_s712",
+      "cif": "structures/top5_holo/rank008_s0_native_split_s712_model_0.cif",
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "static_vh_vl_interface_contacts": 53.8,
+      "static_fraction_of_native_contacts": 0.4761,
+      "pisa_delta_int_solv_en_vs_native_kcal": 5.874,
+      "pisa_int_solv_en_kcal": -4.6596817457,
+      "holo_fv_framework_rmsd_A": 2.1601968557305455,
+      "holo_fv_cdr_rmsd_A": 0.7304801231988655,
+      "cdr_epitope_contacts": 262,
+      "passes_stage_0": false
+    },
+    {
+      "rank": 4,
+      "design_id": "rank007_s0_native_split_s264",
+      "cif": "structures/top5_holo/rank007_s0_native_split_s264_model_0.cif",
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "static_vh_vl_interface_contacts": 53.8,
+      "static_fraction_of_native_contacts": 0.4761,
+      "pisa_delta_int_solv_en_vs_native_kcal": 4.441,
+      "pisa_int_solv_en_kcal": -6.0928375008,
+      "holo_fv_framework_rmsd_A": 2.5572547502643133,
+      "holo_fv_cdr_rmsd_A": 0.7905352277240069,
+      "cdr_epitope_contacts": 211,
+      "passes_stage_0": false
+    },
+    {
+      "rank": 5,
+      "design_id": "rank009_s0_native_split_s836",
+      "cif": "structures/top5_holo/rank009_s0_native_split_s836_model_0.cif",
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "static_vh_vl_interface_contacts": 53.8,
+      "static_fraction_of_native_contacts": 0.4761,
+      "pisa_delta_int_solv_en_vs_native_kcal": 3.2,
+      "pisa_int_solv_en_kcal": -7.3339724612,
+      "holo_fv_framework_rmsd_A": 2.594049887916294,
+      "holo_fv_cdr_rmsd_A": 0.986799571749657,
+      "cdr_epitope_contacts": 208,
+      "passes_stage_0": false
+    }
+  ]
+}
