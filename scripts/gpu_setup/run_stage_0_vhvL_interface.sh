@@ -151,14 +151,11 @@ docker run --rm --gpus all \
 pip install boltz[cuda] -U -q > "$PIPELINE/boltz_install.log" 2>&1 || true
 pip install -q 'networkx>=3.0' 'platformdirs>=3.0' 2>/dev/null || true
 
-# cuequivariance kernels need SM100 on recent boltz; A10 and version skew crash with
-# triangle_attention(..., kv_lengths=...). Fall back to PyTorch attention on non-A100.
+# cuequivariance CUDA kernels often mismatch pip-installed boltz (kv_lengths crash).
+# Use PyTorch attention for all GPUs — slower but reliable.
 GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo "unknown")
-BOLTZ_EXTRA_ARGS=()
-if [[ "$GPU_NAME" != *"A100"* ]]; then
-  echo "GPU=$GPU_NAME — using boltz --no_kernels (cuequivariance incompatible)"
-  BOLTZ_EXTRA_ARGS+=(--no_kernels)
-fi
+BOLTZ_EXTRA_ARGS=(--no_kernels)
+echo "GPU=$GPU_NAME — boltz --no_kernels (avoids cuequivariance version skew)"
 
 N_HOLO=$(ls $PIPELINE/boltz_inputs_holo/*.yaml 2>/dev/null | wc -l)
 echo ""
