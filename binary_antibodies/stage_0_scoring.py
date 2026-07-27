@@ -10,6 +10,9 @@ Selection criteria
 (b) Holo-only Boltz (A+B+C+D+T) must preserve epitope engagement and Fab-like
     geometry — the weakened interface must not block target binding.
 
+(c) Optional PISA VH–VL interface energetics on holo Fv (A+B): weaker designs
+    have less negative solvation energy than native WT.
+
 Apo Boltz folds are not required.
 """
 
@@ -24,6 +27,13 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+
+from binary_antibodies.pisa_scoring import (  # noqa: E402
+    PisaConfig,
+    add_pisa_deltas,
+    load_pisa_config,
+    score_vh_vl_pisa,
+)
 
 # Inlined from fab_hidden_switch (no BioPython — runs in foundry Docker)
 VH_INTERFACE_FW = [34, 38, 42, 43, 44, 45, 46, 47, 49, 87, 89]
@@ -494,6 +504,16 @@ def apply_filters(rec: dict, filters: dict, native_contacts: int) -> dict:
     elif "max_static_interface_contacts" in filters:
         checks["passes_interface_weakened"] = static_c <= filters["max_static_interface_contacts"]
 
+    if "min_pisa_delta_int_solv_en_vs_native_kcal" in filters:
+        delta = holo.get("pisa_delta_int_solv_en_vs_native_kcal")
+        min_delta = filters["min_pisa_delta_int_solv_en_vs_native_kcal"]
+        checks["passes_pisa_weakened"] = delta is not None and delta >= min_delta
+
+    if "max_pisa_int_area_fraction_of_native" in filters:
+        frac = holo.get("pisa_int_area_fraction_of_native")
+        max_frac = filters["max_pisa_int_area_fraction_of_native"]
+        checks["passes_pisa_area"] = frac is not None and frac <= max_frac
+
     checks["passes_holo_global_clashes"] = holo.get("inter_chain_clashes_4A", 999) <= filters[
         "max_holo_clashes_4A"
     ]
@@ -525,6 +545,9 @@ def score_design(
     *,
     seq_a: str | None = None,
     seq_b: str | None = None,
+    pisa_cfg: PisaConfig | None = None,
+    native_pisa: dict | None = None,
+    pisa_work_root: Path | None = None,
 ) -> dict:
     rec: dict = {"design_id": design_id}
     if seq_a and seq_b:
@@ -535,22 +558,62 @@ def score_design(
         rec["chains"] = {"A": seq_a, "B": seq_b}
     if holo_cif and holo_cif.exists():
         rec["holo"] = score_structure(holo_cif, has_epitope=True, ref=ref)
+        if pisa_cfg and pisa_cfg.enabled and pisa_work_root is not None:
+            work_dir = pisa_work_root / design_id
+            pisa_metrics = score_vh_vl_pisa(
+                holo_cif,
+                work_dir=work_dir,
+                chain_a=pisa_cfg.fv_chains[0],
+                chain_b=pisa_cfg.fv_chains[1],
+                score_fv_only=pisa_cfg.score_fv_only,
+                use_docker=pisa_cfg.use_docker,
+                docker_image=pisa_cfg.docker_image,
+                pisa_cfg=pisa_cfg.pisa_cfg,
+                pisa_binary=pisa_cfg.pisa_binary,
+                session_name=f"stage0_{design_id}",
+            )
+            if native_pisa:
+                pisa_metrics = add_pisa_deltas(pisa_metrics, native_pisa)
+            rec["holo"].update(pisa_metrics)
     if "static_vh_vl_interface_contacts" in rec and "holo" in rec:
         apply_filters(rec, filters, ref.native_wt_contacts)
     return rec
 
 
+def score_native_pisa(reference_pdb: Path, pisa_cfg: PisaConfig, work_root: Path) -> dict:
+    """PISA baseline on native Fab (Fv chains only)."""
+    if not pisa_cfg.enabled:
+        return {}
+    work_dir = work_root / "_native_reference"
+    return score_vh_vl_pisa(
+        reference_pdb,
+        work_dir=work_dir,
+        chain_a=pisa_cfg.fv_chains[0],
+        chain_b=pisa_cfg.fv_chains[1],
+        score_fv_only=pisa_cfg.score_fv_only,
+        use_docker=pisa_cfg.use_docker,
+        docker_image=pisa_cfg.docker_image,
+        pisa_cfg=pisa_cfg.pisa_cfg,
+        pisa_binary=pisa_cfg.pisa_binary,
+        session_name="stage0_native_reference",
+    )
+
+
 def rank_key(rec: dict) -> tuple:
-    """Prefer filter passes, then weaker static interface, then holo binding quality."""
+    """Prefer filter passes, PISA weakening, static contacts, then holo binding."""
     checks = rec.get("filter_checks", {})
     n_pass = sum(1 for v in checks.values() if v)
     static_c = rec.get("static_vh_vl_interface_contacts", 999)
+    holo = rec.get("holo", {})
+    pisa_delta = holo.get("pisa_delta_int_solv_en_vs_native_kcal")
+    pisa_rank = pisa_delta if pisa_delta is not None else -999.0
     return (
         n_pass,
+        pisa_rank,
         -static_c,
-        rec.get("holo", {}).get("cdr_epitope_contacts", 0),
-        -(rec.get("holo", {}).get("holo_fv_framework_rmsd_A", 999)),
-        -(rec.get("holo", {}).get("holo_fv_cdr_rmsd_A", 999)),
+        holo.get("cdr_epitope_contacts", 0),
+        -(holo.get("holo_fv_framework_rmsd_A", 999)),
+        -(holo.get("holo_fv_cdr_rmsd_A", 999)),
     )
 
 
@@ -600,14 +663,20 @@ def main() -> None:
     p.add_argument("--config-json", type=Path, default=None)
     p.add_argument("--results-file", default="final/stage_0_results.json")
     p.add_argument("--top-n", type=int, default=50)
+    p.add_argument("--skip-pisa", action="store_true", help="Skip PISA interface energetics")
     args = p.parse_args()
 
     pipeline = args.pipeline_dir
     ref_path = args.reference_pdb or (ROOT / "structures/domains/fab_stage_0_vhvL_interface.pdb")
     config_path = args.config_json or (ROOT / "structures/interface/stage_0_vhvL_interface_config.json")
     filters = load_filters(config_path)
+    pisa_cfg = load_pisa_config(config_path)
+    if args.skip_pisa:
+        pisa_cfg = PisaConfig(enabled=False)
     ref = NativeFvReference(ref_path)
     seq_lookup = load_sequence_lookup(pipeline)
+    pisa_work_root = pipeline / pisa_cfg.work_subdir
+    native_pisa = score_native_pisa(ref_path, pisa_cfg, pisa_work_root)
 
     holo_base = pipeline / args.boltz_holo_subdir
     results: list[dict] = []
@@ -615,15 +684,34 @@ def main() -> None:
     for holo_pred in sorted(holo_base.glob("boltz_results_*/predictions/*/*_model_0.cif")):
         name = holo_pred.parent.name
         seq_a, seq_b = design_id_to_sequences(name, seq_lookup)
-        results.append(score_design(holo_pred, name, ref, filters, seq_a=seq_a, seq_b=seq_b))
+        results.append(
+            score_design(
+                holo_pred,
+                name,
+                ref,
+                filters,
+                seq_a=seq_a,
+                seq_b=seq_b,
+                pisa_cfg=pisa_cfg,
+                native_pisa=native_pisa,
+                pisa_work_root=pisa_work_root,
+            )
+        )
 
+    scoring_mode = "holo_static_pisa" if pisa_cfg.enabled else "holo_only_static_interface"
     results.sort(key=rank_key, reverse=True)
     top = results[: args.top_n]
     out = {
-        "scoring_mode": "holo_only_static_interface",
+        "scoring_mode": scoring_mode,
         "n_scored": len(results),
         "n_passing": sum(1 for r in results if r.get("passes_stage_0")),
         "filters": filters,
+        "pisa": {
+            "enabled": pisa_cfg.enabled,
+            "docker_image": pisa_cfg.docker_image,
+            "fv_chains": list(pisa_cfg.fv_chains),
+            "native_reference": native_pisa,
+        },
         "reference_pdb": str(ref_path),
         "native_wt_interface_contacts": ref.native_wt_contacts,
         "native_static_interface_contacts": round(ref.native_static_contacts, 2),
@@ -641,8 +729,11 @@ def main() -> None:
         cdr_rmsd = r.get("holo", {}).get("holo_fv_cdr_rmsd_A", "?")
         cdr_t = r.get("holo", {}).get("cdr_epitope_contacts", "?")
         holo_c = r.get("holo", {}).get("vh_vl_interface_contacts", "?")
+        pisa_solv = r.get("holo", {}).get("pisa_int_solv_en_kcal", "?")
+        pisa_delta = r.get("holo", {}).get("pisa_delta_int_solv_en_vs_native_kcal", "?")
         print(
             f"  {r['design_id']}: static={static_c} ({static_f}×WT) holo_iface={holo_c} "
+            f"pisa_solv={pisa_solv} pisa_Δ={pisa_delta} "
             f"fw_rmsd={fw_rmsd} iface_rmsd={iface_rmsd} cdr_rmsd={cdr_rmsd} cdr-T={cdr_t} "
             f"pass={r.get('passes_stage_0')}"
         )

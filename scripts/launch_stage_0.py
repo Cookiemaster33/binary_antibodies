@@ -108,6 +108,7 @@ def upload_stage_0(ip: str, key: str) -> None:
         (ROOT / "scripts/gpu_setup/run_stage_0_vhvL_interface.sh", f"{REMOTE_PIPELINE}/run_stage_0.sh"),
         (ROOT / "scripts/gpu_setup/setup_pipeline_rfd3.sh", f"{REMOTE_PIPELINE}/setup_pipeline_rfd3.sh"),
         (ROOT / "binary_antibodies/stage_0_scoring.py", f"{REMOTE_PIPELINE}/binary_antibodies/stage_0_scoring.py"),
+        (ROOT / "binary_antibodies/pisa_scoring.py", f"{REMOTE_PIPELINE}/binary_antibodies/pisa_scoring.py"),
         (ROOT / "binary_antibodies/fab_hidden_switch.py", f"{REMOTE_PIPELINE}/binary_antibodies/fab_hidden_switch.py"),
         (ROOT / "scripts/build_boltz_stage_0_inputs.py", f"{REMOTE_PIPELINE}/scripts/build_boltz_stage_0_inputs.py"),
     ]

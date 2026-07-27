@@ -40,10 +40,14 @@ weaken      hub design    (de novo)
 |-----------|--------|--------|
 | (a) Weaker interface than WT | `static_vh_vl_interface_contacts` / native | ≤ 45% of WT |
 | (b) Target binding preserved | CDR ↔ epitope contacts (holo) | ≥ 6 |
-| (b) Fab-like holo geometry | Fv framework RMSD vs native (holo) | ≤ 3.5 Å |
+| (b) Fab-like holo geometry | Fv **framework** Cα RMSD vs native (holo) | ≤ 3.5 Å |
+| (b) CDR geometry vs native | Fv **CDR** Cα RMSD vs native (holo, same alignment) | ≤ 6.0 Å |
 | (b) No interface steric block | VH–VL interface cross-clashes (holo) | 0 |
+| (c) Weaker VH–VL energetics (ranking) | PISA `pisa_delta_int_solv_en_vs_native_kcal` on holo Fv | higher = weaker |
 
-We select on **lowest static interface contacts** among designs passing holo filters.
+We select on **lowest static interface contacts** among designs passing holo filters, with **PISA solvation-energy delta** as the primary tie-breaker when static scores are similar.
+
+**PISA:** Post-Boltz, `pdbegroup/pisa` Docker scores VH–VL (chains A+B) interface area and solvation energy vs native WT reference. Positive `pisa_delta_int_solv_en_vs_native_kcal` means a less favorable (weaker) interface than native.
 
 **Build & launch:**
 ```bash
@@ -78,5 +82,6 @@ Add hotspots on chain `T` and extend contig with a third binding patch against t
 | `scripts/build_stage_0_design_target.py` | Stage 0 PDBs + JSON config |
 | `scripts/gpu_setup/run_stage_0_vhvL_interface.sh` | Split MPNN → Boltz → scoring |
 | `scripts/launch_stage_0.py` | Lambda launcher |
-| `binary_antibodies/stage_0_scoring.py` | Apo/holo interface metrics |
+| `binary_antibodies/stage_0_scoring.py` | Static + holo + PISA interface metrics |
+| `binary_antibodies/pisa_scoring.py` | PISA Docker wrapper and XML parser |
 | `scripts/build_stage_a_design_target.py` | Stage A (accepts `--fab-pdb`) |

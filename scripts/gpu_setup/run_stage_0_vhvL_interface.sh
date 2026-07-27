@@ -31,6 +31,7 @@ docker pull rosettacommons/foundry:latest > "$PIPELINE/docker_pull.log" 2>&1 || 
 
 cp -f "$PIPELINE/../binary_antibodies/stage_0_scoring.py" "$PIPELINE/binary_antibodies/" 2>/dev/null || \
   cp -f /workspace/binary_antibodies/stage_0_scoring.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
+cp -f /workspace/binary_antibodies/pisa_scoring.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
 cp -f /workspace/binary_antibodies/fab_hidden_switch.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
 cp -f "$PIPELINE/../scripts/build_boltz_stage_0_inputs.py" "$PIPELINE/scripts/" 2>/dev/null || \
   cp -f /workspace/scripts/build_boltz_stage_0_inputs.py "$PIPELINE/scripts/" 2>/dev/null || true
@@ -179,17 +180,15 @@ if [[ $BOLTZ_RC -ne 0 || "$N_CIF" -eq 0 ]]; then
 fi
 
 echo ""
-echo "=== Step 4: Stage 0 scoring (static interface + holo binding) ==="
-docker run --rm --gpus all \
-    -v "$PIPELINE:/workspace" \
-    -e FOUNDRY_CHECKPOINT_DIRS=/weights \
-    rosettacommons/foundry:latest \
-    python3 /workspace/binary_antibodies/stage_0_scoring.py \
-        --pipeline-dir /workspace \
-        --reference-pdb /workspace/inputs/$INPUT_PDB_NAME \
-        --config-json /workspace/inputs/$CONFIG_JSON \
-        --results-file final/stage_0_results.json \
-        --top-n $TOP_N
+echo "=== Step 4: Stage 0 scoring (static + holo + PISA VH–VL) ==="
+docker pull pdbegroup/pisa:latest >> "$PIPELINE/docker_pull.log" 2>&1 || true
+pip install -q biotite numpy scipy 2>/dev/null || true
+python3 "$PIPELINE/binary_antibodies/stage_0_scoring.py" \
+    --pipeline-dir "$PIPELINE" \
+    --reference-pdb "$PIPELINE/inputs/$INPUT_PDB_NAME" \
+    --config-json "$PIPELINE/inputs/$CONFIG_JSON" \
+    --results-file final/stage_0_results.json \
+    --top-n "$TOP_N"
 
 echo ""
 echo "===== Stage 0 complete: $(date) ====="

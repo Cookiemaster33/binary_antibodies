@@ -54,9 +54,18 @@
     "T": "CPACPAPELLGG"
   },
   "validation": {
-    "mode": "holo_only_static_interface",
+    "mode": "holo_static_pisa",
     "static_interface": "Weighted VH\u2013VL contacts on native Fab geometry from designed A/B sequence",
     "holo_fold": "Boltz A+B+C+D+T \u2014 epitope engagement and Fab-like geometry",
+    "pisa": {
+      "enabled": true,
+      "docker_image": "pdbegroup/pisa:latest",
+      "pisa_cfg": "/usr/share/pisa/setup/pisa_cfg_tmp",
+      "fv_chains": ["A", "B"],
+      "score_fv_only": true,
+      "use_docker": true,
+      "work_subdir": "pisa_work"
+    },
     "metrics": [
       "static_vh_vl_interface_contacts",
       "static_fraction_of_native_contacts",
@@ -64,7 +73,11 @@
       "holo_fv_interface_framework_rmsd_A",
       "holo_fv_cdr_rmsd_A",
       "cdr_epitope_contacts",
-      "vh_vl_interface_clashes"
+      "vh_vl_interface_clashes",
+      "pisa_int_area_A2",
+      "pisa_int_solv_en_kcal",
+      "pisa_delta_int_solv_en_vs_native_kcal",
+      "pisa_int_area_fraction_of_native"
     ],
     "filters": {
       "max_static_fraction_of_native_contacts": 0.45,
