@@ -233,6 +233,9 @@ class LambdaClient:
     def add_ssh_key(self, name: str, public_key: str) -> dict:
         return self._post("/ssh-keys", {"name": name, "public_key": public_key})["data"]
 
+    def delete_ssh_key(self, name: str) -> None:
+        self._delete("/ssh-keys", {"name": name})
+
     # ------------------------------------------------------------------
     # File systems
     # ------------------------------------------------------------------

@@ -88,6 +88,10 @@ def ensure_ephemeral_ssh_key(client: LambdaClient) -> str:
     if EPHEMERAL_KEY_NAME not in existing:
         print(f"  Registering ephemeral SSH key: {EPHEMERAL_KEY_NAME}")
         client.add_ssh_key(EPHEMERAL_KEY_NAME, pub)
+    elif existing[EPHEMERAL_KEY_NAME].get("public_key", "").strip() != pub:
+        print(f"  Updating ephemeral SSH key: {EPHEMERAL_KEY_NAME}")
+        client.delete_ssh_key(EPHEMERAL_KEY_NAME)
+        client.add_ssh_key(EPHEMERAL_KEY_NAME, pub)
     return str(EPHEMERAL_KEY_PATH)
 
 
@@ -221,7 +225,7 @@ def main() -> None:
         client.terminate(args.instance_id)
         return
 
-    subprocess.run([sys.executable, str(ROOT / "scripts/build_stage_0_design_target.py")], check=True)
+    local_build_stage_0()
 
     ssh_key, launch_key_name = resolve_ssh_key(client, args.ssh_key, args.ssh_key_name)
     region = pick_region(client, args.instance_type, args.region)
