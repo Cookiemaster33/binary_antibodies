@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -97,16 +98,31 @@ def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> 
     return ensure_ephemeral_ssh_key(client), EPHEMERAL_KEY_NAME
 
 
+def local_build_stage_0() -> None:
+    """Build Stage 0 PDBs/config locally; PISA runs on Lambda when Docker is absent."""
+    cmd = [sys.executable, str(ROOT / "scripts/build_stage_0_design_target.py")]
+    if not shutil.which("docker"):
+        print("  Docker not found locally — skipping local PISA; Lambda will run PISA build.")
+        cmd.append("--no-pisa-interface")
+    subprocess.run(cmd, check=True)
+
+
 def upload_stage_0(ip: str, key: str) -> None:
     print("  Uploading Stage 0 pipeline files ...")
-    ssh(ip, key, f"mkdir -p {REMOTE_PIPELINE}/inputs {REMOTE_PIPELINE}/binary_antibodies {REMOTE_PIPELINE}/scripts")
+    ssh(
+        ip, key,
+        f"mkdir -p {REMOTE_PIPELINE}/inputs {REMOTE_PIPELINE}/binary_antibodies "
+        f"{REMOTE_PIPELINE}/scripts {REMOTE_PIPELINE}/structures/interface/pisa_wt_fv",
+    )
 
     files = [
+        (ROOT / "structures/1N8Z.pdb", f"{REMOTE_PIPELINE}/structures/1N8Z.pdb"),
         (ROOT / "structures/domains" / INPUT_PDB, f"{REMOTE_PIPELINE}/inputs/{INPUT_PDB}"),
         (ROOT / "structures/domains" / SPLIT_PDB, f"{REMOTE_PIPELINE}/inputs/{SPLIT_PDB}"),
         (ROOT / "structures/interface" / CONFIG_JSON, f"{REMOTE_PIPELINE}/inputs/{CONFIG_JSON}"),
         (ROOT / "scripts/gpu_setup/run_stage_0_vhvL_interface.sh", f"{REMOTE_PIPELINE}/run_stage_0.sh"),
         (ROOT / "scripts/gpu_setup/setup_pipeline_rfd3.sh", f"{REMOTE_PIPELINE}/setup_pipeline_rfd3.sh"),
+        (ROOT / "scripts/build_stage_0_design_target.py", f"{REMOTE_PIPELINE}/scripts/build_stage_0_design_target.py"),
         (ROOT / "binary_antibodies/stage_0_scoring.py", f"{REMOTE_PIPELINE}/binary_antibodies/stage_0_scoring.py"),
         (ROOT / "binary_antibodies/pisa_scoring.py", f"{REMOTE_PIPELINE}/binary_antibodies/pisa_scoring.py"),
         (ROOT / "binary_antibodies/fab_hidden_switch.py", f"{REMOTE_PIPELINE}/binary_antibodies/fab_hidden_switch.py"),

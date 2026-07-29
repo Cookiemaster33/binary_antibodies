@@ -24,10 +24,12 @@ echo "MPNN: $N_MPNN_SEQS (batch $MPNN_BATCH) | Holo Boltz top: $TOP_N (static ra
 
 mkdir -p "$PIPELINE/inputs" "$PIPELINE/outputs/mpnn_stage_0" \
          "$PIPELINE/boltz_inputs_holo" "$PIPELINE/boltz_outputs_holo" \
-         "$PIPELINE/final" "$PIPELINE/binary_antibodies" "$PIPELINE/scripts"
+         "$PIPELINE/final" "$PIPELINE/binary_antibodies" "$PIPELINE/scripts" \
+         "$PIPELINE/structures/interface/pisa_wt_fv"
 
 sudo chmod 666 /var/run/docker.sock 2>/dev/null || true
 docker pull rosettacommons/foundry:latest > "$PIPELINE/docker_pull.log" 2>&1 || true
+docker pull pdbegroup/pisa:latest >> "$PIPELINE/docker_pull.log" 2>&1 || true
 
 cp -f "$PIPELINE/../binary_antibodies/stage_0_scoring.py" "$PIPELINE/binary_antibodies/" 2>/dev/null || \
   cp -f /workspace/binary_antibodies/stage_0_scoring.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
@@ -35,6 +37,38 @@ cp -f /workspace/binary_antibodies/pisa_scoring.py "$PIPELINE/binary_antibodies/
 cp -f /workspace/binary_antibodies/fab_hidden_switch.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
 cp -f "$PIPELINE/../scripts/build_boltz_stage_0_inputs.py" "$PIPELINE/scripts/" 2>/dev/null || \
   cp -f /workspace/scripts/build_boltz_stage_0_inputs.py "$PIPELINE/scripts/" 2>/dev/null || true
+
+echo ""
+echo "=== Step 0: Build Stage 0 targets (PISA WT interface → MPNN residue set) ==="
+docker run --rm \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$PIPELINE:/workspace" \
+    -e PYTHONPATH=/workspace \
+    rosettacommons/foundry:latest \
+    python3 /workspace/scripts/build_stage_0_design_target.py \
+        --source-pdb /workspace/structures/1N8Z.pdb \
+        --out-pdb "/workspace/inputs/$INPUT_PDB_NAME" \
+        --out-split-pdb "/workspace/inputs/$SPLIT_PDB_NAME" \
+        --out-json "/workspace/inputs/$CONFIG_JSON" \
+        --n-mpnn-seqs "$N_MPNN_SEQS" \
+        --top-n-boltz "$TOP_N"
+
+python3 - <<'PYEOF'
+import json, os, sys
+from pathlib import Path
+
+pipeline = Path(os.environ.get("PIPELINE_DIR", "/home/ubuntu/pipeline"))
+config_path = pipeline / "inputs" / os.environ.get("CONFIG_JSON", "stage_0_vhvL_interface_config.json")
+cfg = json.loads(config_path.read_text())
+idef = cfg.get("interface_definition", {})
+source = idef.get("source")
+n_designed = len(cfg.get("split_mpnn", {}).get("designed_residues", []))
+print(f"  interface_definition.source = {source!r}")
+print(f"  designed_residues = {n_designed}")
+if source != "pisa":
+    print("ERROR: PISA interface definition missing — aborting test run.")
+    sys.exit(1)
+PYEOF
 
 # ── Split-chain ProteinMPNN ─────────────────────────────────────
 cat > "$PIPELINE/run_mpnn_stage_0.py" << 'PYEOF'
