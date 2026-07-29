@@ -16,11 +16,12 @@ MPNN_BATCH=${MPNN_BATCH:-100}
 TOP_N=${TOP_N:-100}
 INPUT_PDB_NAME=${INPUT_PDB:-fab_stage_0_vhvL_interface.pdb}
 SPLIT_PDB_NAME=${SPLIT_PDB:-fab_stage_0_split_mpnn.pdb}
+CONFIG_JSON=${CONFIG_JSON:-stage_0_vhvL_interface_config.json}
 INTERFACE_SCOPE=${INTERFACE_SCOPE:-fv}
 
 echo "===== Stage 0 split-MPNN pipeline: $(date) ====="
 echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
-echo "MPNN: $N_MPNN_SEQS (batch $MPNN_BATCH) | Holo Boltz top: $TOP_N (static rank)"
+echo "MPNN: $N_MPNN_SEQS (batch $MPNN_BATCH) | Holo Boltz top: $TOP_N | scope: $INTERFACE_SCOPE"
 
 mkdir -p "$PIPELINE/inputs" "$PIPELINE/outputs/mpnn_stage_0" \
          "$PIPELINE/boltz_inputs_holo" "$PIPELINE/boltz_outputs_holo" \
