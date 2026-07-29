@@ -234,7 +234,11 @@ class LambdaClient:
         return self._post("/ssh-keys", {"name": name, "public_key": public_key})["data"]
 
     def delete_ssh_key(self, name: str) -> None:
-        self._delete("/ssh-keys", {"name": name})
+        keys = {k.get("name"): k for k in self.list_ssh_keys()}
+        if name not in keys:
+            return
+        key_id = keys[name]["id"]
+        self._delete(f"/ssh-keys/{key_id}")
 
     # ------------------------------------------------------------------
     # File systems
