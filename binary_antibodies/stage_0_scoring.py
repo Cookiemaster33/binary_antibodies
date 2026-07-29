@@ -103,16 +103,20 @@ def load_filters(config_path: Path | None) -> dict:
     return filters
 
 
-def load_interface_fw_lists(config_path: Path | None) -> tuple[list[int], list[int]]:
-    """Load VH/VL framework interface residue lists from config (PISA or legacy)."""
+def load_interface_fw_lists(config_path: Path | None) -> tuple[list[int], list[int], list[int], list[int], str]:
+    """Load interface residue lists and scope from config (PISA or legacy)."""
+    scope = "fv"
     if config_path and config_path.exists():
         cfg = json.loads(config_path.read_text())
         idef = cfg.get("interface_definition", {})
+        scope = idef.get("scope", "fv")
         vh = idef.get("vh_framework_interface")
         vl = idef.get("vl_framework_interface")
+        ch1 = idef.get("ch1_framework_interface", [])
+        cl = idef.get("cl_framework_interface", [])
         if vh and vl:
-            return list(vh), list(vl)
-    return list(VH_INTERFACE_FW), list(VL_INTERFACE_FW)
+            return list(vh), list(vl), list(ch1 or []), list(cl or []), scope
+    return list(VH_INTERFACE_FW), list(VL_INTERFACE_FW), [], [], scope
 
 
 def chain_ca(aa, chain_id: str, resnums: list[int] | None = None) -> dict[int, np.ndarray]:
@@ -129,19 +133,30 @@ def _interface_residue_set(chain: str, vh_iface: list[int], vl_iface: list[int])
     return set(vh_iface if chain == "A" else vl_iface)
 
 
-def interface_contacts_heavy(aa, vh_iface: list[int], vl_iface: list[int]) -> int:
-    """Heavy-atom contacts between VH/VL framework interface residues (< 5 Å)."""
-    vh_set = _interface_residue_set("A", vh_iface, vl_iface)
-    vl_set = _interface_residue_set("B", vh_iface, vl_iface)
-    vh_atoms = aa[(aa.chain_id == "A") & np.isin(aa.res_id, list(vh_set)) & (aa.element != "H")]
-    vl_atoms = aa[(aa.chain_id == "B") & np.isin(aa.res_id, list(vl_set)) & (aa.element != "H")]
-    if len(vh_atoms) == 0 or len(vl_atoms) == 0:
+def chain_pair_interface_contacts_heavy(
+    aa,
+    chain_a: str,
+    chain_b: str,
+    iface_a: list[int],
+    iface_b: list[int],
+) -> int:
+    """Heavy-atom contacts between framework interface residues on two chains (< 5 Å)."""
+    set_a = set(iface_a)
+    set_b = set(iface_b)
+    atoms_a = aa[(aa.chain_id == chain_a) & np.isin(aa.res_id, list(set_a)) & (aa.element != "H")]
+    atoms_b = aa[(aa.chain_id == chain_b) & np.isin(aa.res_id, list(set_b)) & (aa.element != "H")]
+    if len(atoms_a) == 0 or len(atoms_b) == 0:
         return 0
     count = 0
-    for coord in vh_atoms.coord:
-        d = np.linalg.norm(vl_atoms.coord - coord, axis=1)
+    for coord in atoms_a.coord:
+        d = np.linalg.norm(atoms_b.coord - coord, axis=1)
         count += int(np.sum(d < HEAVY_CONTACT_CUTOFF_A))
     return count
+
+
+def interface_contacts_heavy(aa, vh_iface: list[int], vl_iface: list[int]) -> int:
+    """Heavy-atom contacts between VH/VL framework interface residues (< 5 Å)."""
+    return chain_pair_interface_contacts_heavy(aa, "A", "B", vh_iface, vl_iface)
 
 
 def interface_centroid_distance(
@@ -196,24 +211,35 @@ def count_inter_chain_clashes(
     return clashes
 
 
+def count_chain_pair_interface_clashes(
+    aa,
+    chain_a: str,
+    chain_b: str,
+    iface_a: list[int],
+    iface_b: list[int],
+    cutoff: float = INTERFACE_CLASH_CUTOFF_A,
+) -> int:
+    from scipy.spatial import cKDTree
+
+    heavy = aa[aa.element != "H"]
+    atoms_a = heavy[(heavy.chain_id == chain_a) & np.isin(heavy.res_id, list(iface_a))]
+    atoms_b = heavy[(heavy.chain_id == chain_b) & np.isin(heavy.res_id, list(iface_b))]
+    if len(atoms_a) == 0 or len(atoms_b) == 0:
+        return 0
+    tree = cKDTree(atoms_b.coord)
+    clashes = 0
+    for pt in atoms_a.coord:
+        clashes += len(tree.query_ball_point(pt, cutoff))
+    return clashes
+
+
 def count_vh_vl_interface_clashes(
     aa,
     vh_iface: list[int],
     vl_iface: list[int],
     cutoff: float = INTERFACE_CLASH_CUTOFF_A,
 ) -> int:
-    from scipy.spatial import cKDTree
-
-    heavy = aa[aa.element != "H"]
-    vh = heavy[(heavy.chain_id == "A") & np.isin(heavy.res_id, list(vh_iface))]
-    vl = heavy[(heavy.chain_id == "B") & np.isin(heavy.res_id, list(vl_iface))]
-    if len(vh) == 0 or len(vl) == 0:
-        return 0
-    tree = cKDTree(vl.coord)
-    clashes = 0
-    for pt in vh.coord:
-        clashes += len(tree.query_ball_point(pt, cutoff))
-    return clashes
+    return count_chain_pair_interface_clashes(aa, "A", "B", vh_iface, vl_iface, cutoff=cutoff)
 
 
 def count_cdr_epitope_contacts(aa, cutoff: float = CDR_CONTACT_CUTOFF_A) -> int:
@@ -293,6 +319,48 @@ def contact_pair_weight(
     return pair_contact_weight(des_vh, des_vl)
 
 
+def static_chain_pair_interface_contacts_heavy(
+    aa_template,
+    chain_a: str,
+    chain_b: str,
+    seq_a: str,
+    seq_b: str,
+    iface_a: list[int],
+    iface_b: list[int],
+    wt_a: str | None = None,
+    wt_b: str | None = None,
+) -> float:
+    """Predict interface contacts on native geometry for an arbitrary chain pair."""
+    if wt_a is None or wt_b is None:
+        wt_a = seq_a
+        wt_b = seq_b
+    set_a = set(iface_a)
+    set_b = set(iface_b)
+    atoms_a = aa_template[
+        (aa_template.chain_id == chain_a)
+        & np.isin(aa_template.res_id, list(set_a))
+        & (aa_template.element != "H")
+    ]
+    atoms_b = aa_template[
+        (aa_template.chain_id == chain_b)
+        & np.isin(aa_template.res_id, list(set_b))
+        & (aa_template.element != "H")
+    ]
+    if len(atoms_a) == 0 or len(atoms_b) == 0:
+        return 0.0
+
+    total = 0.0
+    for idx in range(len(atoms_a)):
+        res_a = int(atoms_a.res_id[idx])
+        coord = atoms_a.coord[idx]
+        d = np.linalg.norm(atoms_b.coord - coord, axis=1)
+        close = np.where(d < HEAVY_CONTACT_CUTOFF_A)[0]
+        for j in close:
+            res_b = int(atoms_b.res_id[j])
+            total += contact_pair_weight(seq_a, seq_b, wt_a, wt_b, res_a, res_b)
+    return total
+
+
 def static_interface_contacts_heavy(
     aa_template,
     seq_a: str,
@@ -309,34 +377,17 @@ def static_interface_contacts_heavy(
     if wt_a is None or wt_b is None:
         wt_a = seq_a
         wt_b = seq_b
-    vh_list = vh_iface or VH_INTERFACE_FW
-    vl_list = vl_iface or VL_INTERFACE_FW
-    vh_set = set(vh_list)
-    vl_set = set(vl_list)
-    vh_atoms = aa_template[
-        (aa_template.chain_id == "A")
-        & np.isin(aa_template.res_id, list(vh_set))
-        & (aa_template.element != "H")
-    ]
-    vl_atoms = aa_template[
-        (aa_template.chain_id == "B")
-        & np.isin(aa_template.res_id, list(vl_set))
-        & (aa_template.element != "H")
-    ]
-    if len(vh_atoms) == 0 or len(vl_atoms) == 0:
-        return 0.0
-
-    total = 0.0
-    for vh_idx in range(len(vh_atoms)):
-        vh_res = int(vh_atoms.res_id[vh_idx])
-        aa_vh = sequence_residue(seq_a, vh_res)
-        coord = vh_atoms.coord[vh_idx]
-        d = np.linalg.norm(vl_atoms.coord - coord, axis=1)
-        close = np.where(d < HEAVY_CONTACT_CUTOFF_A)[0]
-        for j in close:
-            vl_res = int(vl_atoms.res_id[j])
-            total += contact_pair_weight(seq_a, seq_b, wt_a, wt_b, vh_res, vl_res)
-    return total
+    return static_chain_pair_interface_contacts_heavy(
+        aa_template,
+        "A",
+        "B",
+        seq_a,
+        seq_b,
+        vh_iface or VH_INTERFACE_FW,
+        vl_iface or VL_INTERFACE_FW,
+        wt_a,
+        wt_b,
+    )
 
 
 def _collect_fv_cdr_ca(aa, chain_id: str) -> dict[int, np.ndarray]:
@@ -359,17 +410,23 @@ def _ca_rmsd(
 
 
 class NativeFvReference:
-    """Native VH+VL framework from the Stage 0 design target PDB."""
+    """Native Fab reference from the Stage 0 design target PDB."""
 
     def __init__(
         self,
         path: Path,
         vh_iface_fw: list[int] | None = None,
         vl_iface_fw: list[int] | None = None,
+        ch1_iface_fw: list[int] | None = None,
+        cl_iface_fw: list[int] | None = None,
+        interface_scope: str = "fv",
     ) -> None:
         self.path = path
+        self.interface_scope = interface_scope
         self.vh_iface_fw = list(vh_iface_fw or VH_INTERFACE_FW)
         self.vl_iface_fw = list(vl_iface_fw or VL_INTERFACE_FW)
+        self.ch1_iface_fw = list(ch1_iface_fw or [])
+        self.cl_iface_fw = list(cl_iface_fw or [])
         aa = load_structure(path)
         self.aa = aa
         self.vh_ca = _collect_fv_framework_ca(aa, "A")
@@ -383,8 +440,15 @@ class NativeFvReference:
         self.vh_cdr_nums = cdr_residue_numbers("A")
         self.vl_cdr_nums = cdr_residue_numbers("B")
         self.native_wt_contacts = interface_contacts_heavy(aa, self.vh_iface_fw, self.vl_iface_fw)
+        self.native_ch1_cl_contacts = (
+            chain_pair_interface_contacts_heavy(aa, "C", "D", self.ch1_iface_fw, self.cl_iface_fw)
+            if self.interface_scope == "full_fab" and self.ch1_iface_fw and self.cl_iface_fw
+            else 0
+        )
         self.native_seq_a = _chain_sequence(aa, "A")
         self.native_seq_b = _chain_sequence(aa, "B")
+        self.native_seq_c = _chain_sequence(aa, "C")
+        self.native_seq_d = _chain_sequence(aa, "D")
         self.native_static_contacts = static_interface_contacts_heavy(
             aa,
             self.native_seq_a,
@@ -393,6 +457,21 @@ class NativeFvReference:
             self.native_seq_b,
             vh_iface=self.vh_iface_fw,
             vl_iface=self.vl_iface_fw,
+        )
+        self.native_static_ch1_cl_contacts = (
+            static_chain_pair_interface_contacts_heavy(
+                aa,
+                "C",
+                "D",
+                self.native_seq_c,
+                self.native_seq_d,
+                self.ch1_iface_fw,
+                self.cl_iface_fw,
+                self.native_seq_c,
+                self.native_seq_d,
+            )
+            if self.interface_scope == "full_fab" and self.ch1_iface_fw and self.cl_iface_fw
+            else 0.0
         )
 
     def holo_fv_rmsd_metrics(self, aa) -> dict[str, float]:
@@ -515,6 +594,8 @@ def score_structure(
     vl_ca = chain_ca(aa, "B")
     vh_list = vh_iface or (ref.vh_iface_fw if ref is not None else VH_INTERFACE_FW)
     vl_list = vl_iface or (ref.vl_iface_fw if ref is not None else VL_INTERFACE_FW)
+    ch1_list = ref.ch1_iface_fw if ref is not None else []
+    cl_list = ref.cl_iface_fw if ref is not None else []
     metrics: dict = {
         "structure": path.name,
         "vh_vl_interface_contacts": interface_contacts_heavy(aa, vh_list, vl_list),
@@ -527,27 +608,52 @@ def score_structure(
         "vh_vl_fr4_ca_distance": fr4_ca_distance(vh_ca, vl_ca),
         "inter_chain_clashes_4A": count_inter_chain_clashes(aa),
     }
+    if ref is not None and ref.interface_scope == "full_fab" and ch1_list and cl_list:
+        metrics["ch1_cl_interface_contacts"] = chain_pair_interface_contacts_heavy(
+            aa, "C", "D", ch1_list, cl_list
+        )
     if has_epitope:
         metrics["cdr_epitope_contacts"] = count_cdr_epitope_contacts(aa)
         metrics["vh_vl_interface_clashes"] = count_vh_vl_interface_clashes(aa, vh_list, vl_list)
+        if ref is not None and ref.interface_scope == "full_fab" and ch1_list and cl_list:
+            metrics["ch1_cl_interface_clashes"] = count_chain_pair_interface_clashes(
+                aa, "C", "D", ch1_list, cl_list
+            )
         if ref is not None:
             metrics.update(ref.holo_fv_rmsd_metrics(aa))
     return metrics
 
 
-def apply_filters(rec: dict, filters: dict, native_contacts: int) -> dict:
+def apply_filters(rec: dict, filters: dict, ref: NativeFvReference) -> dict:
     holo = rec.get("holo", {})
     static_c = rec.get("static_vh_vl_interface_contacts", 999)
-    static_frac = static_c / native_contacts if native_contacts > 0 else 1.0
+    static_frac = static_c / ref.native_wt_contacts if ref.native_wt_contacts > 0 else 1.0
 
     checks: dict[str, bool] = {}
 
     if "max_static_fraction_of_native_contacts" in filters:
-        checks["passes_interface_weakened"] = (
+        checks["passes_vh_vl_weakened"] = (
             static_frac <= filters["max_static_fraction_of_native_contacts"]
         )
     elif "max_static_interface_contacts" in filters:
-        checks["passes_interface_weakened"] = static_c <= filters["max_static_interface_contacts"]
+        checks["passes_vh_vl_weakened"] = static_c <= filters["max_static_interface_contacts"]
+
+    if ref.interface_scope == "full_fab" and ref.native_ch1_cl_contacts > 0:
+        static_cc = rec.get("static_ch1_cl_interface_contacts", 999)
+        static_cc_frac = static_cc / ref.native_ch1_cl_contacts
+        rec["static_ch1_cl_fraction_of_native_contacts"] = round(static_cc_frac, 4)
+        if "max_static_ch1_cl_fraction_of_native_contacts" in filters:
+            checks["passes_ch1_cl_weakened"] = (
+                static_cc_frac <= filters["max_static_ch1_cl_fraction_of_native_contacts"]
+            )
+        if "max_holo_ch1_cl_interface_clashes" in filters:
+            checks["passes_holo_ch1_cl_clean"] = holo.get("ch1_cl_interface_clashes", 999) <= filters[
+                "max_holo_ch1_cl_interface_clashes"
+            ]
+
+    # Backward-compatible alias
+    if "passes_vh_vl_weakened" in checks:
+        checks["passes_interface_weakened"] = checks["passes_vh_vl_weakened"]
 
     if "min_pisa_delta_int_solv_en_vs_native_kcal" in filters:
         delta = holo.get("pisa_delta_int_solv_en_vs_native_kcal")
@@ -590,6 +696,8 @@ def score_design(
     *,
     seq_a: str | None = None,
     seq_b: str | None = None,
+    seq_c: str | None = None,
+    seq_d: str | None = None,
     pisa_cfg: PisaConfig | None = None,
     native_pisa: dict | None = None,
     pisa_work_root: Path | None = None,
@@ -607,6 +715,24 @@ def score_design(
         )
         rec["static_vh_vl_interface_contacts"] = round(static_c, 2)
         rec["chains"] = {"A": seq_a, "B": seq_b}
+        if ref.interface_scope == "full_fab" and seq_c and seq_d and ref.ch1_iface_fw and ref.cl_iface_fw:
+            static_cc = static_chain_pair_interface_contacts_heavy(
+                ref.aa,
+                "C",
+                "D",
+                seq_c,
+                seq_d,
+                ref.ch1_iface_fw,
+                ref.cl_iface_fw,
+                ref.native_seq_c,
+                ref.native_seq_d,
+            )
+            rec["static_ch1_cl_interface_contacts"] = round(static_cc, 2)
+            rec["static_total_interface_contacts"] = round(static_c + static_cc, 2)
+            rec["chains"]["C"] = seq_c
+            rec["chains"]["D"] = seq_d
+        else:
+            rec["static_total_interface_contacts"] = round(static_c, 2)
     if holo_cif and holo_cif.exists():
         rec["holo"] = score_structure(holo_cif, has_epitope=True, ref=ref)
         if pisa_cfg and pisa_cfg.enabled and pisa_work_root is not None:
@@ -627,7 +753,7 @@ def score_design(
                 pisa_metrics = add_pisa_deltas(pisa_metrics, native_pisa)
             rec["holo"].update(pisa_metrics)
     if "static_vh_vl_interface_contacts" in rec and "holo" in rec:
-        apply_filters(rec, filters, ref.native_wt_contacts)
+        apply_filters(rec, filters, ref)
     return rec
 
 
@@ -655,12 +781,14 @@ def rank_key(rec: dict) -> tuple:
     checks = rec.get("filter_checks", {})
     n_pass = sum(1 for v in checks.values() if v)
     static_c = rec.get("static_vh_vl_interface_contacts", 999)
+    total_static = rec.get("static_total_interface_contacts", static_c)
     holo = rec.get("holo", {})
     pisa_delta = holo.get("pisa_delta_int_solv_en_vs_native_kcal")
     pisa_rank = pisa_delta if pisa_delta is not None else -999.0
     return (
         n_pass,
         pisa_rank,
+        -total_static,
         -static_c,
         holo.get("cdr_epitope_contacts", 0),
         -(holo.get("holo_fv_framework_rmsd_A", 999)),
@@ -668,42 +796,45 @@ def rank_key(rec: dict) -> tuple:
     )
 
 
-def load_sequence_lookup(pipeline: Path) -> dict[str, tuple[str, str]]:
-    """Map design_id → (seq_a, seq_b) from MPNN output."""
+def load_sequence_lookup(pipeline: Path) -> dict[str, dict[str, str]]:
+    """Map design_id → chain sequences from MPNN output."""
     mpnn_path = pipeline / "outputs" / "mpnn_stage_0" / "all_sequences.json"
     top_path = pipeline / "final" / "top_designs_stage_0.json"
-    lookup: dict[str, tuple[str, str]] = {}
+    lookup: dict[str, dict[str, str]] = {}
+
+    def _store(name: str, chains: dict) -> None:
+        if chains.get("A") and chains.get("B"):
+            lookup[name] = {k: chains[k] for k in ("A", "B", "C", "D") if chains.get(k)}
 
     if top_path.exists():
         top = json.loads(top_path.read_text())
         for d in top.get("designs", []):
-            chains = d.get("chains", {})
-            if chains.get("A") and chains.get("B"):
-                lookup[d["name"]] = (chains["A"], chains["B"])
+            _store(d["name"], d.get("chains", {}))
 
     if mpnn_path.exists() and not lookup:
         seqs = json.loads(mpnn_path.read_text())
         if isinstance(seqs, dict):
             seqs = seqs.get("sequences", [])
         for d in seqs:
-            chains = d.get("chains", {})
-            if chains.get("A") and chains.get("B"):
-                key = f"s{d['seq_idx']}"
-                lookup[key] = (chains["A"], chains["B"])
+            key = f"s{d['seq_idx']}"
+            _store(key, d.get("chains", {}))
     return lookup
 
 
-def design_id_to_sequences(design_id: str, lookup: dict[str, tuple[str, str]]) -> tuple[str, str] | tuple[None, None]:
+def design_id_to_sequences(
+    design_id: str, lookup: dict[str, dict[str, str]]
+) -> tuple[str | None, str | None, str | None, str | None]:
     if design_id in lookup:
-        return lookup[design_id]
+        chains = lookup[design_id]
+        return chains.get("A"), chains.get("B"), chains.get("C"), chains.get("D")
     if "_s" in design_id:
         suffix = design_id.rsplit("_s", 1)[-1]
         if suffix.isdigit():
             key = f"s{suffix}"
-            for k, val in lookup.items():
+            for k, chains in lookup.items():
                 if k.endswith(suffix) or k == key:
-                    return val
-    return None, None
+                    return chains.get("A"), chains.get("B"), chains.get("C"), chains.get("D")
+    return None, None, None, None
 
 
 def main() -> None:
@@ -721,11 +852,13 @@ def main() -> None:
     ref_path = args.reference_pdb or (ROOT / "structures/domains/fab_stage_0_vhvL_interface.pdb")
     config_path = args.config_json or (ROOT / "structures/interface/stage_0_vhvL_interface_config.json")
     filters = load_filters(config_path)
-    vh_iface, vl_iface = load_interface_fw_lists(config_path)
+    vh_iface, vl_iface, ch1_iface, cl_iface, interface_scope = load_interface_fw_lists(config_path)
     pisa_cfg = load_pisa_config(config_path)
     if args.skip_pisa:
         pisa_cfg = PisaConfig(enabled=False)
-    ref = NativeFvReference(ref_path, vh_iface, vl_iface)
+    ref = NativeFvReference(
+        ref_path, vh_iface, vl_iface, ch1_iface, cl_iface, interface_scope=interface_scope
+    )
     seq_lookup = load_sequence_lookup(pipeline)
     pisa_work_root = pipeline / pisa_cfg.work_subdir
     native_pisa = score_native_pisa(ref_path, pisa_cfg, pisa_work_root)
@@ -735,7 +868,7 @@ def main() -> None:
 
     for holo_pred in sorted(holo_base.glob("boltz_results_*/predictions/*/*_model_0.cif")):
         name = holo_pred.parent.name
-        seq_a, seq_b = design_id_to_sequences(name, seq_lookup)
+        seq_a, seq_b, seq_c, seq_d = design_id_to_sequences(name, seq_lookup)
         results.append(
             score_design(
                 holo_pred,
@@ -744,6 +877,8 @@ def main() -> None:
                 filters,
                 seq_a=seq_a,
                 seq_b=seq_b,
+                seq_c=seq_c,
+                seq_d=seq_d,
                 pisa_cfg=pisa_cfg,
                 native_pisa=native_pisa,
                 pisa_work_root=pisa_work_root,
@@ -766,11 +901,16 @@ def main() -> None:
         },
         "reference_pdb": str(ref_path),
         "interface_definition": {
+            "scope": ref.interface_scope,
             "vh_framework_interface": ref.vh_iface_fw,
             "vl_framework_interface": ref.vl_iface_fw,
+            "ch1_framework_interface": ref.ch1_iface_fw,
+            "cl_framework_interface": ref.cl_iface_fw,
         },
         "native_wt_interface_contacts": ref.native_wt_contacts,
+        "native_ch1_cl_interface_contacts": ref.native_ch1_cl_contacts,
         "native_static_interface_contacts": round(ref.native_static_contacts, 2),
+        "native_static_ch1_cl_contacts": round(ref.native_static_ch1_cl_contacts, 2),
         "designs": top,
     }
     out_path = pipeline / args.results_file

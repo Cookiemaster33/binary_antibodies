@@ -26,9 +26,11 @@ weaken      hub design    (de novo)
 
 **Design (no RFd3):**
 1. Build native Fab context PDB (`fab_stage_0_vhvL_interface.pdb`)
-2. **PISA on WT Fv (chains A+B):** buried SASA at the VH–VL interface defines framework interface residues (CDRs excluded). Written to `interface_definition` in the Stage 0 config; falls back to legacy contact lists if PISA/Docker is unavailable.
-3. Build **split Fv** PDB with VH/VL translated 30 Å apart (`fab_stage_0_split_mpnn.pdb`)
-4. **ProteinMPNN** redesigns PISA-defined interface framework residues; **closure core** stays native in partial modes
+2. **PISA on WT Fab** defines buried interface residues (CDRs excluded on Fv):
+   - `fv` (default): VH–VL only (chains A+B)
+   - `full_fab`: VH–VL (A+B) **and** CH1–CL (C+D)
+3. Build **split MPNN PDB** — Fv-only (`fv`) or full Fab with both interfaces separated (`full_fab`)
+4. **ProteinMPNN** redesigns PISA-defined interface framework residues
    - **Whole interface (default):** all PISA framework interface residues
    - **Aggressive:** PISA core (BSA ≥ 5 Å²) fixed → rim redesigned
    - **Conservative:** PISA core (BSA ≥ 10 Å²) fixed → rim redesigned
@@ -52,9 +54,10 @@ We select on **lowest static interface contacts** among designs passing holo fil
 
 **Build & launch:**
 ```bash
-python scripts/build_stage_0_design_target.py          # PISA interface on by default
-python scripts/build_stage_0_design_target.py --no-pisa-interface  # legacy lists
-python scripts/launch_stage_0.py --no-wait --no-terminate
+python scripts/build_stage_0_design_target.py                        # fv scope (default)
+python scripts/build_stage_0_design_target.py --interface-scope full_fab
+python scripts/launch_stage_0.py --interface-scope fv --no-wait --no-terminate
+python scripts/launch_stage_0.py --interface-scope full_fab --no-wait --no-terminate
 ```
 
 **Outputs:** `pipeline_results/stage_0_vhvL_interface/`

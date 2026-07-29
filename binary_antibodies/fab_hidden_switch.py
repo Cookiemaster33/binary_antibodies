@@ -125,6 +125,24 @@ def interface_closure_core(
     return sorted(vh_core), sorted(vl_core)
 
 
+def pisa_closure_core_pair(
+    residue_bsa: dict[str, dict[int, float]],
+    chain_a: str,
+    chain_b: str,
+    iface_a: list[int],
+    iface_b: list[int],
+    core_min_buried_sasa_A2: float = PISA_CORE_MIN_BURIED_SASA_A2,
+) -> tuple[list[int], list[int]]:
+    """Keep native sequence on PISA interface residues with highest buried SASA."""
+    core_a = sorted(
+        r for r in iface_a if residue_bsa.get(chain_a, {}).get(r, 0.0) >= core_min_buried_sasa_A2
+    )
+    core_b = sorted(
+        r for r in iface_b if residue_bsa.get(chain_b, {}).get(r, 0.0) >= core_min_buried_sasa_A2
+    )
+    return core_a, core_b
+
+
 def pisa_closure_core(
     residue_bsa: dict[str, dict[int, float]],
     vh_interface_fw: list[int],
@@ -190,11 +208,50 @@ def interface_design_residues(
     vl_len: int = VL_END,
     vh_interface_fw: list[int] | None = None,
     vl_interface_fw: list[int] | None = None,
+    ch1_interface_fw: list[int] | None = None,
+    cl_interface_fw: list[int] | None = None,
+    interface_scope: str = "fv",
 ) -> list[str]:
-    """All VH/VL framework interface positions on-chain (CDRs excluded)."""
+    """Framework interface positions to redesign (CDRs excluded on Fv)."""
     vh = [f"A{r}" for r in (vh_interface_fw or VH_INTERFACE_FW) if r <= vh_len]
     vl = [f"B{r}" for r in (vl_interface_fw or VL_INTERFACE_FW) if r <= vl_len]
-    return vh + vl
+    designed = vh + vl
+    if interface_scope == "full_fab" and ch1_interface_fw and cl_interface_fw:
+        designed += [f"C{r}" for r in ch1_interface_fw]
+        designed += [f"D{r}" for r in cl_interface_fw]
+    return designed
+
+
+def split_mpnn_designed_residues_fab(
+    vh_len: int,
+    vl_len: int,
+    ch1_len: int,
+    cl_len: int,
+    *,
+    max_heavy_a: float = INTERFACE_CORE_MAX_HEAVY_A,
+    vh_interface_fw: list[int] | None = None,
+    vl_interface_fw: list[int] | None = None,
+    ch1_interface_fw: list[int] | None = None,
+    cl_interface_fw: list[int] | None = None,
+    vh_core: list[int] | None = None,
+    vl_core: list[int] | None = None,
+    ch1_core: list[int] | None = None,
+    cl_core: list[int] | None = None,
+    interface_scope: str = "fv",
+) -> list[str]:
+    """Rim interface residues for partial de-grease across one or both Fab interfaces."""
+    designed = split_mpnn_designed_residues(
+        vh_len, vl_len, max_heavy_a=max_heavy_a,
+        vh_interface_fw=vh_interface_fw, vl_interface_fw=vl_interface_fw,
+        vh_core=vh_core, vl_core=vl_core,
+    )
+    if interface_scope != "full_fab" or not ch1_interface_fw or not cl_interface_fw:
+        return designed
+    ch1_core = ch1_core or []
+    cl_core = cl_core or []
+    designed += [f"C{r}" for r in ch1_interface_fw if r <= ch1_len and r not in ch1_core]
+    designed += [f"D{r}" for r in cl_interface_fw if r <= cl_len and r not in cl_core]
+    return designed
 
 
 def cdr_residue_set(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> set[int]:
@@ -221,6 +278,76 @@ def extract_chain_sequences(pdb_path: Path) -> dict[str, str]:
         if letters:
             out[chain.id] = "".join(letters)
     return out
+
+
+def _shift_residues_perpendicular(
+    residues: list,
+    ref_centroid: np.ndarray,
+    other_centroid: np.ndarray,
+    separation_a: float,
+) -> list:
+    """Translate residues perpendicular to the ref→other axis by separation_a."""
+    axis = other_centroid - ref_centroid
+    axis /= np.linalg.norm(axis) + 1e-8
+    ref = np.array([0.0, 0.0, 1.0])
+    perp = np.cross(axis, ref)
+    if np.linalg.norm(perp) < 1e-6:
+        perp = np.cross(axis, np.array([0.0, 1.0, 0.0]))
+    perp = perp / (np.linalg.norm(perp) + 1e-8)
+    shift = perp * float(separation_a)
+    shifted: list = []
+    for res in residues:
+        new_res = res.copy()
+        for atom in new_res:
+            atom.set_coord(atom.get_coord() + shift)
+        shifted.append(new_res)
+    return shifted
+
+
+def build_split_fab_mpnn_pdb(
+    out_pdb: Path,
+    source_pdb: Path | None = None,
+    separation_a: float = DEFAULT_SPLIT_SEPARATION_A,
+    struct_name: str = "split_fab_mpnn",
+) -> tuple[int, int, int, int]:
+    """
+    Build Fab PDB with VH/VL and CH1/CL interfaces separated for split-chain MPNN.
+
+    Chains A (VH) and C (CH1) stay fixed; B (VL) and D (CL) are translated apart.
+    """
+    parser = PDBParser(QUIET=True)
+    src_path = source_pdb or FAB_PDB
+    src = parser.get_structure("src", str(src_path))
+    model = list(src.get_models())[0]
+    for chain_id in ("A", "B", "C", "D"):
+        if chain_id not in model.child_dict:
+            raise ValueError(f"Source PDB must contain chains A–D; missing {chain_id}")
+
+    vh_res = list(model["A"].get_residues())
+    vl_res = list(model["B"].get_residues())
+    ch1_res = list(model["C"].get_residues())
+    cl_res = list(model["D"].get_residues())
+
+    vl_shifted = _shift_residues_perpendicular(
+        vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
+    )
+    cl_shifted = _shift_residues_perpendicular(
+        cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
+    )
+
+    struct = S.Structure(struct_name)
+    model_out = M.Model(0)
+    model_out.add(_build_chain(vh_res, "A"))
+    model_out.add(_build_chain(vl_shifted, "B"))
+    model_out.add(_build_chain(ch1_res, "C"))
+    model_out.add(_build_chain(cl_shifted, "D"))
+    struct.add(model_out)
+
+    out_pdb.parent.mkdir(parents=True, exist_ok=True)
+    io = PDBIO()
+    io.set_structure(struct)
+    io.save(str(out_pdb))
+    return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
 
 
 def build_split_fv_mpnn_pdb(

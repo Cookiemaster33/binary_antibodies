@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT))
 from binary_antibodies.stage_0_scoring import (  # noqa: E402
     NativeFvReference,
     load_interface_fw_lists,
+    static_chain_pair_interface_contacts_heavy,
     static_interface_contacts_heavy,
 )
 
@@ -45,8 +46,11 @@ def main() -> None:
     epitope = native.get("T", "")
     top_n = args.top_n or int(os.environ.get("TOP_N", cfg.get("split_mpnn", {}).get("top_n_boltz", 100)))
 
-    vh_iface, vl_iface = load_interface_fw_lists(config_path)
-    ref = NativeFvReference(ref_path, vh_iface, vl_iface)
+    vh_iface, vl_iface, ch1_iface, cl_iface, interface_scope = load_interface_fw_lists(config_path)
+    ref = NativeFvReference(
+        ref_path, vh_iface, vl_iface, ch1_iface, cl_iface, interface_scope=interface_scope
+    )
+    rank_key = cfg.get("split_mpnn", {}).get("mpnn_rank_by", "static_vh_vl_interface_contacts_asc")
     data = json.loads(mpnn_path.read_text())
     if isinstance(data, dict):
         data = data.get("sequences", [])
@@ -55,6 +59,8 @@ def main() -> None:
         chains = r.get("chains", {})
         seq_a = chains.get("A", "")
         seq_b = chains.get("B", "")
+        seq_c = chains.get("C", "")
+        seq_d = chains.get("D", "")
         static_c = static_interface_contacts_heavy(
             ref.aa,
             seq_a,
@@ -66,8 +72,32 @@ def main() -> None:
         )
         r["static_vh_vl_interface_contacts"] = round(static_c, 2)
         r["static_fraction_of_native"] = round(static_c / ref.native_static_contacts, 4)
+        if interface_scope == "full_fab" and ref.ch1_iface_fw and ref.cl_iface_fw and seq_c and seq_d:
+            static_cc = static_chain_pair_interface_contacts_heavy(
+                ref.aa,
+                "C",
+                "D",
+                seq_c,
+                seq_d,
+                ref.ch1_iface_fw,
+                ref.cl_iface_fw,
+                ref.native_seq_c,
+                ref.native_seq_d,
+            )
+            r["static_ch1_cl_interface_contacts"] = round(static_cc, 2)
+            r["static_ch1_cl_fraction_of_native"] = round(
+                static_cc / ref.native_static_ch1_cl_contacts, 4
+            )
+            r["static_total_interface_contacts"] = round(static_c + static_cc, 2)
+        else:
+            r["static_total_interface_contacts"] = round(static_c, 2)
 
-    data.sort(key=lambda x: x["static_vh_vl_interface_contacts"])
+    sort_field = (
+        "static_total_interface_contacts"
+        if rank_key == "static_total_interface_contacts_asc"
+        else "static_vh_vl_interface_contacts"
+    )
+    data.sort(key=lambda x: x[sort_field])
     picks = data[:top_n]
 
     design_list = []
@@ -96,7 +126,13 @@ def main() -> None:
                 "mpnn_score": r.get("mpnn_score"),
                 "static_vh_vl_interface_contacts": r["static_vh_vl_interface_contacts"],
                 "static_fraction_of_native": r["static_fraction_of_native"],
-                "chains": {"A": chains.get("A", ""), "B": chains.get("B", "")},
+                "static_total_interface_contacts": r.get("static_total_interface_contacts"),
+                "static_ch1_cl_interface_contacts": r.get("static_ch1_cl_interface_contacts"),
+                "chains": {
+                    ch: chains.get(ch, "")
+                    for ch in ("A", "B", "C", "D")
+                    if chains.get(ch)
+                },
             }
         )
 
@@ -104,18 +140,19 @@ def main() -> None:
         "designs": design_list,
         "n_mpnn_total": len(data),
         "top_n": top_n,
-        "rank_by": "static_vh_vl_interface_contacts_asc",
+        "rank_by": rank_key,
         "native_static_interface_contacts": round(ref.native_static_contacts, 2),
+        "native_static_ch1_cl_contacts": round(ref.native_static_ch1_cl_contacts, 2),
     }
     final_dir = pipeline / "final"
     final_dir.mkdir(parents=True, exist_ok=True)
     (final_dir / "top_designs_stage_0.json").write_text(json.dumps(out, indent=2) + "\n")
 
     if picks:
-        lo, hi = picks[0]["static_vh_vl_interface_contacts"], picks[-1]["static_vh_vl_interface_contacts"]
+        lo, hi = picks[0][sort_field], picks[-1][sort_field]
         print(
             f"Boltz holo inputs: {len(design_list)} designs "
-            f"(weakest static contacts {lo:.1f}–{hi:.1f} of {len(data)} MPNN)"
+            f"(weakest {sort_field} {lo:.1f}–{hi:.1f} of {len(data)} MPNN)"
         )
     else:
         print("No MPNN sequences to process.")

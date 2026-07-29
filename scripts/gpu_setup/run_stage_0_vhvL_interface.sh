@@ -16,7 +16,7 @@ MPNN_BATCH=${MPNN_BATCH:-100}
 TOP_N=${TOP_N:-100}
 INPUT_PDB_NAME=${INPUT_PDB:-fab_stage_0_vhvL_interface.pdb}
 SPLIT_PDB_NAME=${SPLIT_PDB:-fab_stage_0_split_mpnn.pdb}
-CONFIG_JSON=${CONFIG_JSON:-stage_0_vhvL_interface_config.json}
+INTERFACE_SCOPE=${INTERFACE_SCOPE:-fv}
 
 echo "===== Stage 0 split-MPNN pipeline: $(date) ====="
 echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
@@ -47,6 +47,7 @@ python3 "$PIPELINE/scripts/build_stage_0_design_target.py" \
     --out-pdb "$PIPELINE/inputs/$INPUT_PDB_NAME" \
     --out-split-pdb "$PIPELINE/inputs/$SPLIT_PDB_NAME" \
     --out-json "$PIPELINE/inputs/$CONFIG_JSON" \
+    --interface-scope "$INTERFACE_SCOPE" \
     --n-mpnn-seqs "$N_MPNN_SEQS" \
     --top-n-boltz "$TOP_N"
 
@@ -59,12 +60,21 @@ config_path = pipeline / "inputs" / os.environ.get("CONFIG_JSON", "stage_0_vhvL_
 cfg = json.loads(config_path.read_text())
 idef = cfg.get("interface_definition", {})
 source = idef.get("source")
+scope = idef.get("scope", "fv")
 n_designed = len(cfg.get("split_mpnn", {}).get("designed_residues", []))
 print(f"  interface_definition.source = {source!r}")
+print(f"  interface_definition.scope = {scope!r}")
 print(f"  designed_residues = {n_designed}")
 if source != "pisa":
     print("ERROR: PISA interface definition missing — aborting test run.")
     sys.exit(1)
+if scope == "full_fab":
+    ch1 = idef.get("ch1_framework_interface", [])
+    cl = idef.get("cl_framework_interface", [])
+    print(f"  CH1/CL interface residues: C={len(ch1)} D={len(cl)}")
+    if not ch1 or not cl:
+        print("ERROR: full_fab scope missing CH1/CL interface residues.")
+        sys.exit(1)
 PYEOF
 
 # ── Split-chain ProteinMPNN ─────────────────────────────────────

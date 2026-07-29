@@ -1,7 +1,10 @@
 """Unit tests for PISA XML parsing (no Docker required)."""
 
+from pathlib import Path
+
 from binary_antibodies.pisa_scoring import (
     buried_interface_residues,
+    identify_fab_interface_residues,
     parse_pisa_interfaces_xml,
     select_chain_pair_interface,
 )
@@ -99,3 +102,51 @@ def test_buried_interface_residues_filters_bsa_and_cdr_truncation():
     )
     assert truncated["A"] == [42]
     assert truncated["B"] == [45, 46]
+
+
+FULL_FAB_XML = """<?xml version="1.0" encoding="UTF-8"?>
+<pdb_entry>
+  <interface>
+    <id>1</id>
+    <int_area>500.0</int_area>
+    <molecule>
+      <chain_id>A</chain_id>
+      <residue><seq_num>42</seq_num><bsa>10.0</bsa></residue>
+    </molecule>
+    <molecule>
+      <chain_id>B</chain_id>
+      <residue><seq_num>45</seq_num><bsa>12.0</bsa></residue>
+    </molecule>
+  </interface>
+  <interface>
+    <id>2</id>
+    <int_area>300.0</int_area>
+    <molecule>
+      <chain_id>C</chain_id>
+      <residue><seq_num>12</seq_num><bsa>8.0</bsa></residue>
+    </molecule>
+    <molecule>
+      <chain_id>D</chain_id>
+      <residue><seq_num>15</seq_num><bsa>9.0</bsa></residue>
+    </molecule>
+  </interface>
+</pdb_entry>
+"""
+
+
+def test_full_fab_scope_parses_vh_vl_and_ch1_cl():
+    interfaces = parse_pisa_interfaces_xml(FULL_FAB_XML)
+    ab = select_chain_pair_interface(interfaces, "A", "B")
+    cd = select_chain_pair_interface(interfaces, "C", "D")
+    assert ab is not None and cd is not None
+    assert buried_interface_residues(ab, "A", "B")["A"] == [42]
+    assert buried_interface_residues(cd, "C", "D")["D"] == [15]
+
+
+def test_identify_fab_interface_residues_invalid_scope():
+    result = identify_fab_interface_residues(
+        Path("/nonexistent.pdb"),
+        work_dir=Path("/tmp"),
+        interface_scope="not_a_scope",
+    )
+    assert result["pisa_status"] == "invalid_scope"

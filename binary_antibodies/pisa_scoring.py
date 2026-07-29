@@ -20,6 +20,17 @@ from typing import Any
 DEFAULT_PISA_IMAGE = "pdbegroup/pisa:latest"
 DEFAULT_PISA_CFG = "/usr/share/pisa/setup/pisa_cfg_tmp"
 
+INTERFACE_SCOPE_FV = "fv"
+INTERFACE_SCOPE_FULL_FAB = "full_fab"
+INTERFACE_SCOPE_CHAIN_PAIRS: dict[str, tuple[tuple[str, str], ...]] = {
+    INTERFACE_SCOPE_FV: (("A", "B"),),
+    INTERFACE_SCOPE_FULL_FAB: (("A", "B"), ("C", "D")),
+}
+INTERFACE_PAIR_LABELS: dict[tuple[str, str], str] = {
+    ("A", "B"): "vh_vl",
+    ("C", "D"): "ch1_cl",
+}
+
 
 @dataclass(frozen=True)
 class PisaConfig:
@@ -210,6 +221,15 @@ def select_chain_pair_interface(
     return min(matches, key=lambda iface: iface.get("int_area_A2") or float("inf"))
 
 
+def extract_chains_structure(
+    structure_path: Path,
+    out_path: Path,
+    chains: tuple[str, ...] = ("A", "B"),
+) -> Path:
+    """Write a PDB containing only the requested chains."""
+    return extract_fv_structure(structure_path, out_path, chains=chains)
+
+
 def extract_fv_structure(
     structure_path: Path,
     out_path: Path,
@@ -306,6 +326,7 @@ def run_pisa_interfaces_xml(
     work_dir: Path,
     score_fv_only: bool = True,
     fv_chains: tuple[str, str] = ("A", "B"),
+    analysis_chains: tuple[str, ...] | None = None,
     use_docker: bool = True,
     docker_image: str = DEFAULT_PISA_IMAGE,
     pisa_cfg: str = DEFAULT_PISA_CFG,
@@ -315,9 +336,10 @@ def run_pisa_interfaces_xml(
     """Run PISA --as-is and return interfaces XML text."""
     work_dir.mkdir(parents=True, exist_ok=True)
     input_path = structure_path
-    if score_fv_only:
-        input_path = work_dir / f"{structure_path.stem}_fv_AB.pdb"
-        extract_fv_structure(structure_path, input_path, chains=fv_chains)
+    chains = analysis_chains or (fv_chains if score_fv_only else ("A", "B", "C", "D"))
+    if score_fv_only or analysis_chains is not None:
+        input_path = work_dir / f"{structure_path.stem}_{'_'.join(chains)}.pdb"
+        extract_chains_structure(structure_path, input_path, chains=chains)
 
     session = _sanitize_session_name(session_name or structure_path.stem)
     if use_docker and shutil.which("docker"):
@@ -325,6 +347,115 @@ def run_pisa_interfaces_xml(
     if shutil.which(pisa_binary):
         return _run_pisa_local(session, input_path.resolve(), work_dir, pisa_cfg, pisa_binary)
     raise RuntimeError("PISA unavailable: docker and local pisa binary not found")
+
+
+def identify_fab_interface_residues(
+    structure_path: Path,
+    *,
+    work_dir: Path,
+    interface_scope: str = INTERFACE_SCOPE_FV,
+    chain_lengths: dict[str, int] | None = None,
+    min_buried_sasa_A2: float = 0.0,
+    exclude_cdr_resnums: dict[str, set[int]] | None = None,
+    pisa_config: PisaConfig | None = None,
+    session_name: str | None = None,
+) -> dict[str, Any]:
+    """
+    Run PISA on WT Fab and return buried framework interface residues per chain.
+
+    interface_scope:
+        ``fv`` — VH–VL only (chains A+B).
+        ``full_fab`` — VH–VL (A+B) and CH1–CL (C+D).
+    """
+    if interface_scope not in INTERFACE_SCOPE_CHAIN_PAIRS:
+        return {
+            "pisa_status": "invalid_scope",
+            "pisa_error": f"Unknown interface_scope: {interface_scope}",
+        }
+
+    chain_pairs = INTERFACE_SCOPE_CHAIN_PAIRS[interface_scope]
+    chain_lengths = chain_lengths or {"A": 113, "B": 107, "C": 101, "D": 113}
+    analysis_chains = tuple(sorted({c for pair in chain_pairs for c in pair}))
+    cfg = pisa_config or PisaConfig()
+
+    try:
+        xml_text = run_pisa_interfaces_xml(
+            structure_path,
+            work_dir=work_dir,
+            score_fv_only=True,
+            analysis_chains=analysis_chains,
+            use_docker=cfg.use_docker,
+            docker_image=cfg.docker_image,
+            pisa_cfg=cfg.pisa_cfg,
+            pisa_binary=cfg.pisa_binary,
+            session_name=session_name or f"wt_{interface_scope}_interface",
+        )
+    except RuntimeError as exc:
+        return {"pisa_status": "unavailable", "pisa_error": str(exc)}
+
+    try:
+        interfaces = parse_pisa_interfaces_xml(xml_text)
+    except ET.ParseError as exc:
+        return {"pisa_status": "parse_error", "pisa_error": str(exc)}
+
+    framework: dict[str, list[int]] = {chain: [] for chain in analysis_chains}
+    residue_bsa_by_chain: dict[str, dict[int, float]] = {chain: {} for chain in analysis_chains}
+    interface_records: dict[str, dict[str, Any]] = {}
+    buried_all: dict[str, list[int]] = {chain: [] for chain in analysis_chains}
+
+    for chain_a, chain_b in chain_pairs:
+        iface = select_chain_pair_interface(interfaces, chain_a, chain_b)
+        label = INTERFACE_PAIR_LABELS.get((chain_a, chain_b), f"{chain_a}_{chain_b}")
+        if iface is None:
+            return {
+                "pisa_status": f"no_{label}_interface",
+                "pisa_n_interfaces": len(interfaces),
+                "pisa_chain_pairs": [i.get("chain_ids") for i in interfaces],
+            }
+
+        max_resnum = {chain_a: chain_lengths[chain_a], chain_b: chain_lengths[chain_b]}
+        buried = buried_interface_residues(
+            iface,
+            chain_a,
+            chain_b,
+            min_buried_sasa_A2=min_buried_sasa_A2,
+            max_resnum=max_resnum,
+        )
+        for chain in (chain_a, chain_b):
+            buried_all[chain] = sorted(set(buried_all.get(chain, [])) | set(buried.get(chain, [])))
+
+        for chain in (chain_a, chain_b):
+            nums = buried.get(chain, [])
+            if exclude_cdr_resnums and chain in exclude_cdr_resnums:
+                skip = exclude_cdr_resnums[chain]
+                nums = [r for r in nums if r not in skip]
+            framework[chain] = sorted(set(framework.get(chain, [])) | set(nums))
+            residue_bsa_by_chain[chain].update(
+                {
+                    r: v
+                    for r, v in residue_buried_sasa(iface, chain).items()
+                    if r in framework[chain]
+                }
+            )
+
+        interface_records[label] = {
+            "chain_ids": [chain_a, chain_b],
+            "pisa_int_area_A2": iface.get("int_area_A2"),
+            "pisa_int_solv_en_kcal": iface.get("int_solv_en_kcal"),
+            "pisa_interface_id": iface.get("id"),
+            "buried_interface_residues": buried,
+        }
+
+    return {
+        "pisa_status": "ok",
+        "interface_scope": interface_scope,
+        "analysis_chains": list(analysis_chains),
+        "interfaces": interface_records,
+        "buried_interface_residues": buried_all,
+        "framework_interface_residues": framework,
+        "residue_buried_sasa_A2": residue_bsa_by_chain,
+        "pisa_xml_text": xml_text,
+    }
 
 
 def identify_fv_interface_residues(
@@ -339,73 +470,59 @@ def identify_fv_interface_residues(
     exclude_cdr_resnums: dict[str, set[int]] | None = None,
     pisa_config: PisaConfig | None = None,
     session_name: str | None = None,
+    interface_scope: str = INTERFACE_SCOPE_FV,
+    ch1_len: int = 101,
+    cl_len: int = 113,
 ) -> dict[str, Any]:
     """
-    Run PISA on a WT Fv structure and return buried interface residues per chain.
+    Run PISA on a WT Fab structure and return buried interface residues per chain.
 
-    Parameters
-    ----------
-    exclude_cdr_resnums:
-        Optional map chain_id → set of CDR residue numbers to drop (framework only).
+    For ``interface_scope='full_fab'``, delegates to :func:`identify_fab_interface_residues`
+    and returns CH1/CL interface residues in addition to VH/VL.
     """
-    cfg = pisa_config or PisaConfig()
-    max_resnum = {chain_a: vh_len, chain_b: vl_len}
-    try:
-        xml_text = run_pisa_interfaces_xml(
+    if interface_scope == INTERFACE_SCOPE_FULL_FAB:
+        return identify_fab_interface_residues(
             structure_path,
             work_dir=work_dir,
-            score_fv_only=cfg.score_fv_only,
-            fv_chains=(chain_a, chain_b),
-            use_docker=cfg.use_docker,
-            docker_image=cfg.docker_image,
-            pisa_cfg=cfg.pisa_cfg,
-            pisa_binary=cfg.pisa_binary,
-            session_name=session_name or "wt_fv_interface",
+            interface_scope=interface_scope,
+            chain_lengths={"A": vh_len, "B": vl_len, "C": ch1_len, "D": cl_len},
+            min_buried_sasa_A2=min_buried_sasa_A2,
+            exclude_cdr_resnums=exclude_cdr_resnums,
+            pisa_config=pisa_config,
+            session_name=session_name,
         )
-    except RuntimeError as exc:
-        return {"pisa_status": "unavailable", "pisa_error": str(exc)}
 
-    try:
-        interfaces = parse_pisa_interfaces_xml(xml_text)
-    except ET.ParseError as exc:
-        return {"pisa_status": "parse_error", "pisa_error": str(exc)}
-
-    iface = select_chain_pair_interface(interfaces, chain_a, chain_b)
-    if iface is None:
-        return {
-            "pisa_status": "no_ab_interface",
-            "pisa_n_interfaces": len(interfaces),
-            "pisa_chain_pairs": [i.get("chain_ids") for i in interfaces],
-        }
-
-    buried = buried_interface_residues(
-        iface,
-        chain_a,
-        chain_b,
+    result = identify_fab_interface_residues(
+        structure_path,
+        work_dir=work_dir,
+        interface_scope=INTERFACE_SCOPE_FV,
+        chain_lengths={chain_a: vh_len, chain_b: vl_len},
         min_buried_sasa_A2=min_buried_sasa_A2,
-        max_resnum=max_resnum,
+        exclude_cdr_resnums=exclude_cdr_resnums,
+        pisa_config=pisa_config,
+        session_name=session_name or "wt_fv_interface",
     )
-    framework: dict[str, list[int]] = {}
-    residue_bsa_by_chain: dict[str, dict[int, float]] = {}
-    for chain in (chain_a, chain_b):
-        nums = buried.get(chain, [])
-        if exclude_cdr_resnums and chain in exclude_cdr_resnums:
-            skip = exclude_cdr_resnums[chain]
-            nums = [r for r in nums if r not in skip]
-        framework[chain] = nums
-        residue_bsa_by_chain[chain] = {
-            r: v for r, v in residue_buried_sasa(iface, chain).items() if r in nums
-        }
+    if result.get("pisa_status") != "ok":
+        return result
 
+    vh_vl = result.get("interfaces", {}).get("vh_vl", {})
+    framework = result.get("framework_interface_residues", {})
+    bsa = result.get("residue_buried_sasa_A2", {})
     return {
         "pisa_status": "ok",
-        "pisa_int_area_A2": iface.get("int_area_A2"),
-        "pisa_int_solv_en_kcal": iface.get("int_solv_en_kcal"),
-        "pisa_interface_id": iface.get("id"),
-        "buried_interface_residues": buried,
-        "framework_interface_residues": framework,
-        "residue_buried_sasa_A2": residue_bsa_by_chain,
-        "pisa_xml_text": xml_text,
+        "pisa_int_area_A2": vh_vl.get("pisa_int_area_A2"),
+        "pisa_int_solv_en_kcal": vh_vl.get("pisa_int_solv_en_kcal"),
+        "pisa_interface_id": vh_vl.get("pisa_interface_id"),
+        "buried_interface_residues": vh_vl.get("buried_interface_residues", {}),
+        "framework_interface_residues": {
+            chain_a: framework.get(chain_a, []),
+            chain_b: framework.get(chain_b, []),
+        },
+        "residue_buried_sasa_A2": {
+            chain_a: bsa.get(chain_a, {}),
+            chain_b: bsa.get(chain_b, {}),
+        },
+        "pisa_xml_text": result.get("pisa_xml_text", ""),
     }
 
 
