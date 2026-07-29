@@ -40,18 +40,15 @@ cp -f "$PIPELINE/../scripts/build_boltz_stage_0_inputs.py" "$PIPELINE/scripts/" 
 
 echo ""
 echo "=== Step 0: Build Stage 0 targets (PISA WT interface → MPNN residue set) ==="
-docker run --rm \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v "$PIPELINE:/workspace" \
-    -e PYTHONPATH=/workspace \
-    rosettacommons/foundry:latest \
-    python3 /workspace/scripts/build_stage_0_design_target.py \
-        --source-pdb /workspace/structures/1N8Z.pdb \
-        --out-pdb "/workspace/inputs/$INPUT_PDB_NAME" \
-        --out-split-pdb "/workspace/inputs/$SPLIT_PDB_NAME" \
-        --out-json "/workspace/inputs/$CONFIG_JSON" \
-        --n-mpnn-seqs "$N_MPNN_SEQS" \
-        --top-n-boltz "$TOP_N"
+pip install -q "numpy<2" "networkx>=3.0" biopython biotite 2>/dev/null || true
+export PYTHONPATH="$PIPELINE:$PYTHONPATH"
+python3 "$PIPELINE/scripts/build_stage_0_design_target.py" \
+    --source-pdb "$PIPELINE/structures/1N8Z.pdb" \
+    --out-pdb "$PIPELINE/inputs/$INPUT_PDB_NAME" \
+    --out-split-pdb "$PIPELINE/inputs/$SPLIT_PDB_NAME" \
+    --out-json "$PIPELINE/inputs/$CONFIG_JSON" \
+    --n-mpnn-seqs "$N_MPNN_SEQS" \
+    --top-n-boltz "$TOP_N"
 
 python3 - <<'PYEOF'
 import json, os, sys
