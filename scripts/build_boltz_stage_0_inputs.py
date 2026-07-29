@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 
 from binary_antibodies.stage_0_scoring import (  # noqa: E402
     NativeFvReference,
+    load_interface_fw_lists,
     static_interface_contacts_heavy,
 )
 
@@ -44,7 +45,8 @@ def main() -> None:
     epitope = native.get("T", "")
     top_n = args.top_n or int(os.environ.get("TOP_N", cfg.get("split_mpnn", {}).get("top_n_boltz", 100)))
 
-    ref = NativeFvReference(ref_path)
+    vh_iface, vl_iface = load_interface_fw_lists(config_path)
+    ref = NativeFvReference(ref_path, vh_iface, vl_iface)
     data = json.loads(mpnn_path.read_text())
     if isinstance(data, dict):
         data = data.get("sequences", [])
@@ -54,7 +56,13 @@ def main() -> None:
         seq_a = chains.get("A", "")
         seq_b = chains.get("B", "")
         static_c = static_interface_contacts_heavy(
-            ref.aa, seq_a, seq_b, ref.native_seq_a, ref.native_seq_b
+            ref.aa,
+            seq_a,
+            seq_b,
+            ref.native_seq_a,
+            ref.native_seq_b,
+            vh_iface=ref.vh_iface_fw,
+            vl_iface=ref.vl_iface_fw,
         )
         r["static_vh_vl_interface_contacts"] = round(static_c, 2)
         r["static_fraction_of_native"] = round(static_c / ref.native_static_contacts, 4)

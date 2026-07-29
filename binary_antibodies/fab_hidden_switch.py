@@ -29,8 +29,10 @@ FAB_PDB = ROOT / "structures" / "1N8Z.pdb"
 VH_VL_CONTACTS_CSV = ROOT / "structures" / "interface" / "vh_vl_contacts.csv"
 
 # Tightest framework-interface pairs (min heavy-atom distance, Å) kept native during degrease.
-INTERFACE_CORE_MAX_HEAVY_A = 3.35  # conservative (14 rim residues)
+INTERFACE_CORE_MAX_HEAVY_A = 3.35  # conservative (14 rim residues) — contact distance Å
 INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE = 3.20  # aggressive (19 rim residues)
+PISA_CORE_MIN_BURIED_SASA_A2 = 10.0  # keep native on deeply buried PISA interface residues
+PISA_CORE_MIN_BURIED_SASA_A2_AGGRESSIVE = 5.0
 DEFAULT_SPLIT_SEPARATION_A = 30.0
 
 VH_END = 113
@@ -101,13 +103,15 @@ def interface_closure_core(
     vh_len: int = VH_END,
     vl_len: int = VL_END,
     max_heavy_a: float = INTERFACE_CORE_MAX_HEAVY_A,
+    vh_interface_fw: list[int] | None = None,
+    vl_interface_fw: list[int] | None = None,
 ) -> tuple[list[int], list[int]]:
     """
     Deepest-buried VH/VL framework-interface residues — keep native sequence during
     partial de-greasing so holo closure remains plausible.
     """
-    vh_set = {r for r in VH_INTERFACE_FW if r <= vh_len}
-    vl_set = {r for r in VL_INTERFACE_FW if r <= vl_len}
+    vh_set = {r for r in (vh_interface_fw or VH_INTERFACE_FW) if r <= vh_len}
+    vl_set = {r for r in (vl_interface_fw or VL_INTERFACE_FW) if r <= vl_len}
     vh_core: set[int] = set()
     vl_core: set[int] = set()
     for row in _contact_rows():
@@ -121,18 +125,42 @@ def interface_closure_core(
     return sorted(vh_core), sorted(vl_core)
 
 
+def pisa_closure_core(
+    residue_bsa: dict[str, dict[int, float]],
+    vh_interface_fw: list[int],
+    vl_interface_fw: list[int],
+    core_min_buried_sasa_A2: float = PISA_CORE_MIN_BURIED_SASA_A2,
+) -> tuple[list[int], list[int]]:
+    """Keep native sequence on PISA interface residues with highest buried SASA."""
+    vh_core = sorted(
+        r for r in vh_interface_fw if residue_bsa.get("A", {}).get(r, 0.0) >= core_min_buried_sasa_A2
+    )
+    vl_core = sorted(
+        r for r in vl_interface_fw if residue_bsa.get("B", {}).get(r, 0.0) >= core_min_buried_sasa_A2
+    )
+    return vh_core, vl_core
+
+
 def interface_degrease_residues(
     chain: str,
     vh_len: int = VH_END,
     vl_len: int = VL_END,
     max_heavy_a: float = INTERFACE_CORE_MAX_HEAVY_A,
+    vh_interface_fw: list[int] | None = None,
+    vl_interface_fw: list[int] | None = None,
+    vh_core: list[int] | None = None,
+    vl_core: list[int] | None = None,
 ) -> list[str]:
     """Rim interface framework residues to redesign on separated Fv chains."""
     if chain not in {"A", "B"}:
         raise ValueError(f"Unsupported chain: {chain}")
-    iface = VH_INTERFACE_FW if chain == "A" else VL_INTERFACE_FW
+    iface = (vh_interface_fw or VH_INTERFACE_FW) if chain == "A" else (vl_interface_fw or VL_INTERFACE_FW)
     length = vh_len if chain == "A" else vl_len
-    vh_core, vl_core = interface_closure_core(vh_len, vl_len, max_heavy_a=max_heavy_a)
+    if vh_core is None or vl_core is None:
+        vh_core, vl_core = interface_closure_core(
+            vh_len, vl_len, max_heavy_a=max_heavy_a,
+            vh_interface_fw=vh_interface_fw, vl_interface_fw=vl_interface_fw,
+        )
     core = vh_core if chain == "A" else vl_core
     return [f"{chain}{r}" for r in iface if r <= length and r not in core]
 
@@ -141,17 +169,36 @@ def split_mpnn_designed_residues(
     vh_len: int = VH_END,
     vl_len: int = VL_END,
     max_heavy_a: float = INTERFACE_CORE_MAX_HEAVY_A,
+    vh_interface_fw: list[int] | None = None,
+    vl_interface_fw: list[int] | None = None,
+    vh_core: list[int] | None = None,
+    vl_core: list[int] | None = None,
 ) -> list[str]:
-    return interface_degrease_residues("A", vh_len, vl_len, max_heavy_a) + interface_degrease_residues(
-        "B", vh_len, vl_len, max_heavy_a
+    return interface_degrease_residues(
+        "A", vh_len, vl_len, max_heavy_a,
+        vh_interface_fw=vh_interface_fw, vl_interface_fw=vl_interface_fw,
+        vh_core=vh_core, vl_core=vl_core,
+    ) + interface_degrease_residues(
+        "B", vh_len, vl_len, max_heavy_a,
+        vh_interface_fw=vh_interface_fw, vl_interface_fw=vl_interface_fw,
+        vh_core=vh_core, vl_core=vl_core,
     )
 
 
-def interface_design_residues(vh_len: int = VH_END, vl_len: int = VL_END) -> list[str]:
+def interface_design_residues(
+    vh_len: int = VH_END,
+    vl_len: int = VL_END,
+    vh_interface_fw: list[int] | None = None,
+    vl_interface_fw: list[int] | None = None,
+) -> list[str]:
     """All VH/VL framework interface positions on-chain (CDRs excluded)."""
-    vh = [f"A{r}" for r in VH_INTERFACE_FW if r <= vh_len]
-    vl = [f"B{r}" for r in VL_INTERFACE_FW if r <= vl_len]
+    vh = [f"A{r}" for r in (vh_interface_fw or VH_INTERFACE_FW) if r <= vh_len]
+    vl = [f"B{r}" for r in (vl_interface_fw or VL_INTERFACE_FW) if r <= vl_len]
     return vh + vl
+
+
+def cdr_residue_set(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> set[int]:
+    return set(cdr_residue_numbers(chain, vh_len, vl_len))
 
 
 def extract_chain_sequences(pdb_path: Path) -> dict[str, str]:

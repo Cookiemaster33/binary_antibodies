@@ -103,6 +103,18 @@ def load_filters(config_path: Path | None) -> dict:
     return filters
 
 
+def load_interface_fw_lists(config_path: Path | None) -> tuple[list[int], list[int]]:
+    """Load VH/VL framework interface residue lists from config (PISA or legacy)."""
+    if config_path and config_path.exists():
+        cfg = json.loads(config_path.read_text())
+        idef = cfg.get("interface_definition", {})
+        vh = idef.get("vh_framework_interface")
+        vl = idef.get("vl_framework_interface")
+        if vh and vl:
+            return list(vh), list(vl)
+    return list(VH_INTERFACE_FW), list(VL_INTERFACE_FW)
+
+
 def chain_ca(aa, chain_id: str, resnums: list[int] | None = None) -> dict[int, np.ndarray]:
     mask = (aa.chain_id == chain_id) & (aa.atom_name == "CA")
     out: dict[int, np.ndarray] = {}
@@ -113,16 +125,16 @@ def chain_ca(aa, chain_id: str, resnums: list[int] | None = None) -> dict[int, n
     return out
 
 
-def _interface_residue_set(chain: str) -> set[int]:
-    return set(VH_INTERFACE_FW if chain == "A" else VL_INTERFACE_FW)
+def _interface_residue_set(chain: str, vh_iface: list[int], vl_iface: list[int]) -> set[int]:
+    return set(vh_iface if chain == "A" else vl_iface)
 
 
-def interface_contacts_heavy(aa) -> int:
+def interface_contacts_heavy(aa, vh_iface: list[int], vl_iface: list[int]) -> int:
     """Heavy-atom contacts between VH/VL framework interface residues (< 5 Å)."""
-    vh_iface = _interface_residue_set("A")
-    vl_iface = _interface_residue_set("B")
-    vh_atoms = aa[(aa.chain_id == "A") & np.isin(aa.res_id, list(vh_iface)) & (aa.element != "H")]
-    vl_atoms = aa[(aa.chain_id == "B") & np.isin(aa.res_id, list(vl_iface)) & (aa.element != "H")]
+    vh_set = _interface_residue_set("A", vh_iface, vl_iface)
+    vl_set = _interface_residue_set("B", vh_iface, vl_iface)
+    vh_atoms = aa[(aa.chain_id == "A") & np.isin(aa.res_id, list(vh_set)) & (aa.element != "H")]
+    vl_atoms = aa[(aa.chain_id == "B") & np.isin(aa.res_id, list(vl_set)) & (aa.element != "H")]
     if len(vh_atoms) == 0 or len(vl_atoms) == 0:
         return 0
     count = 0
@@ -132,9 +144,14 @@ def interface_contacts_heavy(aa) -> int:
     return count
 
 
-def interface_centroid_distance(vh_ca: dict[int, np.ndarray], vl_ca: dict[int, np.ndarray]) -> float:
-    vh_pts = [vh_ca[r] for r in VH_INTERFACE_FW if r in vh_ca]
-    vl_pts = [vl_ca[r] for r in VL_INTERFACE_FW if r in vl_ca]
+def interface_centroid_distance(
+    vh_ca: dict[int, np.ndarray],
+    vl_ca: dict[int, np.ndarray],
+    vh_iface: list[int],
+    vl_iface: list[int],
+) -> float:
+    vh_pts = [vh_ca[r] for r in vh_iface if r in vh_ca]
+    vl_pts = [vl_ca[r] for r in vl_iface if r in vl_ca]
     if not vh_pts or not vl_pts:
         return float("nan")
     return float(np.linalg.norm(np.mean(vh_pts, axis=0) - np.mean(vl_pts, axis=0)))
@@ -179,12 +196,17 @@ def count_inter_chain_clashes(
     return clashes
 
 
-def count_vh_vl_interface_clashes(aa, cutoff: float = INTERFACE_CLASH_CUTOFF_A) -> int:
+def count_vh_vl_interface_clashes(
+    aa,
+    vh_iface: list[int],
+    vl_iface: list[int],
+    cutoff: float = INTERFACE_CLASH_CUTOFF_A,
+) -> int:
     from scipy.spatial import cKDTree
 
     heavy = aa[aa.element != "H"]
-    vh = heavy[(heavy.chain_id == "A") & np.isin(heavy.res_id, list(VH_INTERFACE_FW))]
-    vl = heavy[(heavy.chain_id == "B") & np.isin(heavy.res_id, list(VL_INTERFACE_FW))]
+    vh = heavy[(heavy.chain_id == "A") & np.isin(heavy.res_id, list(vh_iface))]
+    vl = heavy[(heavy.chain_id == "B") & np.isin(heavy.res_id, list(vl_iface))]
     if len(vh) == 0 or len(vl) == 0:
         return 0
     tree = cKDTree(vl.coord)
@@ -277,6 +299,8 @@ def static_interface_contacts_heavy(
     seq_b: str,
     wt_a: str | None = None,
     wt_b: str | None = None,
+    vh_iface: list[int] | None = None,
+    vl_iface: list[int] | None = None,
 ) -> float:
     """
     Predict VH–VL interface contacts on the native Fab geometry, weighting each
@@ -285,16 +309,18 @@ def static_interface_contacts_heavy(
     if wt_a is None or wt_b is None:
         wt_a = seq_a
         wt_b = seq_b
-    vh_iface = _interface_residue_set("A")
-    vl_iface = _interface_residue_set("B")
+    vh_list = vh_iface or VH_INTERFACE_FW
+    vl_list = vl_iface or VL_INTERFACE_FW
+    vh_set = set(vh_list)
+    vl_set = set(vl_list)
     vh_atoms = aa_template[
         (aa_template.chain_id == "A")
-        & np.isin(aa_template.res_id, list(vh_iface))
+        & np.isin(aa_template.res_id, list(vh_set))
         & (aa_template.element != "H")
     ]
     vl_atoms = aa_template[
         (aa_template.chain_id == "B")
-        & np.isin(aa_template.res_id, list(vl_iface))
+        & np.isin(aa_template.res_id, list(vl_set))
         & (aa_template.element != "H")
     ]
     if len(vh_atoms) == 0 or len(vl_atoms) == 0:
@@ -335,25 +361,38 @@ def _ca_rmsd(
 class NativeFvReference:
     """Native VH+VL framework from the Stage 0 design target PDB."""
 
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self,
+        path: Path,
+        vh_iface_fw: list[int] | None = None,
+        vl_iface_fw: list[int] | None = None,
+    ) -> None:
         self.path = path
+        self.vh_iface_fw = list(vh_iface_fw or VH_INTERFACE_FW)
+        self.vl_iface_fw = list(vl_iface_fw or VL_INTERFACE_FW)
         aa = load_structure(path)
         self.aa = aa
         self.vh_ca = _collect_fv_framework_ca(aa, "A")
         self.vl_ca = _collect_fv_framework_ca(aa, "B")
         self.vh_cdr_ca = _collect_fv_cdr_ca(aa, "A")
         self.vl_cdr_ca = _collect_fv_cdr_ca(aa, "B")
-        self.vh_iface_ca = chain_ca(aa, "A", VH_INTERFACE_FW)
-        self.vl_iface_ca = chain_ca(aa, "B", VL_INTERFACE_FW)
+        self.vh_iface_ca = chain_ca(aa, "A", self.vh_iface_fw)
+        self.vl_iface_ca = chain_ca(aa, "B", self.vl_iface_fw)
         self.vh_fw_nums = fv_framework_residue_numbers("A")
         self.vl_fw_nums = fv_framework_residue_numbers("B")
         self.vh_cdr_nums = cdr_residue_numbers("A")
         self.vl_cdr_nums = cdr_residue_numbers("B")
-        self.native_wt_contacts = interface_contacts_heavy(aa)
+        self.native_wt_contacts = interface_contacts_heavy(aa, self.vh_iface_fw, self.vl_iface_fw)
         self.native_seq_a = _chain_sequence(aa, "A")
         self.native_seq_b = _chain_sequence(aa, "B")
         self.native_static_contacts = static_interface_contacts_heavy(
-            aa, self.native_seq_a, self.native_seq_b, self.native_seq_a, self.native_seq_b
+            aa,
+            self.native_seq_a,
+            self.native_seq_b,
+            self.native_seq_a,
+            self.native_seq_b,
+            vh_iface=self.vh_iface_fw,
+            vl_iface=self.vl_iface_fw,
         )
 
     def holo_fv_rmsd_metrics(self, aa) -> dict[str, float]:
@@ -468,23 +507,29 @@ def score_structure(
     *,
     has_epitope: bool,
     ref: NativeFvReference | None = None,
+    vh_iface: list[int] | None = None,
+    vl_iface: list[int] | None = None,
 ) -> dict:
     aa = load_structure(path)
     vh_ca = chain_ca(aa, "A")
     vl_ca = chain_ca(aa, "B")
+    vh_list = vh_iface or (ref.vh_iface_fw if ref is not None else VH_INTERFACE_FW)
+    vl_list = vl_iface or (ref.vl_iface_fw if ref is not None else VL_INTERFACE_FW)
     metrics: dict = {
         "structure": path.name,
-        "vh_vl_interface_contacts": interface_contacts_heavy(aa),
+        "vh_vl_interface_contacts": interface_contacts_heavy(aa, vh_list, vl_list),
         "vh_vl_interface_centroid_distance": interface_centroid_distance(
-            chain_ca(aa, "A", VH_INTERFACE_FW),
-            chain_ca(aa, "B", VL_INTERFACE_FW),
+            chain_ca(aa, "A", vh_list),
+            chain_ca(aa, "B", vl_list),
+            vh_list,
+            vl_list,
         ),
         "vh_vl_fr4_ca_distance": fr4_ca_distance(vh_ca, vl_ca),
         "inter_chain_clashes_4A": count_inter_chain_clashes(aa),
     }
     if has_epitope:
         metrics["cdr_epitope_contacts"] = count_cdr_epitope_contacts(aa)
-        metrics["vh_vl_interface_clashes"] = count_vh_vl_interface_clashes(aa)
+        metrics["vh_vl_interface_clashes"] = count_vh_vl_interface_clashes(aa, vh_list, vl_list)
         if ref is not None:
             metrics.update(ref.holo_fv_rmsd_metrics(aa))
     return metrics
@@ -552,7 +597,13 @@ def score_design(
     rec: dict = {"design_id": design_id}
     if seq_a and seq_b:
         static_c = static_interface_contacts_heavy(
-            ref.aa, seq_a, seq_b, ref.native_seq_a, ref.native_seq_b
+            ref.aa,
+            seq_a,
+            seq_b,
+            ref.native_seq_a,
+            ref.native_seq_b,
+            vh_iface=ref.vh_iface_fw,
+            vl_iface=ref.vl_iface_fw,
         )
         rec["static_vh_vl_interface_contacts"] = round(static_c, 2)
         rec["chains"] = {"A": seq_a, "B": seq_b}
@@ -670,10 +721,11 @@ def main() -> None:
     ref_path = args.reference_pdb or (ROOT / "structures/domains/fab_stage_0_vhvL_interface.pdb")
     config_path = args.config_json or (ROOT / "structures/interface/stage_0_vhvL_interface_config.json")
     filters = load_filters(config_path)
+    vh_iface, vl_iface = load_interface_fw_lists(config_path)
     pisa_cfg = load_pisa_config(config_path)
     if args.skip_pisa:
         pisa_cfg = PisaConfig(enabled=False)
-    ref = NativeFvReference(ref_path)
+    ref = NativeFvReference(ref_path, vh_iface, vl_iface)
     seq_lookup = load_sequence_lookup(pipeline)
     pisa_work_root = pipeline / pisa_cfg.work_subdir
     native_pisa = score_native_pisa(ref_path, pisa_cfg, pisa_work_root)
@@ -713,6 +765,10 @@ def main() -> None:
             "native_reference": native_pisa,
         },
         "reference_pdb": str(ref_path),
+        "interface_definition": {
+            "vh_framework_interface": ref.vh_iface_fw,
+            "vl_framework_interface": ref.vl_iface_fw,
+        },
         "native_wt_interface_contacts": ref.native_wt_contacts,
         "native_static_interface_contacts": round(ref.native_static_contacts, 2),
         "designs": top,

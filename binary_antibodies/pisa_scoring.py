@@ -97,12 +97,27 @@ def parse_pisa_interfaces_xml(xml_text: str) -> list[dict[str, Any]]:
             chain_id = (mol.findtext("chain_id") or "").strip()
             if chain_id:
                 chain_ids.add(chain_id)
+            residues = []
+            for res in mol.findall(".//residue"):
+                seq_num = _safe_int(res.findtext("seq_num"))
+                if seq_num is None:
+                    continue
+                residues.append(
+                    {
+                        "seq_num": seq_num,
+                        "name": (res.findtext("name") or "").strip(),
+                        "bsa_A2": _safe_float(res.findtext("bsa")),
+                        "asa_A2": _safe_float(res.findtext("asa")),
+                        "solv_en_kcal": _safe_float(res.findtext("solv_en")),
+                    }
+                )
             molecules.append(
                 {
                     "chain_id": chain_id,
                     "int_nres": _safe_int(mol.findtext("int_nres")),
                     "int_area": _safe_float(mol.findtext("int_area")),
                     "int_solv_en": _safe_float(mol.findtext("int_solv_en")),
+                    "residues": residues,
                 }
             )
 
@@ -125,6 +140,53 @@ def parse_pisa_interfaces_xml(xml_text: str) -> list[dict[str, Any]]:
             }
         )
     return interfaces
+
+
+def buried_interface_residues(
+    iface: dict[str, Any],
+    chain_a: str,
+    chain_b: str,
+    *,
+    min_buried_sasa_A2: float = 0.0,
+    max_resnum: dict[str, int] | None = None,
+) -> dict[str, list[int]]:
+    """
+    Residue numbers per chain with PISA buried surface area (BSA) at the interface.
+
+    Uses the molecule/residue lists from a PISA interface record.
+    """
+    out: dict[str, set[int]] = {chain_a: set(), chain_b: set()}
+    want = {chain_a, chain_b}
+    for mol in iface.get("molecules", []):
+        cid = mol.get("chain_id")
+        if cid not in want:
+            continue
+        for res in mol.get("residues", []):
+            seq_num = res.get("seq_num")
+            bsa = res.get("bsa_A2")
+            if seq_num is None or bsa is None or bsa <= min_buried_sasa_A2:
+                continue
+            if max_resnum and cid in max_resnum and seq_num > max_resnum[cid]:
+                continue
+            out[cid].add(int(seq_num))
+    return {chain: sorted(nums) for chain, nums in out.items()}
+
+
+def residue_buried_sasa(
+    iface: dict[str, Any],
+    chain_id: str,
+) -> dict[int, float]:
+    """Map residue number → buried SASA (Å²) for one chain at the interface."""
+    bsa: dict[int, float] = {}
+    for mol in iface.get("molecules", []):
+        if mol.get("chain_id") != chain_id:
+            continue
+        for res in mol.get("residues", []):
+            seq_num = res.get("seq_num")
+            val = res.get("bsa_A2")
+            if seq_num is not None and val is not None and val > 0:
+                bsa[int(seq_num)] = float(val)
+    return bsa
 
 
 def select_chain_pair_interface(
@@ -238,6 +300,115 @@ def _run_pisa_docker(
     return proc.stdout
 
 
+def run_pisa_interfaces_xml(
+    structure_path: Path,
+    *,
+    work_dir: Path,
+    score_fv_only: bool = True,
+    fv_chains: tuple[str, str] = ("A", "B"),
+    use_docker: bool = True,
+    docker_image: str = DEFAULT_PISA_IMAGE,
+    pisa_cfg: str = DEFAULT_PISA_CFG,
+    pisa_binary: str = "pisa",
+    session_name: str | None = None,
+) -> str:
+    """Run PISA --as-is and return interfaces XML text."""
+    work_dir.mkdir(parents=True, exist_ok=True)
+    input_path = structure_path
+    if score_fv_only:
+        input_path = work_dir / f"{structure_path.stem}_fv_AB.pdb"
+        extract_fv_structure(structure_path, input_path, chains=fv_chains)
+
+    session = _sanitize_session_name(session_name or structure_path.stem)
+    if use_docker and shutil.which("docker"):
+        return _run_pisa_docker(session, input_path, work_dir, pisa_cfg, docker_image)
+    if shutil.which(pisa_binary):
+        return _run_pisa_local(session, input_path.resolve(), work_dir, pisa_cfg, pisa_binary)
+    raise RuntimeError("PISA unavailable: docker and local pisa binary not found")
+
+
+def identify_fv_interface_residues(
+    structure_path: Path,
+    *,
+    work_dir: Path,
+    chain_a: str = "A",
+    chain_b: str = "B",
+    vh_len: int = 113,
+    vl_len: int = 107,
+    min_buried_sasa_A2: float = 0.0,
+    exclude_cdr_resnums: dict[str, set[int]] | None = None,
+    pisa_config: PisaConfig | None = None,
+    session_name: str | None = None,
+) -> dict[str, Any]:
+    """
+    Run PISA on a WT Fv structure and return buried interface residues per chain.
+
+    Parameters
+    ----------
+    exclude_cdr_resnums:
+        Optional map chain_id → set of CDR residue numbers to drop (framework only).
+    """
+    cfg = pisa_config or PisaConfig()
+    max_resnum = {chain_a: vh_len, chain_b: vl_len}
+    try:
+        xml_text = run_pisa_interfaces_xml(
+            structure_path,
+            work_dir=work_dir,
+            score_fv_only=cfg.score_fv_only,
+            fv_chains=(chain_a, chain_b),
+            use_docker=cfg.use_docker,
+            docker_image=cfg.docker_image,
+            pisa_cfg=cfg.pisa_cfg,
+            pisa_binary=cfg.pisa_binary,
+            session_name=session_name or "wt_fv_interface",
+        )
+    except RuntimeError as exc:
+        return {"pisa_status": "unavailable", "pisa_error": str(exc)}
+
+    try:
+        interfaces = parse_pisa_interfaces_xml(xml_text)
+    except ET.ParseError as exc:
+        return {"pisa_status": "parse_error", "pisa_error": str(exc)}
+
+    iface = select_chain_pair_interface(interfaces, chain_a, chain_b)
+    if iface is None:
+        return {
+            "pisa_status": "no_ab_interface",
+            "pisa_n_interfaces": len(interfaces),
+            "pisa_chain_pairs": [i.get("chain_ids") for i in interfaces],
+        }
+
+    buried = buried_interface_residues(
+        iface,
+        chain_a,
+        chain_b,
+        min_buried_sasa_A2=min_buried_sasa_A2,
+        max_resnum=max_resnum,
+    )
+    framework: dict[str, list[int]] = {}
+    residue_bsa_by_chain: dict[str, dict[int, float]] = {}
+    for chain in (chain_a, chain_b):
+        nums = buried.get(chain, [])
+        if exclude_cdr_resnums and chain in exclude_cdr_resnums:
+            skip = exclude_cdr_resnums[chain]
+            nums = [r for r in nums if r not in skip]
+        framework[chain] = nums
+        residue_bsa_by_chain[chain] = {
+            r: v for r, v in residue_buried_sasa(iface, chain).items() if r in nums
+        }
+
+    return {
+        "pisa_status": "ok",
+        "pisa_int_area_A2": iface.get("int_area_A2"),
+        "pisa_int_solv_en_kcal": iface.get("int_solv_en_kcal"),
+        "pisa_interface_id": iface.get("id"),
+        "buried_interface_residues": buried,
+        "framework_interface_residues": framework,
+        "residue_buried_sasa_A2": residue_bsa_by_chain,
+        "pisa_xml_text": xml_text,
+    }
+
+
 def score_vh_vl_pisa(
     structure_path: Path,
     *,
@@ -257,25 +428,20 @@ def score_vh_vl_pisa(
     Negative int_solv_en_kcal indicates a favorable interface; weaker designs are
     less negative (higher) than native WT.
     """
-    import numpy as np  # noqa: F401 — biotite dependency
-
-    work_dir.mkdir(parents=True, exist_ok=True)
-    input_path = structure_path
-    if score_fv_only:
-        input_path = work_dir / f"{structure_path.stem}_fv_AB.pdb"
-        extract_fv_structure(structure_path, input_path, chains=(chain_a, chain_b))
-
-    session = _sanitize_session_name(session_name or structure_path.stem)
-
-    if use_docker and shutil.which("docker"):
-        xml_text = _run_pisa_docker(session, input_path, work_dir, pisa_cfg, docker_image)
-    elif shutil.which(pisa_binary):
-        xml_text = _run_pisa_local(session, input_path.resolve(), work_dir, pisa_cfg, pisa_binary)
-    else:
-        return {
-            "pisa_status": "unavailable",
-            "pisa_error": "docker and local pisa binary not found",
-        }
+    try:
+        xml_text = run_pisa_interfaces_xml(
+            structure_path,
+            work_dir=work_dir,
+            score_fv_only=score_fv_only,
+            fv_chains=(chain_a, chain_b),
+            use_docker=use_docker,
+            docker_image=docker_image,
+            pisa_cfg=pisa_cfg,
+            pisa_binary=pisa_binary,
+            session_name=session_name,
+        )
+    except RuntimeError as exc:
+        return {"pisa_status": "unavailable", "pisa_error": str(exc)}
 
     try:
         interfaces = parse_pisa_interfaces_xml(xml_text)

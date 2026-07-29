@@ -26,13 +26,14 @@ weaken      hub design    (de novo)
 
 **Design (no RFd3):**
 1. Build native Fab context PDB (`fab_stage_0_vhvL_interface.pdb`)
-2. Build **split Fv** PDB with VH/VL translated 30 Å apart (`fab_stage_0_split_mpnn.pdb`)
-3. **ProteinMPNN** redesigns interface framework residues; **closure core** stays native in partial modes
-   - **Whole interface (default):** all ~23 interface FW residues
-   - **Aggressive:** core ≤ 3.20 Å → **19** rim residues
-   - **Conservative:** `--conservative` → core ≤ 3.35 Å → **14** rim residues
-4. Rank MPNN output by **predicted static VH–VL contacts** on the native Fab backbone (weakest first)
-5. **Boltz holo only:** A+B+C+D+T
+2. **PISA on WT Fv (chains A+B):** buried SASA at the VH–VL interface defines framework interface residues (CDRs excluded). Written to `interface_definition` in the Stage 0 config; falls back to legacy contact lists if PISA/Docker is unavailable.
+3. Build **split Fv** PDB with VH/VL translated 30 Å apart (`fab_stage_0_split_mpnn.pdb`)
+4. **ProteinMPNN** redesigns PISA-defined interface framework residues; **closure core** stays native in partial modes
+   - **Whole interface (default):** all PISA framework interface residues
+   - **Aggressive:** PISA core (BSA ≥ 5 Å²) fixed → rim redesigned
+   - **Conservative:** PISA core (BSA ≥ 10 Å²) fixed → rim redesigned
+5. Rank MPNN output by **predicted static VH–VL contacts** on the native Fab backbone (weakest first)
+6. **Boltz holo only:** A+B+C+D+T
 
 **Validation:**
 
@@ -51,7 +52,8 @@ We select on **lowest static interface contacts** among designs passing holo fil
 
 **Build & launch:**
 ```bash
-python scripts/build_stage_0_design_target.py
+python scripts/build_stage_0_design_target.py          # PISA interface on by default
+python scripts/build_stage_0_design_target.py --no-pisa-interface  # legacy lists
 python scripts/launch_stage_0.py --no-wait --no-terminate
 ```
 
