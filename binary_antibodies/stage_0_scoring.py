@@ -73,7 +73,7 @@ CDR_CONTACT_CUTOFF_A = 6.0
 DEFAULT_FILTERS = {
     "max_static_fraction_of_native_contacts": 0.45,
     "max_holo_clashes_4A": 50,
-    "max_holo_fv_framework_rmsd_A": 3.5,
+    "max_holo_fv_framework_rmsd_A": 6.0,
     "max_holo_fv_cdr_rmsd_A": 6.0,
     "min_holo_cdr_epitope_contacts": 6,
     "max_holo_vh_vl_interface_clashes": 0,
@@ -791,7 +791,6 @@ def rank_key(rec: dict) -> tuple:
         -total_static,
         -static_c,
         holo.get("cdr_epitope_contacts", 0),
-        -(holo.get("holo_fv_framework_rmsd_A", 999)),
         -(holo.get("holo_fv_cdr_rmsd_A", 999)),
     )
 

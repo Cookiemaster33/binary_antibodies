@@ -13,6 +13,7 @@ exec > >(tee -a "$LOG") 2>&1
 
 N_MPNN_SEQS=${N_MPNN_SEQS:-1000}
 MPNN_BATCH=${MPNN_BATCH:-100}
+MPNN_TEMPERATURE=${MPNN_TEMPERATURE:-0.25}
 TOP_N=${TOP_N:-100}
 INPUT_PDB_NAME=${INPUT_PDB:-fab_stage_0_vhvL_interface.pdb}
 SPLIT_PDB_NAME=${SPLIT_PDB:-fab_stage_0_split_mpnn.pdb}
@@ -21,7 +22,7 @@ INTERFACE_SCOPE=${INTERFACE_SCOPE:-fv}
 
 echo "===== Stage 0 split-MPNN pipeline: $(date) ====="
 echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
-echo "MPNN: $N_MPNN_SEQS (batch $MPNN_BATCH) | Holo Boltz top: $TOP_N | scope: $INTERFACE_SCOPE"
+echo "MPNN: $N_MPNN_SEQS (batch $MPNN_BATCH, T=$MPNN_TEMPERATURE) | Holo Boltz top: $TOP_N | scope: $INTERFACE_SCOPE"
 
 mkdir -p "$PIPELINE/inputs" "$PIPELINE/outputs/mpnn_stage_0" \
          "$PIPELINE/boltz_inputs_holo" "$PIPELINE/boltz_outputs_holo" \
@@ -94,6 +95,9 @@ BATCH = int(os.environ.get("MPNN_BATCH", 100))
 OUT.mkdir(parents=True, exist_ok=True)
 
 cfg = json.load(open(CONFIG))
+TEMPERATURE = float(
+    os.environ.get("MPNN_TEMPERATURE", cfg.get("split_mpnn", {}).get("temperature", 0.25))
+)
 designed = cfg.get("split_mpnn", {}).get("designed_residues", [])
 if not designed:
     raise SystemExit("Config missing split_mpnn.designed_residues")
@@ -101,7 +105,7 @@ if not designed:
 print(f"Stage 0 split MPNN: {SPLIT_PDB}")
 print(f"  approach: {cfg.get('approach')}")
 print(f"  designed residues ({len(designed)}): {', '.join(designed[:10])}{'...' if len(designed) > 10 else ''}")
-print(f"  target sequences: {NSEQS} (batch size {BATCH})")
+print(f"  target sequences: {NSEQS} (batch size {BATCH}, temperature {TEMPERATURE})")
 
 raw = load_any(str(SPLIT_PDB))
 aa = raw[0] if hasattr(raw, "__getitem__") else raw
@@ -128,6 +132,7 @@ while remaining > 0:
     print(f"  MPNN batch: {bs} sequences ({seq_counter} done)", flush=True)
     result = engine.run(atom_arrays=[aa], input_dicts=[{
         "batch_size": bs, "remove_waters": True, "designed_residues": designed,
+        "temperature": TEMPERATURE,
     }])
     batch_results = result if isinstance(result, list) else [result]
     for r in batch_results:
@@ -169,6 +174,7 @@ docker run --rm --gpus all \
     -v "$PIPELINE:/workspace" \
     -e N_MPNN_SEQS=$N_MPNN_SEQS \
     -e MPNN_BATCH=$MPNN_BATCH \
+    -e MPNN_TEMPERATURE=$MPNN_TEMPERATURE \
     -e SPLIT_PDB=$SPLIT_PDB_NAME \
     -e CONFIG_JSON=$CONFIG_JSON \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \

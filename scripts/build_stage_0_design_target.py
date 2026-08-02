@@ -78,6 +78,7 @@ def build_config(
     description: str,
     n_mpnn_seqs: int,
     top_n_boltz: int,
+    mpnn_temperature: float,
     core_max_heavy_a: float | None,
     interface_scope: str,
     interface_definition: dict | None = None,
@@ -112,7 +113,7 @@ def build_config(
     filters = {
         "max_static_fraction_of_native_contacts": 0.45,
         "max_holo_clashes_4A": 50,
-        "max_holo_fv_framework_rmsd_A": 3.5,
+        "max_holo_fv_framework_rmsd_A": 6.0,
         "max_holo_fv_cdr_rmsd_A": 6.0,
         "min_holo_cdr_epitope_contacts": 6,
         "max_holo_vh_vl_interface_clashes": 0,
@@ -154,6 +155,7 @@ def build_config(
             "cl_closure_core": [f"D{r}" for r in cl_core],
             "n_sequences": n_mpnn_seqs,
             "top_n_boltz": top_n_boltz,
+            "temperature": mpnn_temperature,
             "mpnn_rank_by": rank_by,
         },
         "native_chain_sequences": {},
@@ -295,6 +297,12 @@ def main() -> None:
     p.add_argument("--n-mpnn-seqs", type=int, default=1000)
     p.add_argument("--top-n-boltz", type=int, default=100)
     p.add_argument(
+        "--mpnn-temperature",
+        type=float,
+        default=0.25,
+        help="ProteinMPNN sampling temperature (default 0.25; original MPNN default is 0.1)",
+    )
+    p.add_argument(
         "--pisa-interface",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -400,7 +408,8 @@ def main() -> None:
 
     config = build_config(
         vh_len, vl_len, ch1_len, cl_len, source, args.separation_A,
-        designed, approach, desc, args.n_mpnn_seqs, args.top_n_boltz, core,
+        designed, approach, desc, args.n_mpnn_seqs, args.top_n_boltz,
+        args.mpnn_temperature, core,
         effective_scope,
         interface_definition=interface_definition,
         vh_core=vh_core, vl_core=vl_core, ch1_core=ch1_core, cl_core=cl_core,
@@ -415,7 +424,7 @@ def main() -> None:
     print(f"Wrote config           → {args.out_json}")
     print(f"  approach:     {config['approach']}")
     print(f"  designed:     {len(sm['designed_residues'])} residues")
-    print(f"  MPNN / Boltz: {sm['n_sequences']} → top {sm['top_n_boltz']}")
+    print(f"  MPNN / Boltz: {sm['n_sequences']} → top {sm['top_n_boltz']} (T={sm['temperature']})")
 
 
 if __name__ == "__main__":

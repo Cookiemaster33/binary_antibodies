@@ -44,6 +44,7 @@
     "vl_closure_core": [],
     "n_sequences": 1000,
     "top_n_boltz": 100,
+    "temperature": 0.25,
     "mpnn_rank_by": "static_vh_vl_interface_contacts_asc"
   },
   "native_chain_sequences": {
@@ -82,7 +83,7 @@
     "filters": {
       "max_static_fraction_of_native_contacts": 0.45,
       "max_holo_clashes_4A": 50,
-      "max_holo_fv_framework_rmsd_A": 3.5,
+      "max_holo_fv_framework_rmsd_A": 6.0,
       "max_holo_fv_cdr_rmsd_A": 6.0,
       "min_holo_cdr_epitope_contacts": 6,
       "max_holo_vh_vl_interface_clashes": 0

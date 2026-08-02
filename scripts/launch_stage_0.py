@@ -102,9 +102,11 @@ def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> 
     return ensure_ephemeral_ssh_key(client), EPHEMERAL_KEY_NAME
 
 
-def local_build_stage_0() -> None:
+def local_build_stage_0(mpnn_temperature: float | None = None) -> None:
     """Build Stage 0 PDBs/config locally; PISA runs on Lambda when Docker is absent."""
     cmd = [sys.executable, str(ROOT / "scripts/build_stage_0_design_target.py")]
+    if mpnn_temperature is not None:
+        cmd.extend(["--mpnn-temperature", str(mpnn_temperature)])
     if not shutil.which("docker"):
         print("  Docker not found locally — skipping local PISA; Lambda will run PISA build.")
         cmd.append("--no-pisa-interface")
@@ -160,10 +162,11 @@ def run_setup(ip: str, key: str) -> None:
         time.sleep(20)
 
 
-def run_stage_0(ip: str, key: str, n_mpnn_seqs: int, top_n: int, interface_scope: str) -> None:
+def run_stage_0(ip: str, key: str, n_mpnn_seqs: int, top_n: int, interface_scope: str, mpnn_temperature: float) -> None:
     env = " ".join([
         f"N_MPNN_SEQS={n_mpnn_seqs}",
         f"TOP_N={top_n}",
+        f"MPNN_TEMPERATURE={mpnn_temperature}",
         f"INPUT_PDB={INPUT_PDB}",
         f"SPLIT_PDB={SPLIT_PDB}",
         f"CONFIG_JSON={CONFIG_JSON}",
@@ -201,6 +204,12 @@ def main() -> None:
     p.add_argument("--n-mpnn-seqs", type=int, default=1000, help="ProteinMPNN sequences to generate")
     p.add_argument("--top-n", type=int, default=100, help="Top MPNN scorers to send to Boltz")
     p.add_argument(
+        "--mpnn-temperature",
+        type=float,
+        default=0.25,
+        help="ProteinMPNN sampling temperature (default 0.25; original MPNN default is 0.1)",
+    )
+    p.add_argument(
         "--interface-scope",
         choices=["fv", "full_fab"],
         default="fv",
@@ -232,7 +241,7 @@ def main() -> None:
         client.terminate(args.instance_id)
         return
 
-    local_build_stage_0()
+    local_build_stage_0(args.mpnn_temperature)
 
     ssh_key, launch_key_name = resolve_ssh_key(client, args.ssh_key, args.ssh_key_name)
     region = pick_region(client, args.instance_type, args.region)
@@ -249,13 +258,13 @@ def main() -> None:
         ip = active["ip"]
         print(f"\nInstance {iid} @ {ip}")
         print(f"  Region: {region} | type: {args.instance_type}")
-        print(f"  MPNN sequences: {args.n_mpnn_seqs} → holo Boltz top {args.top_n} (static rank)")
+        print(f"  MPNN sequences: {args.n_mpnn_seqs} → holo Boltz top {args.top_n} (static rank, T={args.mpnn_temperature})")
         print(f"  Interface scope: {args.interface_scope}")
 
         wait_ssh(ip, ssh_key)
         upload_stage_0(ip, ssh_key)
         run_setup(ip, ssh_key)
-        run_stage_0(ip, ssh_key, args.n_mpnn_seqs, args.top_n, args.interface_scope)
+        run_stage_0(ip, ssh_key, args.n_mpnn_seqs, args.top_n, args.interface_scope, args.mpnn_temperature)
 
         print("\nMonitor:")
         print(f"  ssh -i {ssh_key} {REMOTE_USER}@{ip} 'tail -f {REMOTE_PIPELINE}/stage_0_pipeline.log'")
