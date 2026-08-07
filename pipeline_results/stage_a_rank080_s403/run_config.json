@@ -7,6 +7,6 @@
   "approach": "hidden_trivalent_minibinder_rfd3",
   "instance_id": "84063b6dd0d04cc3ad1856ad272fdf0c",
   "instance_ip": "129.213.19.69",
-  "status": "rfd3_complete_instance_left_running",
+  "status": "terminated",
   "note": "RFd3 only — MPNN/Boltz validation not run. All 200 CIFs remain on instance."
 }
