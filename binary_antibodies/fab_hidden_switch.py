@@ -20,7 +20,7 @@ from typing import Iterable
 import numpy as np
 
 try:
-    from Bio.PDB import PDBIO, PDBParser, Structure as S, Model as M, Chain as Ch, Residue as Res, Atom as At
+    from Bio.PDB import MMCIFParser, PDBIO, PDBParser, Structure as S, Model as M, Chain as Ch, Residue as Res, Atom as At
 except ImportError as e:
     raise ImportError("BioPython required: pip install biopython") from e
 
@@ -258,12 +258,20 @@ def cdr_residue_set(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> s
     return set(cdr_residue_numbers(chain, vh_len, vl_len))
 
 
+def _load_biopython_structure(path: Path):
+    """Load PDB or mmCIF into a BioPython Structure."""
+    if path.suffix.lower() in {".cif", ".mmcif"}:
+        parser = MMCIFParser(QUIET=True)
+    else:
+        parser = PDBParser(QUIET=True)
+    return parser.get_structure(path.stem, str(path))
+
+
 def extract_chain_sequences(pdb_path: Path) -> dict[str, str]:
     """One-letter sequences per chain id from a PDB/mmCIF."""
     from Bio.SeqUtils import seq1
 
-    parser = PDBParser(QUIET=True)
-    struct = parser.get_structure("seqs", str(pdb_path))
+    struct = _load_biopython_structure(pdb_path)
     model = list(struct.get_models())[0]
     out: dict[str, str] = {}
     for chain in model:
@@ -492,9 +500,8 @@ def build_fab_context_pdb(
 
     Returns (vh_len, vl_len, ch1_len, cl_len).
     """
-    parser = PDBParser(QUIET=True)
     src_path = source_pdb or FAB_PDB
-    src = parser.get_structure("src", str(src_path))
+    src = _load_biopython_structure(src_path)
     model = list(src.get_models())[0]
 
     if {"A", "B"}.issubset(model.child_dict):

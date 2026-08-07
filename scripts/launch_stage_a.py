@@ -35,6 +35,11 @@ REMOTE_TMUX = "tmux"
 GITHUB_BRANCH = "cursor/conditional-nanobody-design-992c"
 INPUT_PDB = "fab_hidden_minibinder_stage_a.pdb"
 CONFIG_JSON = "stage_a_hidden_minibinder_config.json"
+DEFAULT_STAGE0_FAB = (
+    ROOT
+    / "pipeline_results/stage_0_full_fab_t025/structures/top5_holo"
+    / "rank080_s0_native_split_s403_model_0.cif"
+)
 EPHEMERAL_KEY_NAME = "cursor-cloud-ephemeral-992c"
 EPHEMERAL_KEY_PATH = Path.home() / ".ssh" / "cursor_lambda_ephemeral"
 
@@ -184,6 +189,12 @@ def main() -> None:
     p.add_argument("--ssh-key", default=os.environ.get("LAMBDA_SSH_KEY", "~/.ssh/lambda_agent_key"))
     p.add_argument("--ssh-key-name", default="cursor-agent")
     p.add_argument("--n-designs", type=int, default=200)
+    p.add_argument(
+        "--fab-pdb",
+        type=Path,
+        default=DEFAULT_STAGE0_FAB,
+        help="Stage 0 Fab holo/apo structure (chains A–D) for build_stage_a_design_target.py",
+    )
     p.add_argument("--no-terminate", action="store_true")
     p.add_argument("--no-wait", action="store_true", help="Start pipeline and exit without waiting for completion.")
     p.add_argument("--status", action="store_true")
@@ -211,7 +222,19 @@ def main() -> None:
         client.terminate(args.instance_id)
         return
 
-    subprocess.run([sys.executable, str(ROOT / "scripts/build_stage_a_design_target.py")], check=True)
+    fab_pdb = args.fab_pdb
+    if not fab_pdb.exists():
+        sys.exit(f"ERROR: Stage 0 Fab not found: {fab_pdb}")
+    print(f"  Stage 0 Fab source: {fab_pdb}")
+    subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/build_stage_a_design_target.py"),
+            "--fab-pdb",
+            str(fab_pdb),
+        ],
+        check=True,
+    )
 
     ssh_key, launch_key_name = resolve_ssh_key(client, args.ssh_key, args.ssh_key_name)
 
