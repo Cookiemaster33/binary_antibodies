@@ -100,6 +100,10 @@ def ensure_ephemeral_ssh_key(client: LambdaClient) -> str:
     if EPHEMERAL_KEY_NAME not in existing:
         print(f"  Registering ephemeral SSH key: {EPHEMERAL_KEY_NAME}")
         client.add_ssh_key(EPHEMERAL_KEY_NAME, pub)
+    elif existing[EPHEMERAL_KEY_NAME].get("public_key", "").strip() != pub:
+        print(f"  Updating ephemeral SSH key: {EPHEMERAL_KEY_NAME}")
+        client.delete_ssh_key(EPHEMERAL_KEY_NAME)
+        client.add_ssh_key(EPHEMERAL_KEY_NAME, pub)
     return str(EPHEMERAL_KEY_PATH)
 
 

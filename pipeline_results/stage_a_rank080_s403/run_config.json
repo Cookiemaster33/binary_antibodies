@@ -1,0 +1,9 @@
+{
+  "stage": "A",
+  "stage0_design_id": "rank080_s0_native_split_s403",
+  "stage0_source": "pipeline_results/stage_0_full_fab_t025/structures/top5_holo/rank080_s0_native_split_s403_model_0.cif",
+  "stage0_pisa_delta_kcal": 4.915,
+  "n_designs": 200,
+  "approach": "hidden_trivalent_minibinder_rfd3",
+  "note": "RFd3 only — MPNN/Boltz validation wired in follow-up."
+}
