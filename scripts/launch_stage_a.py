@@ -114,8 +114,11 @@ def ensure_ephemeral_ssh_key(client: LambdaClient) -> str:
 
 def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> tuple[str, str]:
     """Return (private_key_path, ssh_key_name_for_launch). Lambda allows one key only."""
+    preferred_path = os.path.expanduser(preferred)
+    if os.path.abspath(preferred_path) == os.path.abspath(str(EPHEMERAL_KEY_PATH)):
+        return str(EPHEMERAL_KEY_PATH), EPHEMERAL_KEY_NAME
     if ssh_key_usable(preferred):
-        return os.path.expanduser(preferred), ssh_key_name
+        return preferred_path, ssh_key_name
     print(f"  SSH key not found at {preferred} — using ephemeral key.")
     key_path = ensure_ephemeral_ssh_key(client)
     return key_path, EPHEMERAL_KEY_NAME
