@@ -197,10 +197,19 @@ docker run --rm --gpus all \
         --config-json /workspace/inputs/$CONFIG_JSON \
         --top-n $TOP_N
 
-pip install boltz[cuda] -U -q > "$PIPELINE/boltz_install.log" 2>&1 || true
-# boltz[cuda] pulls pip torch; system torchvision (apt) then mismatches → torchvision::nms crash.
-pip install -q torchvision --upgrade > "$PIPELINE/boltz_install.log" 2>&1 || true
-pip install -q 'networkx>=3.0' 'platformdirs>=3.0' 2>/dev/null || true
+# Lambda images ship CUDA 12.8 drivers. Never `boltz[cuda] -U` unguarded — latest PyPI
+# pulls torch+cu130 which exceeds driver support, and mismatched torchvision then crashes import.
+BOLTZ_INSTALL_LOG="$PIPELINE/boltz_install.log"
+{
+  echo "Installing pinned Boltz stack (torch 2.5.1+cu124)"
+  pip install -q "torch==2.5.1" "torchvision==0.20.1" \
+      --index-url https://download.pytorch.org/whl/cu124
+  pip install -q "boltz[cuda]"
+  pip install -q "torch==2.5.1" "torchvision==0.20.1" \
+      --index-url https://download.pytorch.org/whl/cu124
+  pip install -q 'networkx>=3.0' 'platformdirs>=3.0'
+} >> "$BOLTZ_INSTALL_LOG" 2>&1 || true
+python3 -c "import torch; assert torch.cuda.is_available(), 'CUDA unavailable — check boltz_install.log'" || exit 1
 
 # cuequivariance CUDA kernels often mismatch pip-installed boltz (kv_lengths crash).
 # Use PyTorch attention for all GPUs — slower but reliable.
