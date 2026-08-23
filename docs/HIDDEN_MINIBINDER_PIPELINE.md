@@ -35,7 +35,7 @@ weaken      hub design    (de novo)
    - **Aggressive:** PISA core (BSA ≥ 5 Å²) fixed → rim redesigned
    - **Conservative:** PISA core (BSA ≥ 10 Å²) fixed → rim redesigned
 5. Rank MPNN output by **predicted static VH–VL contacts** on the native Fab backbone (weakest first)
-6. **Boltz holo only:** A+B+C+D+T
+6. **Boltz holo only:** for `full_fab`, fused chains **H** (VH+CH1) and **L** (VL+CL) plus epitope **T**; `fv` uses split A+B+C+D+T
 
 **Validation:**
 

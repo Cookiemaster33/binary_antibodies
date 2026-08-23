@@ -58,6 +58,10 @@ from binary_antibodies.pisa_scoring import (  # noqa: E402
     INTERFACE_SCOPE_FV,
     identify_fab_interface_residues,
 )
+from binary_antibodies.boltz_fab_chains import (  # noqa: E402
+    BOLTZ_CHAIN_MODE_FUSED,
+    default_boltz_chain_mode,
+)
 
 OUT_PDB = ROOT / "structures" / "domains" / "fab_stage_0_vhvL_interface.pdb"
 OUT_SPLIT_PDB = ROOT / "structures" / "domains" / "fab_stage_0_split_mpnn.pdb"
@@ -131,6 +135,13 @@ def build_config(
         filters["max_holo_ch1_cl_interface_clashes"] = 0
         static_desc += "; CH1–CL contacts from designed C/D sequence"
 
+    boltz_mode = default_boltz_chain_mode(interface_scope)
+    holo_fold = (
+        "Boltz H(VH+CH1)+L(VL+CL)+T — continuous Ig chains, epitope engagement"
+        if boltz_mode == BOLTZ_CHAIN_MODE_FUSED
+        else "Boltz A+B+C+D+T — epitope engagement and Fab-like geometry"
+    )
+
     cfg = {
         "stage": "0",
         "approach": approach,
@@ -162,7 +173,8 @@ def build_config(
         "validation": {
             "mode": "holo_only_static_interface",
             "static_interface": static_desc,
-            "holo_fold": "Boltz A+B+C+D+T — epitope engagement and Fab-like geometry",
+            "holo_fold": holo_fold,
+            "boltz_chain_mode": boltz_mode,
             "metrics": metrics,
             "filters": filters,
         },

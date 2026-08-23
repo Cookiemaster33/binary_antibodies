@@ -7,8 +7,9 @@ Selection criteria
 ------------------
 (a) Static VH–VL interface contacts on the native Fab backbone, weighted by the
     designed sequence, should be much lower than WT (~113 heavy-atom contacts).
-(b) Holo-only Boltz (A+B+C+D+T) must preserve epitope engagement and Fab-like
-    geometry — the weakened interface must not block target binding.
+(b) Holo-only Boltz (fused H/L + T for full_fab, or A+B+C+D+T for fv) must preserve
+    epitope engagement and Fab-like geometry — the weakened interface must not block
+    target binding.
 
 (c) Optional PISA VH–VL interface energetics on holo Fv (A+B): weaker designs
     have less negative solvation energy than native WT.
@@ -33,6 +34,11 @@ from binary_antibodies.pisa_scoring import (  # noqa: E402
     add_pisa_deltas,
     load_pisa_config,
     score_vh_vl_pisa,
+)
+from binary_antibodies.boltz_fab_chains import (  # noqa: E402
+    expand_fused_fab_structure,
+    is_fused_boltz_structure,
+    write_structure_pdb,
 )
 
 # Inlined from fab_hidden_switch (no BioPython — runs in foundry Docker)
@@ -590,6 +596,8 @@ def score_structure(
     vl_iface: list[int] | None = None,
 ) -> dict:
     aa = load_structure(path)
+    if ref is not None:
+        aa = expand_fused_fab_structure(aa, len(ref.native_seq_a), len(ref.native_seq_b))
     vh_ca = chain_ca(aa, "A")
     vl_ca = chain_ca(aa, "B")
     vh_list = vh_iface or (ref.vh_iface_fw if ref is not None else VH_INTERFACE_FW)
@@ -737,8 +745,16 @@ def score_design(
         rec["holo"] = score_structure(holo_cif, has_epitope=True, ref=ref)
         if pisa_cfg and pisa_cfg.enabled and pisa_work_root is not None:
             work_dir = pisa_work_root / design_id
+            aa = load_structure(holo_cif)
+            pisa_input = holo_cif
+            if is_fused_boltz_structure(aa, len(ref.native_seq_a), len(ref.native_seq_b)):
+                pisa_input = work_dir / "holo_split_for_pisa.pdb"
+                write_structure_pdb(
+                    expand_fused_fab_structure(aa, len(ref.native_seq_a), len(ref.native_seq_b)),
+                    pisa_input,
+                )
             pisa_metrics = score_vh_vl_pisa(
-                holo_cif,
+                pisa_input,
                 work_dir=work_dir,
                 chain_a=pisa_cfg.fv_chains[0],
                 chain_b=pisa_cfg.fv_chains[1],
