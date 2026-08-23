@@ -37,6 +37,7 @@ cp -f "$PIPELINE/../binary_antibodies/stage_0_scoring.py" "$PIPELINE/binary_anti
   cp -f /workspace/binary_antibodies/stage_0_scoring.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
 cp -f /workspace/binary_antibodies/pisa_scoring.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
 cp -f /workspace/binary_antibodies/fab_hidden_switch.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
+cp -f /workspace/binary_antibodies/boltz_fab_chains.py "$PIPELINE/binary_antibodies/" 2>/dev/null || true
 cp -f "$PIPELINE/../scripts/build_boltz_stage_0_inputs.py" "$PIPELINE/scripts/" 2>/dev/null || \
   cp -f /workspace/scripts/build_boltz_stage_0_inputs.py "$PIPELINE/scripts/" 2>/dev/null || true
 
