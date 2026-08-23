@@ -14,8 +14,11 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     VH_END,
     VL_END,
     build_fab_context_pdb,
+    build_holo_split_cif,
     build_stage_a_design_target_pdb,
     extract_chain_sequences,
+    fab_has_split_chains,
+    infer_already_split,
     stage_a_contig,
     stage_a_fixed_atoms,
 )
@@ -31,6 +34,63 @@ class TestStageADesignTarget(unittest.TestCase):
     def test_fixed_atoms_cover_full_fab(self):
         fixed = stage_a_fixed_atoms(113, 107, 101, 113, 12)
         self.assertEqual(set(fixed), {"A1-113", "B1-107", "C1-101", "D1-113", "T1-12"})
+
+    def test_holo_split_cif_chains(self):
+        fab_cif = (
+            ROOT
+            / "pipeline_results/stage_0_full_fab_fused_t025/structures/holo"
+            / "rank079_s0_native_split_s296_model_0.cif"
+        )
+        if not fab_cif.exists():
+            self.skipTest("rank079 holo CIF not in workspace")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            split_cif = Path(tmp) / "rank079_split.cif"
+            build_holo_split_cif(split_cif, fab_cif, separation_a=DEFAULT_STAGE_A_SEPARATION_A)
+            self.assertTrue(fab_has_split_chains(split_cif))
+            self.assertTrue(infer_already_split(split_cif))
+            seqs = extract_chain_sequences(split_cif)
+            self.assertEqual(set(seqs), {"A", "B", "C", "D", "T"})
+
+    def test_split_cif_skips_retranslation(self):
+        fab_cif = (
+            ROOT
+            / "pipeline_results/stage_0_full_fab_fused_t025/structures/holo"
+            / "rank079_s0_native_split_s296_model_0.cif"
+        )
+        if not fab_cif.exists():
+            self.skipTest("rank079 holo CIF not in workspace")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            split_cif = tmp_path / "rank079_split.cif"
+            stage_a_from_split = tmp_path / "from_split.pdb"
+            stage_a_from_holo = tmp_path / "from_holo.pdb"
+            build_holo_split_cif(split_cif, fab_cif, separation_a=DEFAULT_STAGE_A_SEPARATION_A)
+            build_stage_a_design_target_pdb(stage_a_from_split, source_pdb=split_cif, already_split=True)
+            build_stage_a_design_target_pdb(
+                stage_a_from_holo,
+                source_pdb=fab_cif,
+                separation_a=DEFAULT_STAGE_A_SEPARATION_A,
+            )
+
+            from Bio.PDB import PDBParser
+
+            parser = PDBParser(QUIET=True)
+            s = parser.get_structure("s", str(stage_a_from_split))
+            h = parser.get_structure("h", str(stage_a_from_holo))
+            model_s = list(s.get_models())[0]
+            model_h = list(h.get_models())[0]
+
+            def ca_centroid(chain_id: str, struct):
+                atoms = [a for a in struct[chain_id].get_atoms() if a.name == "CA"]
+                import numpy as np
+
+                return np.mean([a.coord for a in atoms], axis=0)
+
+            dist_split = sum((ca_centroid("C", model_s) - ca_centroid("B", model_s)) ** 2) ** 0.5
+            dist_holo = sum((ca_centroid("C", model_h) - ca_centroid("B", model_h)) ** 2) ** 0.5
+            self.assertAlmostEqual(dist_split, dist_holo, delta=0.5)
 
     def test_stage_a_increases_vl_ch1_distance(self):
         fab_cif = (

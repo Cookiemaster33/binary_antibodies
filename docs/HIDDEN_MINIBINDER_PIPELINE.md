@@ -64,13 +64,21 @@ python scripts/launch_stage_0.py --interface-scope full_fab --no-wait --no-termi
 
 ## Stage A — Hidden minibinder hub
 
-**Prerequisite:** Top Stage 0 Fab (chains A–D).
+**Prerequisite:** Top Stage 0 holo. Recommended workflow:
 
 ```bash
-python scripts/build_stage_a_design_target.py \
-  --fab-pdb path/to/stage0_top_holo.cif
+# 1. Expand fused holo → inspectable A/B/C/D/T split file
+python scripts/build_stage0_holo_split_cif.py \\
+  pipeline_results/stage_0_full_fab_fused_t025/structures/holo/rank079_s0_native_split_s296_model_0.cif
+
+# 2. Build Stage A target from the split file (VL/CL already separated)
+python scripts/build_stage_a_design_target.py \\
+  --fab-pdb pipeline_results/stage_0_full_fab_fused_t025/structures/top5_holo/rank079_s0_native_split_s296_model_0_split.cif
+
 python scripts/launch_stage_a.py --no-wait --no-terminate
 ```
+
+You can also pass a fused holo CIF directly; VL/CL separation is applied on the fly.
 
 **Layout:** Full Fab (A=VH, B=VL, C=CH1, D=CL, T=epitope) fixed as steric context. VL/CL are translated **45 Å** away from VH/CH1 to open space between the CH1 and VL hotspot surfaces.
 
@@ -92,4 +100,5 @@ Add hotspots on chain `T` and extend contig with a third binding patch against t
 | `scripts/launch_stage_0.py` | Lambda launcher |
 | `binary_antibodies/stage_0_scoring.py` | Static + holo + PISA interface metrics |
 | `binary_antibodies/pisa_scoring.py` | PISA Docker wrapper and XML parser |
-| `scripts/build_stage_a_design_target.py` | Stage A (accepts `--fab-pdb`) |
+| `scripts/build_stage0_holo_split_cif.py` | Expand fused holo → `*_split.cif` for PyMOL / Stage A |
+| `scripts/build_stage_a_design_target.py` | Stage A (accepts fused holo or `*_split.cif` via `--fab-pdb`) |

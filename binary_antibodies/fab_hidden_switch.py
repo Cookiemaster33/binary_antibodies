@@ -530,18 +530,49 @@ def _load_fab_chain_residues(
     return vh_res, vl_res, ch1_res, cl_res, epitope_from_source
 
 
-def build_fab_context_pdb(
-    out_pdb: Path,
-    source_pdb: Path | None = None,
-    struct_name: str = "fab_context",
-) -> tuple[int, int, int, int]:
-    """
-    Build 5-chain Fab context PDB: A=VH, B=VL, C=CH1, D=CL, T=epitope stub.
+def _write_structure(struct: S.Structure, out_path: Path) -> None:
+    """Write BioPython structure to PDB or mmCIF based on suffix."""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if out_path.suffix.lower() in {".cif", ".mmcif"}:
+        from Bio.PDB import MMCIFIO
 
-    Returns (vh_len, vl_len, ch1_len, cl_len).
-    """
-    vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
+        mmcif_io = MMCIFIO()
+        mmcif_io.set_structure(struct)
+        mmcif_io.save(str(out_path))
+    else:
+        io = PDBIO()
+        io.set_structure(struct)
+        io.save(str(out_path))
 
+
+def fab_has_split_chains(source_pdb: Path) -> bool:
+    """True when structure already uses logical Fab chains A–D (not fused H/L)."""
+    src = _load_biopython_structure(source_pdb)
+    model = list(src.get_models())[0]
+    chains = set(model.child_dict)
+    return {"A", "B"}.issubset(chains) and "H" not in chains and "L" not in chains
+
+
+def infer_already_split(source_pdb: Path | None) -> bool:
+    """True when Fab coordinates should be used as-is (no VL/CL re-translation)."""
+    if source_pdb is None:
+        return False
+    name = source_pdb.name.lower()
+    if name.endswith("_split.cif") or name.endswith("_split.pdb") or name.endswith("_split.mmcif"):
+        return True
+    return "_split" in source_pdb.stem and fab_has_split_chains(source_pdb)
+
+
+def _assemble_fab_structure(
+    vh_res: list,
+    vl_res: list,
+    ch1_res: list,
+    cl_res: list,
+    epitope_from_source: Ch.Chain | None,
+    struct_name: str,
+    *,
+    place_stub_if_missing: bool = True,
+) -> S.Structure:
     struct = S.Structure(struct_name)
     model_out = M.Model(0)
     model_out.add(_build_chain(vh_res, "A"))
@@ -553,14 +584,52 @@ def build_fab_context_pdb(
     if epitope_from_source is not None:
         t_res = [r for r in epitope_from_source.get_residues() if r.id[0] == " "]
         model_out.add(_build_chain(t_res, "T"))
-    else:
+    elif place_stub_if_missing:
         model_out.add(_place_epitope_stub(vh_res, vl_res, EPITOPE_SEQ))
     struct.add(model_out)
+    return struct
 
-    out_pdb.parent.mkdir(parents=True, exist_ok=True)
-    io = PDBIO()
-    io.set_structure(struct)
-    io.save(str(out_pdb))
+
+def build_holo_split_cif(
+    out_path: Path,
+    holo_cif: Path,
+    separation_a: float = DEFAULT_STAGE_A_SEPARATION_A,
+    struct_name: str = "holo_split",
+) -> tuple[int, int, int, int]:
+    """
+    Expand fused Boltz holo (H/L[/T]) to A/B/C/D[/T] and separate VL/CL from VH/CH1.
+
+    Writes a *_split.cif (or .pdb) suitable for PyMOL inspection and Stage A --fab-pdb.
+    """
+    vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(holo_cif)
+    vl_res = _shift_residues_perpendicular(
+        vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
+    )
+    cl_res = _shift_residues_perpendicular(
+        cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
+    )
+    struct = _assemble_fab_structure(
+        vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name, place_stub_if_missing=True
+    )
+    _write_structure(struct, out_path)
+    return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
+
+
+def build_fab_context_pdb(
+    out_pdb: Path,
+    source_pdb: Path | None = None,
+    struct_name: str = "fab_context",
+) -> tuple[int, int, int, int]:
+    """
+    Build 5-chain Fab context PDB: A=VH, B=VL, C=CH1, D=CL, T=epitope stub.
+
+    Returns (vh_len, vl_len, ch1_len, cl_len).
+    """
+    vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
+    struct = _assemble_fab_structure(
+        vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name
+    )
+    _write_structure(struct, out_pdb)
     return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
 
 
@@ -569,41 +638,29 @@ def build_stage_a_design_target_pdb(
     source_pdb: Path | None = None,
     separation_a: float = DEFAULT_STAGE_A_SEPARATION_A,
     struct_name: str = "stage_a",
+    *,
+    already_split: bool = False,
 ) -> tuple[int, int, int, int]:
     """
     Build Stage A RFd3 target: full Fab (A–D + epitope T) with VL/CL translated apart.
 
-    The minibinder is designed as a separate unlinked chain between CH1 (C) and VL (B)
-    hotspot surfaces; all Fab domains remain fixed steric context.
+    Pass a pre-built *_split.cif with already_split=True (or separation_a=0) to use
+    coordinates as-is without re-translating VL/CL.
     """
     vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
 
-    vl_shifted = _shift_residues_perpendicular(
-        vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
-    )
-    cl_shifted = _shift_residues_perpendicular(
-        cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
-    )
+    if not already_split and separation_a > 0:
+        vl_res = _shift_residues_perpendicular(
+            vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
+        )
+        cl_res = _shift_residues_perpendicular(
+            cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
+        )
 
-    struct = S.Structure(struct_name)
-    model_out = M.Model(0)
-    model_out.add(_build_chain(vh_res, "A"))
-    model_out.add(_build_chain(vl_shifted, "B"))
-    if ch1_res:
-        model_out.add(_build_chain(ch1_res, "C"))
-    if cl_res:
-        model_out.add(_build_chain(cl_shifted, "D"))
-    if epitope_from_source is not None:
-        t_res = [r for r in epitope_from_source.get_residues() if r.id[0] == " "]
-        model_out.add(_build_chain(t_res, "T"))
-    else:
-        model_out.add(_place_epitope_stub(vh_res, vl_res, EPITOPE_SEQ))
-    struct.add(model_out)
-
-    out_pdb.parent.mkdir(parents=True, exist_ok=True)
-    io = PDBIO()
-    io.set_structure(struct)
-    io.save(str(out_pdb))
+    struct = _assemble_fab_structure(
+        vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name
+    )
+    _write_structure(struct, out_pdb)
     return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
 
 

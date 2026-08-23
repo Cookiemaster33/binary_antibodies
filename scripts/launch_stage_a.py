@@ -37,6 +37,11 @@ INPUT_PDB = "fab_hidden_minibinder_stage_a.pdb"
 CONFIG_JSON = "stage_a_hidden_minibinder_config.json"
 DEFAULT_STAGE0_FAB = (
     ROOT
+    / "pipeline_results/stage_0_full_fab_fused_t025/structures/top5_holo"
+    / "rank079_s0_native_split_s296_model_0_split.cif"
+)
+DEFAULT_STAGE0_HOLO = (
+    ROOT
     / "pipeline_results/stage_0_full_fab_fused_t025/structures/holo"
     / "rank079_s0_native_split_s296_model_0.cif"
 )
@@ -197,7 +202,7 @@ def main() -> None:
         "--fab-pdb",
         type=Path,
         default=DEFAULT_STAGE0_FAB,
-        help="Stage 0 Fab holo/apo structure (chains A–D) for build_stage_a_design_target.py",
+        help="Stage 0 split Fab (*_split.cif) or fused holo for build_stage_a_design_target.py",
     )
     p.add_argument("--no-terminate", action="store_true")
     p.add_argument("--no-wait", action="store_true", help="Start pipeline and exit without waiting for completion.")
@@ -227,6 +232,19 @@ def main() -> None:
         return
 
     fab_pdb = args.fab_pdb
+    if not fab_pdb.exists() and fab_pdb == DEFAULT_STAGE0_FAB and DEFAULT_STAGE0_HOLO.exists():
+        print(f"  Split CIF missing; building from holo → {fab_pdb}")
+        fab_pdb.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts/build_stage0_holo_split_cif.py"),
+                str(DEFAULT_STAGE0_HOLO),
+                "-o",
+                str(fab_pdb),
+            ],
+            check=True,
+        )
     if not fab_pdb.exists():
         sys.exit(f"ERROR: Stage 0 Fab not found: {fab_pdb}")
     print(f"  Stage 0 Fab source: {fab_pdb}")

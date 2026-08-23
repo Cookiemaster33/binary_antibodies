@@ -8,7 +8,8 @@ Stage A designs a **separate** minibinder that bridges CH1 (chain C) and VL (cha
 hotspots while the **full Fab** (A–D) and epitope stub (T) provide fixed steric context.
 VL/CL are translated apart from VH/CH1 to open space between the two binding surfaces.
 
-After Stage 0, pass the refined Fab with --fab-pdb (chains A–D or fused H/L from top hit).
+After Stage 0, pass the refined Fab with --fab-pdb (fused H/L holo, or a pre-built
+*_split.cif from build_stage0_holo_split_cif.py).
 
 Output
 ------
@@ -18,7 +19,9 @@ Output
 Usage
 -----
     python scripts/build_stage_a_design_target.py
-    python scripts/build_stage_a_design_target.py --fab-pdb pipeline_results/stage_0/structures/top01_apo.cif
+    python scripts/build_stage0_holo_split_cif.py path/to/rank079_holo.cif
+    python scripts/build_stage_a_design_target.py \\
+        --fab-pdb path/to/rank079_holo_split.cif
 """
 
 from __future__ import annotations
@@ -34,6 +37,7 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     DEFAULT_STAGE_A_SEPARATION_A,
     EPITOPE_SEQ,
     build_stage_a_design_target_pdb,
+    infer_already_split,
     stage_a_contig,
     stage_a_fixed_atoms,
     stage_a_hotspots,
@@ -100,31 +104,45 @@ def main() -> None:
         "--fab-pdb",
         type=Path,
         default=None,
-        help="Stage 0 refined Fab (PDB/CIF with chains A–D or fused H/L). Default: native 1N8Z.",
+        help="Stage 0 holo (fused H/L) or pre-built *_split.cif. Default: native 1N8Z.",
     )
     p.add_argument(
         "--separation-a",
         type=float,
         default=DEFAULT_STAGE_A_SEPARATION_A,
-        help=f"Å translation of VL/CL away from VH/CH1 (default {DEFAULT_STAGE_A_SEPARATION_A})",
+        help=f"Å translation of VL/CL away from VH/CH1 (default {DEFAULT_STAGE_A_SEPARATION_A}; "
+        "ignored for *_split.cif inputs)",
+    )
+    p.add_argument(
+        "--already-split",
+        action="store_true",
+        help="Fab coordinates already separated; do not re-translate VL/CL (auto for *_split.cif)",
     )
     p.add_argument("--out-pdb", type=Path, default=OUT_PDB)
     p.add_argument("--out-json", type=Path, default=OUT_JSON)
     args = p.parse_args()
 
     source = str(args.fab_pdb) if args.fab_pdb else "1N8Z (trastuzumab)"
+    already_split = args.already_split or infer_already_split(args.fab_pdb)
+    effective_sep = 0.0 if already_split else args.separation_a
     vh_len, vl_len, ch1_len, cl_len = build_stage_a_design_target_pdb(
         args.out_pdb,
         source_pdb=args.fab_pdb,
-        separation_a=args.separation_a,
+        separation_a=effective_sep,
+        already_split=already_split,
     )
-    config = build_config(vh_len, vl_len, ch1_len, cl_len, source, args.separation_a)
+    config = build_config(vh_len, vl_len, ch1_len, cl_len, source, effective_sep)
+    if already_split:
+        config["layout"]["input_already_split"] = True
     write_json(args.out_json, config)
 
     print(f"Wrote design target PDB → {args.out_pdb}")
     print(f"Wrote RFd3 config       → {args.out_json}")
     print(f"  contig: {config['rfd3']['contig']}")
-    print(f"  separation: {args.separation_a} Å (VL/CL away from VH/CH1)")
+    if already_split:
+        print("  input: pre-split Fab (VL/CL coordinates used as-is)")
+    else:
+        print(f"  separation: {args.separation_a} Å (VL/CL away from VH/CH1)")
     print(f"  hotspots: {len(config['rfd3']['select_hotspots'].split(','))} residues")
     if args.fab_pdb:
         print(f"  Fab source: {args.fab_pdb}")
