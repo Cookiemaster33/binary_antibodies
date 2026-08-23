@@ -198,6 +198,8 @@ docker run --rm --gpus all \
         --top-n $TOP_N
 
 pip install boltz[cuda] -U -q > "$PIPELINE/boltz_install.log" 2>&1 || true
+# boltz[cuda] pulls pip torch; system torchvision (apt) then mismatches → torchvision::nms crash.
+pip install -q torchvision --upgrade > "$PIPELINE/boltz_install.log" 2>&1 || true
 pip install -q 'networkx>=3.0' 'platformdirs>=3.0' 2>/dev/null || true
 
 # cuequivariance CUDA kernels often mismatch pip-installed boltz (kv_lengths crash).
