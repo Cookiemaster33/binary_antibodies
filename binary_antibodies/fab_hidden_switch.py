@@ -503,25 +503,34 @@ def build_fab_context_pdb(
     src_path = source_pdb or FAB_PDB
     src = _load_biopython_structure(src_path)
     model = list(src.get_models())[0]
+    chains = set(model.child_dict)
+    epitope_from_source: Ch.Chain | None = None
 
-    if {"A", "B"}.issubset(model.child_dict):
+    if "H" in chains and "L" in chains:
+        # Fused Boltz holo: H = VH+CH1, L = VL+CL
+        heavy = model["H"]
+        light = model["L"]
+        vh_res = _residues(heavy, 1, VH_END)
+        ch1_res = _residues(heavy, VH_END + 1, 9999)
+        vl_res = _residues(light, 1, VL_END)
+        cl_res = _residues(light, VL_END + 1, 9999)
+        if "T" in chains:
+            epitope_from_source = model["T"]
+    elif {"A", "B"}.issubset(chains):
         heavy = model["A"]
         light = model["B"]
         vh_res = _residues(heavy, 1, VH_END)
         ch1_res = _residues(heavy, VH_END + 1, 9999) if len(_residues(heavy, VH_END + 1, 9999)) else []
         vl_res = _residues(light, 1, VL_END)
         cl_res = _residues(light, VL_END + 1, 9999)
-        if not ch1_res and "C" in model:
-            ch1_res = list(model["C"].get_residues())
-        if not cl_res and "D" in model:
-            cl_res = list(model["D"].get_residues())
+        if not ch1_res and "C" in chains:
+            ch1_res = [r for r in model["C"].get_residues() if r.id[0] == " "]
+        if not cl_res and "D" in chains:
+            cl_res = [r for r in model["D"].get_residues() if r.id[0] == " "]
+        if "T" in chains:
+            epitope_from_source = model["T"]
     else:
-        heavy = model["A"]
-        light = model["B"]
-        vh_res = _residues(heavy, 1, VH_END)
-        ch1_res = _residues(heavy, VH_END + 1, 9999)
-        vl_res = _residues(light, 1, VL_END)
-        cl_res = _residues(light, VL_END + 1, 9999)
+        raise ValueError("Source must contain fused chains H/L or split chains A–D")
 
     struct = S.Structure(struct_name)
     model_out = M.Model(0)
@@ -531,7 +540,11 @@ def build_fab_context_pdb(
         model_out.add(_build_chain(ch1_res, "C"))
     if cl_res:
         model_out.add(_build_chain(cl_res, "D"))
-    model_out.add(_place_epitope_stub(vh_res, vl_res, EPITOPE_SEQ))
+    if epitope_from_source is not None:
+        t_res = [r for r in epitope_from_source.get_residues() if r.id[0] == " "]
+        model_out.add(_build_chain(t_res, "T"))
+    else:
+        model_out.add(_place_epitope_stub(vh_res, vl_res, EPITOPE_SEQ))
     struct.add(model_out)
 
     out_pdb.parent.mkdir(parents=True, exist_ok=True)

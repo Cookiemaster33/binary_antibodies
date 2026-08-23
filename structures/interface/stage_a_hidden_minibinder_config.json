@@ -3,7 +3,7 @@
   "approach": "hidden_trivalent_minibinder",
   "description": "Stage A: design connected VH\u2013minibinder\u2013VL hub seated in Stage 0 Fab. Hotspots on CH1 (chain C) and VL (chain B). Epitope stub (chain T) provides steric masking context for Stage B target arm.",
   "input_pdb": "structures/domains/fab_hidden_minibinder_stage_a.pdb",
-  "source_fab": "pipeline_results/stage_0_full_fab_t025/structures/top5_holo/rank080_s0_native_split_s403_model_0.cif",
+  "source_fab": "pipeline_results/stage_0_full_fab_fused_t025/structures/holo/rank079_s0_native_split_s296_model_0.cif",
   "chains": {
     "A": "VH 1-113",
     "B": "VL 1-107",

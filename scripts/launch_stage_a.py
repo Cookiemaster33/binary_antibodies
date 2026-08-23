@@ -37,8 +37,8 @@ INPUT_PDB = "fab_hidden_minibinder_stage_a.pdb"
 CONFIG_JSON = "stage_a_hidden_minibinder_config.json"
 DEFAULT_STAGE0_FAB = (
     ROOT
-    / "pipeline_results/stage_0_full_fab_t025/structures/top5_holo"
-    / "rank080_s0_native_split_s403_model_0.cif"
+    / "pipeline_results/stage_0_full_fab_fused_t025/structures/holo"
+    / "rank079_s0_native_split_s296_model_0.cif"
 )
 EPHEMERAL_KEY_NAME = "cursor-cloud-ephemeral-992c"
 EPHEMERAL_KEY_PATH = Path.home() / ".ssh" / "cursor_lambda_ephemeral"
