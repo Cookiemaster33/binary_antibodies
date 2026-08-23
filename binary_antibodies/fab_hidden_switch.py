@@ -614,8 +614,12 @@ def stage_a_contig(
     cl_len: int,
     mb_length_range: str = "35-55",
 ) -> str:
-    """RFd3 contig: full fixed Fab with unlinked minibinder between VL and CH1."""
-    return f"A1-{vh_len},B1-{vl_len}/0,{mb_length_range}/0,C1-{ch1_len},D1-{cl_len}"
+    """RFd3 contig: full fixed Fab with unlinked minibinder between VL and CH1.
+
+    Syntax mirrors integrated pipeline (B/0,50/C): break before designed segment,
+  then continue to next fixed chain. Do not append /0 after a length range.
+    """
+    return f"A1-{vh_len},B1-{vl_len}/0,{mb_length_range},C1-{ch1_len},D1-{cl_len}"
 
 
 def stage_a_fixed_atoms(

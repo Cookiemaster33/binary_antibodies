@@ -17,7 +17,7 @@
     "T": "HER2 epitope stub 1-12 (fixed, Stage B)"
   },
   "rfd3": {
-    "contig": "A1-113,B1-107/0,35-55/0,C1-101,D1-113",
+    "contig": "A1-113,B1-107/0,35-55,C1-101,D1-113",
     "mb_length_range": "35-55",
     "select_fixed_atoms": {
       "A1-113": "ALL",

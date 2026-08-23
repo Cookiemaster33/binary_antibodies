@@ -24,7 +24,7 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
 class TestStageADesignTarget(unittest.TestCase):
     def test_contig_unlinked_minibinder(self):
         contig = stage_a_contig(113, 107, 101, 113, "35-55")
-        self.assertIn("/0,35-55/0", contig)
+        self.assertIn("/0,35-55,", contig)
         self.assertTrue(contig.startswith("A1-113,B1-107"))
         self.assertTrue(contig.endswith("C1-101,D1-113"))
 
@@ -104,7 +104,7 @@ class TestStageADesignTarget(unittest.TestCase):
                 check=True,
             )
             cfg = json.loads(out_json.read_text())
-            self.assertIn("/0,35-55/0", cfg["rfd3"]["contig"])
+            self.assertIn("/0,35-55,", cfg["rfd3"]["contig"])
             self.assertIn("A1-113", cfg["rfd3"]["select_fixed_atoms"])
             self.assertFalse(cfg["layout"]["minibinder_linked"])
             seqs = extract_chain_sequences(out_pdb)

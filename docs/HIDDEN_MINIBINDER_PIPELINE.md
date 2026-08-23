@@ -74,7 +74,7 @@ python scripts/launch_stage_a.py --no-wait --no-terminate
 
 **Layout:** Full Fab (A=VH, B=VL, C=CH1, D=CL, T=epitope) fixed as steric context. VL/CL are translated **45 Å** away from VH/CH1 to open space between the CH1 and VL hotspot surfaces.
 
-**RFd3 contig:** `A1-113,B1-107/0,35-55/0,C1-101,D1-113` — minibinder is **not** covalently linked to VH/VL (flexible linker added later).
+**RFd3 contig:** `A1-113,B1-107/0,35-55,C1-101,D1-113` — minibinder is **not** covalently linked to VH/VL (flexible linker added later).
 
 **Hotspots:** CH1 (C) + VL framework (B)
 
