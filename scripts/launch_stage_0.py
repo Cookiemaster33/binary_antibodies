@@ -132,6 +132,7 @@ def upload_stage_0(ip: str, key: str) -> None:
         (ROOT / "binary_antibodies/stage_0_scoring.py", f"{REMOTE_PIPELINE}/binary_antibodies/stage_0_scoring.py"),
         (ROOT / "binary_antibodies/pisa_scoring.py", f"{REMOTE_PIPELINE}/binary_antibodies/pisa_scoring.py"),
         (ROOT / "binary_antibodies/fab_hidden_switch.py", f"{REMOTE_PIPELINE}/binary_antibodies/fab_hidden_switch.py"),
+        (ROOT / "binary_antibodies/boltz_fab_chains.py", f"{REMOTE_PIPELINE}/binary_antibodies/boltz_fab_chains.py"),
         (ROOT / "scripts/build_boltz_stage_0_inputs.py", f"{REMOTE_PIPELINE}/scripts/build_boltz_stage_0_inputs.py"),
     ]
     for local, remote in files:
