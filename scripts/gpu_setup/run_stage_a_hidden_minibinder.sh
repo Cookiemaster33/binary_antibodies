@@ -1,10 +1,11 @@
 #!/bin/bash
 # ============================================================
 # run_stage_a_hidden_minibinder.sh
-# Stage A: RFd3 design of VH–minibinder–VL hub hidden in native Fab.
+# Stage A: RFd3 design of unlinked minibinder bridging CH1 + VL in full Fab context.
 #
 # Hotspots: CH1 (chain C) + VL (chain B)
-# Fixed context: CH1, CL, HER2 epitope stub
+# Fixed context: full Fab A–D + HER2 epitope stub (T)
+# Minibinder: separate chain (not linked to VH/VL); linker added later
 #
 # Prerequisite (run locally before GPU launch):
 #   python scripts/build_stage_a_design_target.py
@@ -60,13 +61,13 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 cfg = json.load(open(CONFIG))
 rfd3 = cfg["rfd3"]
-vh_end = int(cfg["chains"]["A"].split("-")[-1])
-vl_end = int(cfg["chains"]["B"].split("-")[-1])
-contig = f"A1-{vh_end},{MB_LEN},B1-{vl_end}"
+contig = rfd3["contig"]
+mb_range = rfd3.get("mb_length_range", os.environ.get("MB_LENGTH_RANGE", "35-55"))
 
 print(f"Stage A RFd3: {N} designs")
 print(f"  input: {INPUT}")
 print(f"  contig: {contig}")
+print(f"  layout: full Fab fixed, unlinked minibinder ({mb_range} aa)")
 print(f"  hotspots: {rfd3['select_hotspots'][:80]}...")
 
 spec = DesignInputSpecification.safe_init(

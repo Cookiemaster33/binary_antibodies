@@ -34,6 +34,8 @@ INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE = 3.20  # aggressive (19 rim residues)
 PISA_CORE_MIN_BURIED_SASA_A2 = 10.0  # keep native on deeply buried PISA interface residues
 PISA_CORE_MIN_BURIED_SASA_A2_AGGRESSIVE = 5.0
 DEFAULT_SPLIT_SEPARATION_A = 30.0
+# Stage A: spread VL/CL away from VH/CH1 so CH1 and VL hotspot surfaces are farther apart.
+DEFAULT_STAGE_A_SEPARATION_A = 45.0
 
 VH_END = 113
 VL_END = 107
@@ -490,16 +492,10 @@ def _place_epitope_stub(vh_res: list, vl_res: list, seq: str = EPITOPE_SEQ) -> C
     return chain
 
 
-def build_fab_context_pdb(
-    out_pdb: Path,
+def _load_fab_chain_residues(
     source_pdb: Path | None = None,
-    struct_name: str = "fab_context",
-) -> tuple[int, int, int, int]:
-    """
-    Build 5-chain Fab context PDB: A=VH, B=VL, C=CH1, D=CL, T=epitope stub.
-
-    Returns (vh_len, vl_len, ch1_len, cl_len).
-    """
+) -> tuple[list, list, list, list, Ch.Chain | None]:
+    """Return (vh, vl, ch1, cl, epitope_chain_or_none) from Fab PDB/CIF."""
     src_path = source_pdb or FAB_PDB
     src = _load_biopython_structure(src_path)
     model = list(src.get_models())[0]
@@ -507,7 +503,6 @@ def build_fab_context_pdb(
     epitope_from_source: Ch.Chain | None = None
 
     if "H" in chains and "L" in chains:
-        # Fused Boltz holo: H = VH+CH1, L = VL+CL
         heavy = model["H"]
         light = model["L"]
         vh_res = _residues(heavy, 1, VH_END)
@@ -532,6 +527,21 @@ def build_fab_context_pdb(
     else:
         raise ValueError("Source must contain fused chains H/L or split chains A–D")
 
+    return vh_res, vl_res, ch1_res, cl_res, epitope_from_source
+
+
+def build_fab_context_pdb(
+    out_pdb: Path,
+    source_pdb: Path | None = None,
+    struct_name: str = "fab_context",
+) -> tuple[int, int, int, int]:
+    """
+    Build 5-chain Fab context PDB: A=VH, B=VL, C=CH1, D=CL, T=epitope stub.
+
+    Returns (vh_len, vl_len, ch1_len, cl_len).
+    """
+    vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
+
     struct = S.Structure(struct_name)
     model_out = M.Model(0)
     model_out.add(_build_chain(vh_res, "A"))
@@ -552,6 +562,77 @@ def build_fab_context_pdb(
     io.set_structure(struct)
     io.save(str(out_pdb))
     return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
+
+
+def build_stage_a_design_target_pdb(
+    out_pdb: Path,
+    source_pdb: Path | None = None,
+    separation_a: float = DEFAULT_STAGE_A_SEPARATION_A,
+    struct_name: str = "stage_a",
+) -> tuple[int, int, int, int]:
+    """
+    Build Stage A RFd3 target: full Fab (A–D + epitope T) with VL/CL translated apart.
+
+    The minibinder is designed as a separate unlinked chain between CH1 (C) and VL (B)
+    hotspot surfaces; all Fab domains remain fixed steric context.
+    """
+    vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
+
+    vl_shifted = _shift_residues_perpendicular(
+        vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
+    )
+    cl_shifted = _shift_residues_perpendicular(
+        cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
+    )
+
+    struct = S.Structure(struct_name)
+    model_out = M.Model(0)
+    model_out.add(_build_chain(vh_res, "A"))
+    model_out.add(_build_chain(vl_shifted, "B"))
+    if ch1_res:
+        model_out.add(_build_chain(ch1_res, "C"))
+    if cl_res:
+        model_out.add(_build_chain(cl_shifted, "D"))
+    if epitope_from_source is not None:
+        t_res = [r for r in epitope_from_source.get_residues() if r.id[0] == " "]
+        model_out.add(_build_chain(t_res, "T"))
+    else:
+        model_out.add(_place_epitope_stub(vh_res, vl_res, EPITOPE_SEQ))
+    struct.add(model_out)
+
+    out_pdb.parent.mkdir(parents=True, exist_ok=True)
+    io = PDBIO()
+    io.set_structure(struct)
+    io.save(str(out_pdb))
+    return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
+
+
+def stage_a_contig(
+    vh_len: int,
+    vl_len: int,
+    ch1_len: int,
+    cl_len: int,
+    mb_length_range: str = "35-55",
+) -> str:
+    """RFd3 contig: full fixed Fab with unlinked minibinder between VL and CH1."""
+    return f"A1-{vh_len},B1-{vl_len}/0,{mb_length_range}/0,C1-{ch1_len},D1-{cl_len}"
+
+
+def stage_a_fixed_atoms(
+    vh_len: int,
+    vl_len: int,
+    ch1_len: int,
+    cl_len: int,
+    epitope_len: int = len(EPITOPE_SEQ),
+) -> dict[str, str]:
+    """All Fab + epitope chains fixed; only the unlinked minibinder is designed."""
+    return {
+        f"A1-{vh_len}": "ALL",
+        f"B1-{vl_len}": "ALL",
+        f"C1-{ch1_len}": "ALL",
+        f"D1-{cl_len}": "ALL",
+        f"T1-{epitope_len}": "ALL",
+    }
 
 
 def ch1_hotspots_chain_c(vh_len: int = VH_END) -> list[str]:

@@ -17,7 +17,7 @@ weaken      hub design    (de novo)
 | Stage | What is designed | What stays fixed |
 |-------|------------------|------------------|
 | **0** | VH + VL **interface rim** (partial de-grease) | CDRs, closure-core interface, CH1, CL, epitope stub T |
-| **A** | VH–hub–VL **minibinder** (35–55 aa) | Stage 0 Fv, CH1, CL, epitope stub |
+| **A** | Unlinked **minibinder** (35–55 aa) bridging CH1 + VL hotspots | Full Stage 0 Fab (A–D) + epitope stub T |
 | **B** | Third arm against epitope / target | Stage A assembly |
 
 ## Stage 0 — Split-chain MPNN de-greasing
@@ -72,7 +72,10 @@ python scripts/build_stage_a_design_target.py \
 python scripts/launch_stage_a.py --no-wait --no-terminate
 ```
 
-**RFd3 contig:** `A1-113,35-55,B1-107`  
+**Layout:** Full Fab (A=VH, B=VL, C=CH1, D=CL, T=epitope) fixed as steric context. VL/CL are translated **45 Å** away from VH/CH1 to open space between the CH1 and VL hotspot surfaces.
+
+**RFd3 contig:** `A1-113,B1-107/0,35-55/0,C1-101,D1-113` — minibinder is **not** covalently linked to VH/VL (flexible linker added later).
+
 **Hotspots:** CH1 (C) + VL framework (B)
 
 ## Stage B — Target arm (future)
