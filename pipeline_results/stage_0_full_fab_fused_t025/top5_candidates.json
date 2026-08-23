@@ -1,0 +1,37 @@
+[
+  {
+    "design_id": "rank079_s0_native_split_s296",
+    "static_fraction_of_native_contacts": 0.4792,
+    "static_ch1_cl_fraction_of_native_contacts": 0.5164,
+    "pisa_delta": 8.218,
+    "holo_fv_framework_rmsd_A": 1.138551649367758
+  },
+  {
+    "design_id": "rank045_s0_native_split_s728",
+    "static_fraction_of_native_contacts": 0.4833,
+    "static_ch1_cl_fraction_of_native_contacts": 0.5068,
+    "pisa_delta": 6.722,
+    "holo_fv_framework_rmsd_A": 1.3213410379369193
+  },
+  {
+    "design_id": "rank081_s0_native_split_s383",
+    "static_fraction_of_native_contacts": 0.531,
+    "static_ch1_cl_fraction_of_native_contacts": 0.4953,
+    "pisa_delta": 6.62,
+    "holo_fv_framework_rmsd_A": 1.238419829090927
+  },
+  {
+    "design_id": "rank072_s0_native_split_s475",
+    "static_fraction_of_native_contacts": 0.5529,
+    "static_ch1_cl_fraction_of_native_contacts": 0.4852,
+    "pisa_delta": 6.303,
+    "holo_fv_framework_rmsd_A": 1.0103464663180364
+  },
+  {
+    "design_id": "rank029_s0_native_split_s438",
+    "static_fraction_of_native_contacts": 0.5169,
+    "static_ch1_cl_fraction_of_native_contacts": 0.4831,
+    "pisa_delta": 6.194,
+    "holo_fv_framework_rmsd_A": 1.4068182589426663
+  }
+]
