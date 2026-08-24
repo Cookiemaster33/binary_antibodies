@@ -1,0 +1,11 @@
+{
+  "results_dir": "pipeline_results/stage_a_poc_rfd3_only",
+  "stage": "A_poc",
+  "approach": "hidden_trivalent_minibinder",
+  "note": "RFd3 only — no MPNN/Boltz. Native trastuzumab VH-VL (pre-Stage-0).",
+  "n_designs": 200,
+  "mb_length_range": "35-55",
+  "instance_id": "0926bc09188c4cebb0cd8872131e29cb",
+  "instance_ip": "150.136.64.212",
+  "completed_at": "2026-07-25T19:32:18Z"
+}

@@ -1,0 +1,3018 @@
+{
+  "scoring_mode": "holo_only_static_interface",
+  "n_scored": 100,
+  "n_passing": 0,
+  "filters": {
+    "max_static_fraction_of_native_contacts": 0.45,
+    "max_holo_clashes_4A": 50,
+    "max_holo_fv_framework_rmsd_A": 3.5,
+    "max_holo_fv_cdr_rmsd_A": 6.0,
+    "min_holo_cdr_epitope_contacts": 6,
+    "max_holo_vh_vl_interface_clashes": 0
+  },
+  "reference_pdb": "/workspace/inputs/fab_stage_0_vhvL_interface.pdb",
+  "native_wt_interface_contacts": 113,
+  "native_static_interface_contacts": 113.0,
+  "designs": [
+    {
+      "design_id": "rank003_s0_native_split_s306",
+      "static_vh_vl_interface_contacts": 52.9,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGGPWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank003_s0_native_split_s306_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 11.394676208496094,
+        "vh_vl_fr4_ca_distance": 38.1776237487793,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 171,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.3934222372860137,
+        "holo_fv_interface_framework_rmsd_A": 5.961256111416773,
+        "holo_fv_cdr_rmsd_A": 0.7355139690705044
+      },
+      "static_fraction_of_native_contacts": 0.4681,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank002_s0_native_split_s156",
+      "static_vh_vl_interface_contacts": 52.9,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGGPWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank002_s0_native_split_s156_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 10.284906387329102,
+        "vh_vl_fr4_ca_distance": 35.80050277709961,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 157,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1707701263136068,
+        "holo_fv_interface_framework_rmsd_A": 4.851598113063713,
+        "holo_fv_cdr_rmsd_A": 0.8388051823405678
+      },
+      "static_fraction_of_native_contacts": 0.4681,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank004_s0_native_split_s646",
+      "static_vh_vl_interface_contacts": 52.9,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGGPWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank004_s0_native_split_s646_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 11.151646614074707,
+        "vh_vl_fr4_ca_distance": 37.94371032714844,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 113,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.282134871077842,
+        "holo_fv_interface_framework_rmsd_A": 5.557257785630813,
+        "holo_fv_cdr_rmsd_A": 0.6641812201339401
+      },
+      "static_fraction_of_native_contacts": 0.4681,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank010_s0_native_split_s731",
+      "static_vh_vl_interface_contacts": 53.8,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNYTR"
+      },
+      "holo": {
+        "structure": "rank010_s0_native_split_s731_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 8.51902961730957,
+        "vh_vl_fr4_ca_distance": 37.01948928833008,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 365,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.168843609137339,
+        "holo_fv_interface_framework_rmsd_A": 5.283540585595982,
+        "holo_fv_cdr_rmsd_A": 0.7131612252468966
+      },
+      "static_fraction_of_native_contacts": 0.4761,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank008_s0_native_split_s570",
+      "static_vh_vl_interface_contacts": 53.8,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank008_s0_native_split_s570_model_0.cif",
+        "vh_vl_interface_contacts": 88,
+        "vh_vl_interface_centroid_distance": 5.325566291809082,
+        "vh_vl_fr4_ca_distance": 31.034353256225586,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 336,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.536425542237737,
+        "holo_fv_interface_framework_rmsd_A": 5.7100859910160136,
+        "holo_fv_cdr_rmsd_A": 0.9278339317010027
+      },
+      "static_fraction_of_native_contacts": 0.4761,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank005_s0_native_split_s237",
+      "static_vh_vl_interface_contacts": 53.8,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank005_s0_native_split_s237_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 9.621228218078613,
+        "vh_vl_fr4_ca_distance": 35.87843704223633,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 325,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.134830370340125,
+        "holo_fv_interface_framework_rmsd_A": 4.5135310647402616,
+        "holo_fv_cdr_rmsd_A": 0.6376391192584846
+      },
+      "static_fraction_of_native_contacts": 0.4761,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank009_s0_native_split_s682",
+      "static_vh_vl_interface_contacts": 53.8,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank009_s0_native_split_s682_model_0.cif",
+        "vh_vl_interface_contacts": 85,
+        "vh_vl_interface_centroid_distance": 7.995334625244141,
+        "vh_vl_fr4_ca_distance": 33.512451171875,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 209,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 1.397849612641606,
+        "holo_fv_interface_framework_rmsd_A": 2.874559633810774,
+        "holo_fv_cdr_rmsd_A": 0.5548781159991806
+      },
+      "static_fraction_of_native_contacts": 0.4761,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank006_s0_native_split_s286",
+      "static_vh_vl_interface_contacts": 53.8,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank006_s0_native_split_s286_model_0.cif",
+        "vh_vl_interface_contacts": 73,
+        "vh_vl_interface_centroid_distance": 11.999083518981934,
+        "vh_vl_fr4_ca_distance": 39.455623626708984,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 207,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.387941242135165,
+        "holo_fv_interface_framework_rmsd_A": 5.762689094962335,
+        "holo_fv_cdr_rmsd_A": 0.6911880372725534
+      },
+      "static_fraction_of_native_contacts": 0.4761,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank011_s0_native_split_s831",
+      "static_vh_vl_interface_contacts": 53.8,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank011_s0_native_split_s831_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 10.1353759765625,
+        "vh_vl_fr4_ca_distance": 37.784332275390625,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 67,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.0419208114145015,
+        "holo_fv_interface_framework_rmsd_A": 4.796227510585535,
+        "holo_fv_cdr_rmsd_A": 0.5782200880732817
+      },
+      "static_fraction_of_native_contacts": 0.4761,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank013_s0_native_split_s520",
+      "static_vh_vl_interface_contacts": 55.2,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGGPWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank013_s0_native_split_s520_model_0.cif",
+        "vh_vl_interface_contacts": 67,
+        "vh_vl_interface_centroid_distance": 10.620186805725098,
+        "vh_vl_fr4_ca_distance": 38.32004928588867,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 195,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2705038491784406,
+        "holo_fv_interface_framework_rmsd_A": 5.702194307493856,
+        "holo_fv_cdr_rmsd_A": 0.49286392457886435
+      },
+      "static_fraction_of_native_contacts": 0.4885,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank014_s0_native_split_s944",
+      "static_vh_vl_interface_contacts": 58.15,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGGGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank014_s0_native_split_s944_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 10.119706153869629,
+        "vh_vl_fr4_ca_distance": 37.623313903808594,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 195,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.386131059501044,
+        "holo_fv_interface_framework_rmsd_A": 5.567822442916165,
+        "holo_fv_cdr_rmsd_A": 0.703706150256189
+      },
+      "static_fraction_of_native_contacts": 0.5146,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank092_s0_native_split_s894",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank092_s0_native_split_s894_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 9.721796035766602,
+        "vh_vl_fr4_ca_distance": 36.346439361572266,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 452,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.291509534860472,
+        "holo_fv_interface_framework_rmsd_A": 5.031860195030926,
+        "holo_fv_cdr_rmsd_A": 0.6585426704513766
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank030_s0_native_split_s184",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank030_s0_native_split_s184_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 9.491945266723633,
+        "vh_vl_fr4_ca_distance": 37.073482513427734,
+        "inter_chain_clashes_4A": 33,
+        "cdr_epitope_contacts": 429,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.155276831439501,
+        "holo_fv_interface_framework_rmsd_A": 4.828156847383783,
+        "holo_fv_cdr_rmsd_A": 0.6636125755491259
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank040_s0_native_split_s339",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank040_s0_native_split_s339_model_0.cif",
+        "vh_vl_interface_contacts": 68,
+        "vh_vl_interface_centroid_distance": 9.219154357910156,
+        "vh_vl_fr4_ca_distance": 37.18943786621094,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 420,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.323391555284013,
+        "holo_fv_interface_framework_rmsd_A": 5.20602626911864,
+        "holo_fv_cdr_rmsd_A": 0.9292315914657632
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank099_s0_native_split_s953",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank099_s0_native_split_s953_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 10.993663787841797,
+        "vh_vl_fr4_ca_distance": 38.198299407958984,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 396,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1230035602273203,
+        "holo_fv_interface_framework_rmsd_A": 5.031398955028581,
+        "holo_fv_cdr_rmsd_A": 0.6653376927566256
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank083_s0_native_split_s822",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank083_s0_native_split_s822_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 10.53500747680664,
+        "vh_vl_fr4_ca_distance": 38.2177619934082,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 389,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1975587586291123,
+        "holo_fv_interface_framework_rmsd_A": 5.1595493288496375,
+        "holo_fv_cdr_rmsd_A": 0.572864950402969
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank045_s0_native_split_s409",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank045_s0_native_split_s409_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 8.731463432312012,
+        "vh_vl_fr4_ca_distance": 37.16054916381836,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 387,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.16819742854118,
+        "holo_fv_interface_framework_rmsd_A": 4.715846792840293,
+        "holo_fv_cdr_rmsd_A": 0.7538182703685908
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank021_s0_native_split_s108",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank021_s0_native_split_s108_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 11.249999046325684,
+        "vh_vl_fr4_ca_distance": 37.82595443725586,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 377,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.067958129597682,
+        "holo_fv_interface_framework_rmsd_A": 4.98476640069035,
+        "holo_fv_cdr_rmsd_A": 0.5922104132985576
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank036_s0_native_split_s235",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank036_s0_native_split_s235_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 9.839941024780273,
+        "vh_vl_fr4_ca_distance": 37.317420959472656,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 371,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2895499723327655,
+        "holo_fv_interface_framework_rmsd_A": 5.320488385948494,
+        "holo_fv_cdr_rmsd_A": 0.6821806450220504
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank070_s0_native_split_s630",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank070_s0_native_split_s630_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 9.663386344909668,
+        "vh_vl_fr4_ca_distance": 35.73335647583008,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 359,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.122312219736515,
+        "holo_fv_interface_framework_rmsd_A": 4.488906886067548,
+        "holo_fv_cdr_rmsd_A": 0.6690146934268684
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank071_s0_native_split_s656",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank071_s0_native_split_s656_model_0.cif",
+        "vh_vl_interface_contacts": 67,
+        "vh_vl_interface_centroid_distance": 9.376171112060547,
+        "vh_vl_fr4_ca_distance": 36.851871490478516,
+        "inter_chain_clashes_4A": 21,
+        "cdr_epitope_contacts": 358,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 1.9412494364632331,
+        "holo_fv_interface_framework_rmsd_A": 4.602607048071183,
+        "holo_fv_cdr_rmsd_A": 0.6693425381190593
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank039_s0_native_split_s307",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank039_s0_native_split_s307_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 9.769452095031738,
+        "vh_vl_fr4_ca_distance": 36.858123779296875,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 350,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.19462902446728,
+        "holo_fv_interface_framework_rmsd_A": 4.880315250115818,
+        "holo_fv_cdr_rmsd_A": 0.6605115081850164
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank059_s0_native_split_s496",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank059_s0_native_split_s496_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 9.013053894042969,
+        "vh_vl_fr4_ca_distance": 36.05685043334961,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 346,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.242968938181594,
+        "holo_fv_interface_framework_rmsd_A": 4.895337930633588,
+        "holo_fv_cdr_rmsd_A": 0.6310610071866533
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank028_s0_native_split_s165",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank028_s0_native_split_s165_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 10.394954681396484,
+        "vh_vl_fr4_ca_distance": 36.207481384277344,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 313,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 1.9948475742663019,
+        "holo_fv_interface_framework_rmsd_A": 4.733491119413455,
+        "holo_fv_cdr_rmsd_A": 0.522801459564625
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank082_s0_native_split_s819",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank082_s0_native_split_s819_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 10.34217643737793,
+        "vh_vl_fr4_ca_distance": 37.21100997924805,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 298,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1011805917168815,
+        "holo_fv_interface_framework_rmsd_A": 4.720194890976698,
+        "holo_fv_cdr_rmsd_A": 0.6504464881305785
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank081_s0_native_split_s801",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank081_s0_native_split_s801_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 9.60416030883789,
+        "vh_vl_fr4_ca_distance": 36.78026580810547,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 293,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.245185219729892,
+        "holo_fv_interface_framework_rmsd_A": 4.894379076927871,
+        "holo_fv_cdr_rmsd_A": 0.7064566033387045
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank080_s0_native_split_s774",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank080_s0_native_split_s774_model_0.cif",
+        "vh_vl_interface_contacts": 100,
+        "vh_vl_interface_centroid_distance": 5.151601314544678,
+        "vh_vl_fr4_ca_distance": 31.213058471679688,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 289,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.4523076914183375,
+        "holo_fv_interface_framework_rmsd_A": 5.636960615952968,
+        "holo_fv_cdr_rmsd_A": 0.8426225087938936
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank019_s0_native_split_s85",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank019_s0_native_split_s85_model_0.cif",
+        "vh_vl_interface_contacts": 61,
+        "vh_vl_interface_centroid_distance": 8.719510078430176,
+        "vh_vl_fr4_ca_distance": 36.12675857543945,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 288,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2026080681321827,
+        "holo_fv_interface_framework_rmsd_A": 4.774154996226128,
+        "holo_fv_cdr_rmsd_A": 0.794876534689646
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank046_s0_native_split_s414",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank046_s0_native_split_s414_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 10.50903034210205,
+        "vh_vl_fr4_ca_distance": 36.927791595458984,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 286,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.082068929460736,
+        "holo_fv_interface_framework_rmsd_A": 4.740783615569247,
+        "holo_fv_cdr_rmsd_A": 0.6596085700558396
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank026_s0_native_split_s158",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank026_s0_native_split_s158_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 10.497966766357422,
+        "vh_vl_fr4_ca_distance": 38.3138542175293,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 284,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.252140627603941,
+        "holo_fv_interface_framework_rmsd_A": 5.290241597857622,
+        "holo_fv_cdr_rmsd_A": 0.6519899696087701
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank033_s0_native_split_s216",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank033_s0_native_split_s216_model_0.cif",
+        "vh_vl_interface_contacts": 91,
+        "vh_vl_interface_centroid_distance": 5.7813849449157715,
+        "vh_vl_fr4_ca_distance": 31.272689819335938,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 283,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.400355574955909,
+        "holo_fv_interface_framework_rmsd_A": 5.42337699950644,
+        "holo_fv_cdr_rmsd_A": 0.8584779628682057
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank031_s0_native_split_s190",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank031_s0_native_split_s190_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 9.887452125549316,
+        "vh_vl_fr4_ca_distance": 37.21786117553711,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 277,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.160426139921008,
+        "holo_fv_interface_framework_rmsd_A": 4.938738772596658,
+        "holo_fv_cdr_rmsd_A": 0.5879929148108131
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank065_s0_native_split_s589",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank065_s0_native_split_s589_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 10.006120681762695,
+        "vh_vl_fr4_ca_distance": 36.42402267456055,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 277,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1670102477358286,
+        "holo_fv_interface_framework_rmsd_A": 4.769881845690446,
+        "holo_fv_cdr_rmsd_A": 0.618221935678129
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank062_s0_native_split_s538",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank062_s0_native_split_s538_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 7.94207763671875,
+        "vh_vl_fr4_ca_distance": 37.78494644165039,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 273,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.400499917075001,
+        "holo_fv_interface_framework_rmsd_A": 5.839070079606428,
+        "holo_fv_cdr_rmsd_A": 0.8344849405497391
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank052_s0_native_split_s464",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank052_s0_native_split_s464_model_0.cif",
+        "vh_vl_interface_contacts": 104,
+        "vh_vl_interface_centroid_distance": 5.196351528167725,
+        "vh_vl_fr4_ca_distance": 31.0954532623291,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 272,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.542202426120089,
+        "holo_fv_interface_framework_rmsd_A": 5.5603857236427965,
+        "holo_fv_cdr_rmsd_A": 0.8907936432864004
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank088_s0_native_split_s867",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQQPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank088_s0_native_split_s867_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 11.436075210571289,
+        "vh_vl_fr4_ca_distance": 36.9820671081543,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 268,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.0298451243534528,
+        "holo_fv_interface_framework_rmsd_A": 4.743518621637888,
+        "holo_fv_cdr_rmsd_A": 0.5056011981704741
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank093_s0_native_split_s898",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank093_s0_native_split_s898_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 10.178692817687988,
+        "vh_vl_fr4_ca_distance": 36.566280364990234,
+        "inter_chain_clashes_4A": 33,
+        "cdr_epitope_contacts": 252,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.289053329201553,
+        "holo_fv_interface_framework_rmsd_A": 5.115233418138113,
+        "holo_fv_cdr_rmsd_A": 0.6762809438666566
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank050_s0_native_split_s444",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank050_s0_native_split_s444_model_0.cif",
+        "vh_vl_interface_contacts": 89,
+        "vh_vl_interface_centroid_distance": 5.459769248962402,
+        "vh_vl_fr4_ca_distance": 31.8309326171875,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 251,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.4146268397919464,
+        "holo_fv_interface_framework_rmsd_A": 5.55528093771565,
+        "holo_fv_cdr_rmsd_A": 0.9121972538655071
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank067_s0_native_split_s601",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank067_s0_native_split_s601_model_0.cif",
+        "vh_vl_interface_contacts": 94,
+        "vh_vl_interface_centroid_distance": 5.39304256439209,
+        "vh_vl_fr4_ca_distance": 31.217363357543945,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 245,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.5231195207603867,
+        "holo_fv_interface_framework_rmsd_A": 5.650705108793344,
+        "holo_fv_cdr_rmsd_A": 0.9183215735494437
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank097_s0_native_split_s946",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank097_s0_native_split_s946_model_0.cif",
+        "vh_vl_interface_contacts": 74,
+        "vh_vl_interface_centroid_distance": 11.702534675598145,
+        "vh_vl_fr4_ca_distance": 38.35544204711914,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 244,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2254355743454903,
+        "holo_fv_interface_framework_rmsd_A": 5.592269319147238,
+        "holo_fv_cdr_rmsd_A": 0.6743527252722593
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank086_s0_native_split_s836",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank086_s0_native_split_s836_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 11.798700332641602,
+        "vh_vl_fr4_ca_distance": 37.98504638671875,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 237,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.0554991197874752,
+        "holo_fv_interface_framework_rmsd_A": 4.95474352080391,
+        "holo_fv_cdr_rmsd_A": 0.563832373665008
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank072_s0_native_split_s658",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank072_s0_native_split_s658_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 10.011637687683105,
+        "vh_vl_fr4_ca_distance": 38.89119338989258,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 236,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.020410608962355,
+        "holo_fv_interface_framework_rmsd_A": 4.571318370735564,
+        "holo_fv_cdr_rmsd_A": 0.7502531571028305
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank038_s0_native_split_s270",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank038_s0_native_split_s270_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 9.626995086669922,
+        "vh_vl_fr4_ca_distance": 35.982208251953125,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 236,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2470024749483084,
+        "holo_fv_interface_framework_rmsd_A": 4.842389282564978,
+        "holo_fv_cdr_rmsd_A": 0.6844408372121481
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank025_s0_native_split_s147",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank025_s0_native_split_s147_model_0.cif",
+        "vh_vl_interface_contacts": 89,
+        "vh_vl_interface_centroid_distance": 5.358606815338135,
+        "vh_vl_fr4_ca_distance": 31.470794677734375,
+        "inter_chain_clashes_4A": 34,
+        "cdr_epitope_contacts": 236,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.4281779329979667,
+        "holo_fv_interface_framework_rmsd_A": 5.632993323821594,
+        "holo_fv_cdr_rmsd_A": 0.8605294342556451
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank066_s0_native_split_s593",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank066_s0_native_split_s593_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 11.584858894348145,
+        "vh_vl_fr4_ca_distance": 37.89013671875,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 231,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.110178381244603,
+        "holo_fv_interface_framework_rmsd_A": 5.079225599678321,
+        "holo_fv_cdr_rmsd_A": 0.5991260290887047
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank063_s0_native_split_s553",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank063_s0_native_split_s553_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 7.746265411376953,
+        "vh_vl_fr4_ca_distance": 36.20603561401367,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 230,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.5030892908305638,
+        "holo_fv_interface_framework_rmsd_A": 5.498291108950783,
+        "holo_fv_cdr_rmsd_A": 1.0022863045727481
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank058_s0_native_split_s493",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank058_s0_native_split_s493_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 7.884993076324463,
+        "vh_vl_fr4_ca_distance": 36.07954406738281,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 230,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.60714138046372,
+        "holo_fv_interface_framework_rmsd_A": 6.140663172207377,
+        "holo_fv_cdr_rmsd_A": 0.8054429130592576
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank064_s0_native_split_s577",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank064_s0_native_split_s577_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 10.197307586669922,
+        "vh_vl_fr4_ca_distance": 36.76335144042969,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 228,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2192684182672298,
+        "holo_fv_interface_framework_rmsd_A": 4.917647802055849,
+        "holo_fv_cdr_rmsd_A": 0.7256708278899842
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank085_s0_native_split_s830",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank085_s0_native_split_s830_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 10.311182975769043,
+        "vh_vl_fr4_ca_distance": 36.604148864746094,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 227,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2359675305720397,
+        "holo_fv_interface_framework_rmsd_A": 4.964175980493739,
+        "holo_fv_cdr_rmsd_A": 0.7129303577925096
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank024_s0_native_split_s129",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank024_s0_native_split_s129_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 10.518576622009277,
+        "vh_vl_fr4_ca_distance": 36.48546600341797,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 226,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.225965141850358,
+        "holo_fv_interface_framework_rmsd_A": 4.857999674405362,
+        "holo_fv_cdr_rmsd_A": 0.6832358988849475
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank015_s0_native_split_s2",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank015_s0_native_split_s2_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 9.763452529907227,
+        "vh_vl_fr4_ca_distance": 36.98063659667969,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 225,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1808697979350886,
+        "holo_fv_interface_framework_rmsd_A": 4.753051696623484,
+        "holo_fv_cdr_rmsd_A": 0.6789157509523056
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank034_s0_native_split_s220",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank034_s0_native_split_s220_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 8.761504173278809,
+        "vh_vl_fr4_ca_distance": 36.8175163269043,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 224,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.5255162311095445,
+        "holo_fv_interface_framework_rmsd_A": 5.658821985934588,
+        "holo_fv_cdr_rmsd_A": 0.8137440859681407
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank057_s0_native_split_s489",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank057_s0_native_split_s489_model_0.cif",
+        "vh_vl_interface_contacts": 67,
+        "vh_vl_interface_centroid_distance": 11.37912654876709,
+        "vh_vl_fr4_ca_distance": 37.84337615966797,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 221,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.052383806054138,
+        "holo_fv_interface_framework_rmsd_A": 4.96221840640727,
+        "holo_fv_cdr_rmsd_A": 0.5415954287957224
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank089_s0_native_split_s879",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank089_s0_native_split_s879_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 10.924028396606445,
+        "vh_vl_fr4_ca_distance": 37.476200103759766,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 221,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1091346623546148,
+        "holo_fv_interface_framework_rmsd_A": 4.757364836714567,
+        "holo_fv_cdr_rmsd_A": 0.6588118403473625
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank048_s0_native_split_s425",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank048_s0_native_split_s425_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 10.030454635620117,
+        "vh_vl_fr4_ca_distance": 36.64988327026367,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 221,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.1682137337124807,
+        "holo_fv_interface_framework_rmsd_A": 4.743705227718374,
+        "holo_fv_cdr_rmsd_A": 0.6807198580862983
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank060_s0_native_split_s507",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank060_s0_native_split_s507_model_0.cif",
+        "vh_vl_interface_contacts": 75,
+        "vh_vl_interface_centroid_distance": 5.193202972412109,
+        "vh_vl_fr4_ca_distance": 31.470508575439453,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 219,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.5138049317203124,
+        "holo_fv_interface_framework_rmsd_A": 5.761271560118063,
+        "holo_fv_cdr_rmsd_A": 0.9797420827315875
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank074_s0_native_split_s725",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank074_s0_native_split_s725_model_0.cif",
+        "vh_vl_interface_contacts": 86,
+        "vh_vl_interface_centroid_distance": 5.149752140045166,
+        "vh_vl_fr4_ca_distance": 31.24408721923828,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 216,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.456845561315796,
+        "holo_fv_interface_framework_rmsd_A": 5.661391798761545,
+        "holo_fv_cdr_rmsd_A": 0.8271729081908971
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank069_s0_native_split_s617",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank069_s0_native_split_s617_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 10.067808151245117,
+        "vh_vl_fr4_ca_distance": 36.58745193481445,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 214,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.062771814126128,
+        "holo_fv_interface_framework_rmsd_A": 4.508455282068178,
+        "holo_fv_cdr_rmsd_A": 0.66092616556223
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank022_s0_native_split_s110",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank022_s0_native_split_s110_model_0.cif",
+        "vh_vl_interface_contacts": 67,
+        "vh_vl_interface_centroid_distance": 9.966238975524902,
+        "vh_vl_fr4_ca_distance": 37.335655212402344,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 213,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2461705277359725,
+        "holo_fv_interface_framework_rmsd_A": 5.037771573292115,
+        "holo_fv_cdr_rmsd_A": 0.6550946533921044
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank054_s0_native_split_s470",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank054_s0_native_split_s470_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 9.916744232177734,
+        "vh_vl_fr4_ca_distance": 36.46631622314453,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 211,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.2876235326699845,
+        "holo_fv_interface_framework_rmsd_A": 4.987939589928532,
+        "holo_fv_cdr_rmsd_A": 0.7156546251529975
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank043_s0_native_split_s376",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNFTR"
+      },
+      "holo": {
+        "structure": "rank043_s0_native_split_s376_model_0.cif",
+        "vh_vl_interface_contacts": 81,
+        "vh_vl_interface_centroid_distance": 5.3230180740356445,
+        "vh_vl_fr4_ca_distance": 30.560523986816406,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 210,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.565825808900359,
+        "holo_fv_interface_framework_rmsd_A": 5.784253127619785,
+        "holo_fv_cdr_rmsd_A": 0.840177076290236
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank091_s0_native_split_s887",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank091_s0_native_split_s887_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 10.025506973266602,
+        "vh_vl_fr4_ca_distance": 36.89259338378906,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 209,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.408511773475286,
+        "holo_fv_interface_framework_rmsd_A": 5.405455976903903,
+        "holo_fv_cdr_rmsd_A": 0.7309397571436114
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank095_s0_native_split_s913",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank095_s0_native_split_s913_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 10.570211410522461,
+        "vh_vl_fr4_ca_distance": 37.8236198425293,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 208,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.0868382388434212,
+        "holo_fv_interface_framework_rmsd_A": 4.788300958631492,
+        "holo_fv_cdr_rmsd_A": 0.5857000793407781
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank073_s0_native_split_s716",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank073_s0_native_split_s716_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 8.924661636352539,
+        "vh_vl_fr4_ca_distance": 35.87797546386719,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 208,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.137990985526364,
+        "holo_fv_interface_framework_rmsd_A": 4.342732677992997,
+        "holo_fv_cdr_rmsd_A": 0.8101718988796462
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank084_s0_native_split_s829",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank084_s0_native_split_s829_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 10.103684425354004,
+        "vh_vl_fr4_ca_distance": 37.528255462646484,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 208,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.5033610452661605,
+        "holo_fv_interface_framework_rmsd_A": 5.719518980678287,
+        "holo_fv_cdr_rmsd_A": 0.7083187679489825
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank020_s0_native_split_s95",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank020_s0_native_split_s95_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 10.171636581420898,
+        "vh_vl_fr4_ca_distance": 37.52571487426758,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 206,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.4737337819980203,
+        "holo_fv_interface_framework_rmsd_A": 5.655658124441453,
+        "holo_fv_cdr_rmsd_A": 0.725219352913456
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank049_s0_native_split_s433",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank049_s0_native_split_s433_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 10.642610549926758,
+        "vh_vl_fr4_ca_distance": 36.96990966796875,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 204,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.101901468692113,
+        "holo_fv_interface_framework_rmsd_A": 4.786060492732485,
+        "holo_fv_cdr_rmsd_A": 0.682968871135638
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank018_s0_native_split_s57",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank018_s0_native_split_s57_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 9.942617416381836,
+        "vh_vl_fr4_ca_distance": 36.380943298339844,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 204,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.3173751265184275,
+        "holo_fv_interface_framework_rmsd_A": 5.33202267396301,
+        "holo_fv_cdr_rmsd_A": 0.6323259137403623
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank100_s0_native_split_s957",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank100_s0_native_split_s957_model_0.cif",
+        "vh_vl_interface_contacts": 69,
+        "vh_vl_interface_centroid_distance": 11.593724250793457,
+        "vh_vl_fr4_ca_distance": 37.729759216308594,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 203,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.4136708224301264,
+        "holo_fv_interface_framework_rmsd_A": 5.671216057978646,
+        "holo_fv_cdr_rmsd_A": 0.7115122371226634
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank098_s0_native_split_s952",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank098_s0_native_split_s952_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 11.472962379455566,
+        "vh_vl_fr4_ca_distance": 38.257076263427734,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 200,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.113271181579621,
+        "holo_fv_interface_framework_rmsd_A": 5.147784607435811,
+        "holo_fv_cdr_rmsd_A": 0.580212963327364
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank047_s0_native_split_s418",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank047_s0_native_split_s418_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 9.905848503112793,
+        "vh_vl_fr4_ca_distance": 37.96259689331055,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 193,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.461290272924988,
+        "holo_fv_interface_framework_rmsd_A": 5.766204447328017,
+        "holo_fv_cdr_rmsd_A": 0.733028060776899
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank094_s0_native_split_s905",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank094_s0_native_split_s905_model_0.cif",
+        "vh_vl_interface_contacts": 85,
+        "vh_vl_interface_centroid_distance": 5.339076042175293,
+        "vh_vl_fr4_ca_distance": 31.35247039794922,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 190,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.532756897546151,
+        "holo_fv_interface_framework_rmsd_A": 5.631604701814704,
+        "holo_fv_cdr_rmsd_A": 0.9531284426759274
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank037_s0_native_split_s266",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWSR"
+      },
+      "holo": {
+        "structure": "rank037_s0_native_split_s266_model_0.cif",
+        "vh_vl_interface_contacts": 109,
+        "vh_vl_interface_centroid_distance": 7.783659934997559,
+        "vh_vl_fr4_ca_distance": 33.06687545776367,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 188,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 1.5025152646586406,
+        "holo_fv_interface_framework_rmsd_A": 2.91002109226671,
+        "holo_fv_cdr_rmsd_A": 0.6818196273471663
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank016_s0_native_split_s4",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank016_s0_native_split_s4_model_0.cif",
+        "vh_vl_interface_contacts": 61,
+        "vh_vl_interface_centroid_distance": 12.135319709777832,
+        "vh_vl_fr4_ca_distance": 38.0283203125,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 188,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.400729388850064,
+        "holo_fv_interface_framework_rmsd_A": 5.7845908087876055,
+        "holo_fv_cdr_rmsd_A": 0.701349587202539
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank044_s0_native_split_s382",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank044_s0_native_split_s382_model_0.cif",
+        "vh_vl_interface_contacts": 77,
+        "vh_vl_interface_centroid_distance": 13.353486061096191,
+        "vh_vl_fr4_ca_distance": 40.8759880065918,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 182,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.808043895897181,
+        "holo_fv_interface_framework_rmsd_A": 7.071032967501977,
+        "holo_fv_cdr_rmsd_A": 0.915083232558848
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank051_s0_native_split_s460",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank051_s0_native_split_s460_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 9.929450988769531,
+        "vh_vl_fr4_ca_distance": 37.68695068359375,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 162,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.5662098158928046,
+        "holo_fv_interface_framework_rmsd_A": 6.024158301036574,
+        "holo_fv_cdr_rmsd_A": 0.7090981041714746
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank079_s0_native_split_s770",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank079_s0_native_split_s770_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 11.11453628540039,
+        "vh_vl_fr4_ca_distance": 37.17262649536133,
+        "inter_chain_clashes_4A": 21,
+        "cdr_epitope_contacts": 152,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.3839801837962975,
+        "holo_fv_interface_framework_rmsd_A": 5.652465918832888,
+        "holo_fv_cdr_rmsd_A": 0.6701312539109299
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank090_s0_native_split_s882",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank090_s0_native_split_s882_model_0.cif",
+        "vh_vl_interface_contacts": 68,
+        "vh_vl_interface_centroid_distance": 10.939343452453613,
+        "vh_vl_fr4_ca_distance": 37.258018493652344,
+        "inter_chain_clashes_4A": 23,
+        "cdr_epitope_contacts": 151,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.253636513320101,
+        "holo_fv_interface_framework_rmsd_A": 5.248500200569576,
+        "holo_fv_cdr_rmsd_A": 0.6569314334206657
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank078_s0_native_split_s768",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank078_s0_native_split_s768_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 11.8900728225708,
+        "vh_vl_fr4_ca_distance": 37.81745147705078,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 148,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.394438462150476,
+        "holo_fv_interface_framework_rmsd_A": 5.88624761942,
+        "holo_fv_cdr_rmsd_A": 0.7661840044967324
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank061_s0_native_split_s525",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank061_s0_native_split_s525_model_0.cif",
+        "vh_vl_interface_contacts": 61,
+        "vh_vl_interface_centroid_distance": 9.366677284240723,
+        "vh_vl_fr4_ca_distance": 36.59852600097656,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 125,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.637740877768667,
+        "holo_fv_interface_framework_rmsd_A": 6.221408984485149,
+        "holo_fv_cdr_rmsd_A": 0.8088300168818839
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank001_s0_native_split_s98",
+      "static_vh_vl_interface_contacts": 51.1,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRRAPGQGEEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank001_s0_native_split_s98_model_0.cif",
+        "vh_vl_interface_contacts": 52,
+        "vh_vl_interface_centroid_distance": 8.951473236083984,
+        "vh_vl_fr4_ca_distance": 38.683467864990234,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 202,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.6072305142622927,
+        "holo_fv_interface_framework_rmsd_A": 6.530998303994202,
+        "holo_fv_cdr_rmsd_A": 0.8854984854851924
+      },
+      "static_fraction_of_native_contacts": 0.4522,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank007_s0_native_split_s421",
+      "static_vh_vl_interface_contacts": 53.8,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank007_s0_native_split_s421_model_0.cif",
+        "vh_vl_interface_contacts": 76,
+        "vh_vl_interface_centroid_distance": 9.332743644714355,
+        "vh_vl_fr4_ca_distance": 33.813926696777344,
+        "inter_chain_clashes_4A": 41,
+        "cdr_epitope_contacts": 129,
+        "vh_vl_interface_clashes": 3,
+        "holo_fv_framework_rmsd_A": 2.3765857879522954,
+        "holo_fv_interface_framework_rmsd_A": 5.157810638104518,
+        "holo_fv_cdr_rmsd_A": 0.7715352452310369
+      },
+      "static_fraction_of_native_contacts": 0.4761,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank012_s0_native_split_s227",
+      "static_vh_vl_interface_contacts": 54.05,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGYEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank012_s0_native_split_s227_model_0.cif",
+        "vh_vl_interface_contacts": 83,
+        "vh_vl_interface_centroid_distance": 5.216905117034912,
+        "vh_vl_fr4_ca_distance": 31.207962036132812,
+        "inter_chain_clashes_4A": 37,
+        "cdr_epitope_contacts": 205,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.5008577648788695,
+        "holo_fv_interface_framework_rmsd_A": 5.6785392199994815,
+        "holo_fv_cdr_rmsd_A": 0.9466424968630442
+      },
+      "static_fraction_of_native_contacts": 0.4783,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank056_s0_native_split_s488",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank056_s0_native_split_s488_model_0.cif",
+        "vh_vl_interface_contacts": 73,
+        "vh_vl_interface_centroid_distance": 8.430940628051758,
+        "vh_vl_fr4_ca_distance": 36.73679733276367,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 375,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.454776218765077,
+        "holo_fv_interface_framework_rmsd_A": 5.60577358407712,
+        "holo_fv_cdr_rmsd_A": 0.8235043098500476
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank075_s0_native_split_s742",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank075_s0_native_split_s742_model_0.cif",
+        "vh_vl_interface_contacts": 92,
+        "vh_vl_interface_centroid_distance": 5.194795608520508,
+        "vh_vl_fr4_ca_distance": 31.18690299987793,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 274,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.536250450493392,
+        "holo_fv_interface_framework_rmsd_A": 5.7226188262910815,
+        "holo_fv_cdr_rmsd_A": 0.9245463097955823
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank017_s0_native_split_s48",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank017_s0_native_split_s48_model_0.cif",
+        "vh_vl_interface_contacts": 80,
+        "vh_vl_interface_centroid_distance": 5.284054279327393,
+        "vh_vl_fr4_ca_distance": 31.4016170501709,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 250,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.5572425427247882,
+        "holo_fv_interface_framework_rmsd_A": 5.740143347996881,
+        "holo_fv_cdr_rmsd_A": 0.9917935788632146
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank041_s0_native_split_s340",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank041_s0_native_split_s340_model_0.cif",
+        "vh_vl_interface_contacts": 72,
+        "vh_vl_interface_centroid_distance": 10.310453414916992,
+        "vh_vl_fr4_ca_distance": 37.44340133666992,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 246,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.2955774897964774,
+        "holo_fv_interface_framework_rmsd_A": 5.246787935316169,
+        "holo_fv_cdr_rmsd_A": 0.7299703255417078
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank087_s0_native_split_s858",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank087_s0_native_split_s858_model_0.cif",
+        "vh_vl_interface_contacts": 97,
+        "vh_vl_interface_centroid_distance": 5.285235404968262,
+        "vh_vl_fr4_ca_distance": 31.416444778442383,
+        "inter_chain_clashes_4A": 36,
+        "cdr_epitope_contacts": 244,
+        "vh_vl_interface_clashes": 3,
+        "holo_fv_framework_rmsd_A": 2.491517224168291,
+        "holo_fv_interface_framework_rmsd_A": 5.6550344613026144,
+        "holo_fv_cdr_rmsd_A": 0.8805893164774322
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank068_s0_native_split_s609",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank068_s0_native_split_s609_model_0.cif",
+        "vh_vl_interface_contacts": 67,
+        "vh_vl_interface_centroid_distance": 9.7481689453125,
+        "vh_vl_fr4_ca_distance": 37.521888732910156,
+        "inter_chain_clashes_4A": 39,
+        "cdr_epitope_contacts": 232,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.521987470696862,
+        "holo_fv_interface_framework_rmsd_A": 5.754023838613937,
+        "holo_fv_cdr_rmsd_A": 0.8679845214621436
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank032_s0_native_split_s209",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank032_s0_native_split_s209_model_0.cif",
+        "vh_vl_interface_contacts": 101,
+        "vh_vl_interface_centroid_distance": 5.51373815536499,
+        "vh_vl_fr4_ca_distance": 31.023653030395508,
+        "inter_chain_clashes_4A": 46,
+        "cdr_epitope_contacts": 226,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.468654633914103,
+        "holo_fv_interface_framework_rmsd_A": 5.566600331226116,
+        "holo_fv_cdr_rmsd_A": 1.0473327288329974
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank077_s0_native_split_s758",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank077_s0_native_split_s758_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 5.164780139923096,
+        "vh_vl_fr4_ca_distance": 31.40056610107422,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 222,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.53415347468911,
+        "holo_fv_interface_framework_rmsd_A": 5.72259859814938,
+        "holo_fv_cdr_rmsd_A": 0.9457567071324826
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank042_s0_native_split_s346",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank042_s0_native_split_s346_model_0.cif",
+        "vh_vl_interface_contacts": 76,
+        "vh_vl_interface_centroid_distance": 9.983508110046387,
+        "vh_vl_fr4_ca_distance": 37.092838287353516,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 220,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.289891762896994,
+        "holo_fv_interface_framework_rmsd_A": 5.237434990583154,
+        "holo_fv_cdr_rmsd_A": 0.707166373122544
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank055_s0_native_split_s481",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank055_s0_native_split_s481_model_0.cif",
+        "vh_vl_interface_contacts": 75,
+        "vh_vl_interface_centroid_distance": 10.137152671813965,
+        "vh_vl_fr4_ca_distance": 37.41435241699219,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 217,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.437453101399921,
+        "holo_fv_interface_framework_rmsd_A": 5.588833414107188,
+        "holo_fv_cdr_rmsd_A": 0.709125150484886
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank035_s0_native_split_s224",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQPPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank035_s0_native_split_s224_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 11.280688285827637,
+        "vh_vl_fr4_ca_distance": 37.16834259033203,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 214,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.360686089612124,
+        "holo_fv_interface_framework_rmsd_A": 5.609459756898663,
+        "holo_fv_cdr_rmsd_A": 0.6586840068808731
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank096_s0_native_split_s929",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank096_s0_native_split_s929_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 11.82924747467041,
+        "vh_vl_fr4_ca_distance": 38.947998046875,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 212,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.4417645192622888,
+        "holo_fv_interface_framework_rmsd_A": 6.020869451259591,
+        "holo_fv_cdr_rmsd_A": 0.7264087029375546
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank076_s0_native_split_s754",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQAPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank076_s0_native_split_s754_model_0.cif",
+        "vh_vl_interface_contacts": 76,
+        "vh_vl_interface_centroid_distance": 11.235221862792969,
+        "vh_vl_fr4_ca_distance": 37.795650482177734,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 203,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.3620808101038464,
+        "holo_fv_interface_framework_rmsd_A": 5.661800227969366,
+        "holo_fv_cdr_rmsd_A": 0.728101765913655
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank053_s0_native_split_s468",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank053_s0_native_split_s468_model_0.cif",
+        "vh_vl_interface_contacts": 103,
+        "vh_vl_interface_centroid_distance": 5.17063570022583,
+        "vh_vl_fr4_ca_distance": 31.407424926757812,
+        "inter_chain_clashes_4A": 37,
+        "cdr_epitope_contacts": 201,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.4583496561725946,
+        "holo_fv_interface_framework_rmsd_A": 5.540898517951559,
+        "holo_fv_cdr_rmsd_A": 0.9288117211618255
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank027_s0_native_split_s164",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQSPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank027_s0_native_split_s164_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 10.845932006835938,
+        "vh_vl_fr4_ca_distance": 37.74474334716797,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 184,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 2.336074575780212,
+        "holo_fv_interface_framework_rmsd_A": 5.624064163555371,
+        "holo_fv_cdr_rmsd_A": 0.6812084833704563
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank029_s0_native_split_s178",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPQLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank029_s0_native_split_s178_model_0.cif",
+        "vh_vl_interface_contacts": 68,
+        "vh_vl_interface_centroid_distance": 9.763697624206543,
+        "vh_vl_fr4_ca_distance": 37.57951354980469,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 148,
+        "vh_vl_interface_clashes": 3,
+        "holo_fv_framework_rmsd_A": 2.485815643794205,
+        "holo_fv_interface_framework_rmsd_A": 5.761213037324378,
+        "holo_fv_cdr_rmsd_A": 0.8727284000455086
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank023_s0_native_split_s122",
+      "static_vh_vl_interface_contacts": 58.85,
+      "chains": {
+        "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVSWYQQKPGQEPVLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank023_s0_native_split_s122_model_0.cif",
+        "vh_vl_interface_contacts": 82,
+        "vh_vl_interface_centroid_distance": 8.120162010192871,
+        "vh_vl_fr4_ca_distance": 33.313499450683594,
+        "inter_chain_clashes_4A": 32,
+        "cdr_epitope_contacts": 141,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.3449442814933303,
+        "holo_fv_interface_framework_rmsd_A": 5.288725486683802,
+        "holo_fv_cdr_rmsd_A": 0.786986335119984
+      },
+      "static_fraction_of_native_contacts": 0.5208,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    }
+  ]
+}

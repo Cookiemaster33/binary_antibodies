@@ -1,0 +1,16 @@
+{
+  "approach": "split_mpnn_partial_degrease",
+  "instance_id": "feda9ebe3c464be69007fe9eec23ac2e",
+  "region": "us-west-2",
+  "instance_type": "gpu_1x_a100_sxm4",
+  "n_mpnn_seqs": 32,
+  "top_n_boltz": 50,
+  "split_separation_A": 30.0,
+  "designed_residues": 14,
+  "closure_core_residues": 9,
+  "completed_at": "2026-07-26T13:56:32Z",
+  "n_scored": 32,
+  "n_passing": 0,
+  "best_design": "rank23_s0_native_split_s0",
+  "best_holo_minus_apo_delta": 51
+}

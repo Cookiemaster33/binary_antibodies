@@ -1,0 +1,21 @@
+{
+  "input_pdb": "structures/domains/vh1_vl_nanobody_design_target.pdb",
+  "contig": "A1-115,55,B1-115",
+  "n_designed_residues": 55,
+  "hotspots_vh1_ch1_face": "A11,A12,A13,A14,A15,A39,A40,A41,A79,A80,A81,A82,A83,A84,A85,A103,A104,A105,A106,A107,A108,A109,A110,A111,A112,A113,A114,A115",
+  "hotspots_nb_cdrs": "B27,B28,B29,B30,B31,B32,B33,B52,B53,B54,B55,B56,B57,B99,B100,B101,B102,B103,B104,B105,B106,B107,B108,B109,B110,B111,B112",
+  "all_hotspots": "A11,A12,A13,A14,A15,A39,A40,A41,A79,A80,A81,A82,A83,A84,A85,A103,A104,A105,A106,A107,A108,A109,A110,A111,A112,A113,A114,A115,B27,B28,B29,B30,B31,B32,B33,B52,B53,B54,B55,B56,B57,B99,B100,B101,B102,B103,B104,B105,B106,B107,B108,B109,B110,B111,B112",
+  "design_rationale": "Bispecific bridging minibinder: contacts VH1-CH1-face (where CH1 normally sits) AND nanobody CDR face (+++). In OFF state: minibinder crosslinks VH1 and nanobody CDRs. In ON state: VL1 pairs with VH1, CL occupies VH1-CH1-face, displacing the minibinder. Short VH1-MB linker keeps MB near VH1; long MB-nanobody linker lets CDRs swing free.",
+  "linker_design": {
+    "VH1_to_minibinder": "short (5-10 residues G4S) \u2014 MB stays at VH1",
+    "minibinder_to_nanobody": "long (30-50 residues G4S) \u2014 nanobody can swing away"
+  },
+  "hotspots_vh1_ch1_face_safe": "A11,A12,A13,A14,A15,A40,A79,A80,A81,A82,A83,A84,A103,A104,A105,A106,A107,A108,A109,A110,A111,A112,A113,A114,A115",
+  "excluded_vh1_residues_vh_vl_overlap": [
+    39,
+    41,
+    85
+  ],
+  "all_hotspots_updated": "A11,A12,A13,A14,A15,A40,A79,A80,A81,A82,A83,A84,A103,A104,A105,A106,A107,A108,A109,A110,A111,A112,A113,A114,A115,C27,C28,C29,C30,C31,C32,C33,C52,C53,C54,C55,C56,C57,C99,C100,C101,C102,C103,C104,C105,C106,C107,C108,C109,C110,C111,C112",
+  "vl_chain": "B (steric context \u2014 in PDB, NOT in contig)"
+}

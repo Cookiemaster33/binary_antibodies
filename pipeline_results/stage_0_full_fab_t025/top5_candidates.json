@@ -1,0 +1,136 @@
+{
+  "run_config": {
+    "interface_scope": "full_fab",
+    "n_mpnn_sequences": 1000,
+    "top_n_boltz": 100,
+    "mpnn_temperature": 0.25,
+    "max_holo_fv_framework_rmsd_A": 6.0,
+    "instance_id": "e20038664db14165a37ecb2ca709b6a9"
+  },
+  "n_scored": 100,
+  "n_passing": 0,
+  "top5": [
+    "rank080_s0_native_split_s403",
+    "rank003_s0_native_split_s74",
+    "rank052_s0_native_split_s228",
+    "rank011_s0_native_split_s871",
+    "rank049_s0_native_split_s330"
+  ],
+  "candidates": [
+    {
+      "design_id": "rank080_s0_native_split_s403",
+      "structure": "structures/top5_holo/rank080_s0_native_split_s403_model_0.cif",
+      "static_vh_vl_interface_contacts": 86.4,
+      "static_fraction_of_native_contacts": 0.45,
+      "static_ch1_cl_interface_contacts": 249.15,
+      "static_ch1_cl_fraction_of_native_contacts": 0.5301,
+      "holo_fv_cdr_rmsd_A": 0.6651023488751417,
+      "holo_fv_framework_rmsd_A": 2.521301865319516,
+      "pisa_delta_int_solv_en_vs_native_kcal": 4.915,
+      "passes_stage_0": false,
+      "filter_checks": {
+        "passes_vh_vl_weakened": true,
+        "passes_ch1_cl_weakened": false,
+        "passes_holo_ch1_cl_clean": false,
+        "passes_interface_weakened": true,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      }
+    },
+    {
+      "design_id": "rank003_s0_native_split_s74",
+      "structure": "structures/top5_holo/rank003_s0_native_split_s74_model_0.cif",
+      "static_vh_vl_interface_contacts": 84.5,
+      "static_fraction_of_native_contacts": 0.4401,
+      "static_ch1_cl_interface_contacts": 226.95,
+      "static_ch1_cl_fraction_of_native_contacts": 0.4829,
+      "holo_fv_cdr_rmsd_A": 0.699600550554696,
+      "holo_fv_framework_rmsd_A": 2.4668538549596395,
+      "pisa_delta_int_solv_en_vs_native_kcal": 2.847,
+      "passes_stage_0": false,
+      "filter_checks": {
+        "passes_vh_vl_weakened": true,
+        "passes_ch1_cl_weakened": false,
+        "passes_holo_ch1_cl_clean": false,
+        "passes_interface_weakened": true,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      }
+    },
+    {
+      "design_id": "rank052_s0_native_split_s228",
+      "structure": "structures/top5_holo/rank052_s0_native_split_s228_model_0.cif",
+      "static_vh_vl_interface_contacts": 105.5,
+      "static_fraction_of_native_contacts": 0.5495,
+      "static_ch1_cl_interface_contacts": 225.25,
+      "static_ch1_cl_fraction_of_native_contacts": 0.4793,
+      "holo_fv_cdr_rmsd_A": 0.6175233628861433,
+      "holo_fv_framework_rmsd_A": 1.8196833696415513,
+      "pisa_delta_int_solv_en_vs_native_kcal": 2.709,
+      "passes_stage_0": false,
+      "filter_checks": {
+        "passes_vh_vl_weakened": false,
+        "passes_ch1_cl_weakened": false,
+        "passes_holo_ch1_cl_clean": true,
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      }
+    },
+    {
+      "design_id": "rank011_s0_native_split_s871",
+      "structure": "structures/top5_holo/rank011_s0_native_split_s871_model_0.cif",
+      "static_vh_vl_interface_contacts": 114.05,
+      "static_fraction_of_native_contacts": 0.594,
+      "static_ch1_cl_interface_contacts": 206.5,
+      "static_ch1_cl_fraction_of_native_contacts": 0.4394,
+      "holo_fv_cdr_rmsd_A": 0.5069946595512701,
+      "holo_fv_framework_rmsd_A": 1.7252690049407875,
+      "pisa_delta_int_solv_en_vs_native_kcal": 1.859,
+      "passes_stage_0": false,
+      "filter_checks": {
+        "passes_vh_vl_weakened": false,
+        "passes_ch1_cl_weakened": true,
+        "passes_holo_ch1_cl_clean": false,
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      }
+    },
+    {
+      "design_id": "rank049_s0_native_split_s330",
+      "structure": "structures/top5_holo/rank049_s0_native_split_s330_model_0.cif",
+      "static_vh_vl_interface_contacts": 98.35,
+      "static_fraction_of_native_contacts": 0.5122,
+      "static_ch1_cl_interface_contacts": 232.1,
+      "static_ch1_cl_fraction_of_native_contacts": 0.4938,
+      "holo_fv_cdr_rmsd_A": 1.1691445253688975,
+      "holo_fv_framework_rmsd_A": 2.430483099846144,
+      "pisa_delta_int_solv_en_vs_native_kcal": 7.046,
+      "passes_stage_0": false,
+      "filter_checks": {
+        "passes_vh_vl_weakened": false,
+        "passes_ch1_cl_weakened": false,
+        "passes_holo_ch1_cl_clean": false,
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      }
+    }
+  ]
+}
