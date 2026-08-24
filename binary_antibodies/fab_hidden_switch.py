@@ -492,6 +492,48 @@ def _place_epitope_stub(vh_res: list, vl_res: list, seq: str = EPITOPE_SEQ) -> C
     return chain
 
 
+def _chain_nterm_sequence(chain, n: int = 12) -> str:
+    from Bio.SeqUtils import seq1
+
+    letters: list[str] = []
+    for res in chain:
+        if res.id[0] != " ":
+            continue
+        if len(letters) >= n:
+            break
+        try:
+            letters.append(seq1(res.get_resname()))
+        except Exception:
+            letters.append("X")
+    return "".join(letters)
+
+
+def _looks_like_vh_nterm(seq: str) -> bool:
+    """Heavy-chain Fv N-terminus (trastuzumab / human IgG1: EVQLVES...)."""
+    return seq.startswith(("EVQL", "QVQL", "QMQL"))
+
+
+def _identify_boltz_ig_chain_ids(model) -> tuple[str, str]:
+    """
+    Return (immunoglobulin_heavy_chain_id, immunoglobulin_light_chain_id) for Boltz H/L.
+
+    Boltz YAML uses id H/L, but some holo outputs assign H=light (VL+CL) and L=heavy
+    (VH+CH1). Detect from Fv N-terminal sequence rather than chain letter.
+    """
+    if "H" not in model.child_dict or "L" not in model.child_dict:
+        raise ValueError("Expected Boltz chains H and L")
+    h_n = _chain_nterm_sequence(model["H"])
+    l_n = _chain_nterm_sequence(model["L"])
+    h_is_vh = _looks_like_vh_nterm(h_n)
+    l_is_vh = _looks_like_vh_nterm(l_n)
+    if l_is_vh and not h_is_vh:
+        return "L", "H"
+    if h_is_vh and not l_is_vh:
+        return "H", "L"
+    # Fallback: canonical fuse convention H=VH+CH1, L=VL+CL
+    return "H", "L"
+
+
 def _load_fab_chain_residues(
     source_pdb: Path | None = None,
 ) -> tuple[list, list, list, list, Ch.Chain | None]:
@@ -503,8 +545,9 @@ def _load_fab_chain_residues(
     epitope_from_source: Ch.Chain | None = None
 
     if "H" in chains and "L" in chains:
-        heavy = model["H"]
-        light = model["L"]
+        ig_heavy_id, ig_light_id = _identify_boltz_ig_chain_ids(model)
+        heavy = model[ig_heavy_id]
+        light = model[ig_light_id]
         vh_res = _residues(heavy, 1, VH_END)
         ch1_res = _residues(heavy, VH_END + 1, 9999)
         vl_res = _residues(light, 1, VL_END)

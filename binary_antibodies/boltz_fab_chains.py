@@ -113,6 +113,36 @@ def _extract_relabel(
     return sub
 
 
+def _biotite_nterm_oneletter(aa, chain_id: str, n: int = 12) -> str:
+    sub = aa[aa.chain_id == chain_id]
+    if len(sub) == 0:
+        return ""
+    order = np.argsort(sub.res_id)
+    sub = sub[order[:n]]
+    from biotite.sequence import ProteinSequence
+
+    try:
+        return str(ProteinSequence(list(sub.res_name)))[:n]
+    except Exception:
+        return ""
+
+
+def _identify_boltz_ig_chain_ids_biotite(aa) -> tuple[str, str]:
+    """Return (ig_heavy_id, ig_light_id) for fused Boltz H/L atom arrays."""
+    chains = set(aa.chain_id.tolist())
+    h_id = BOLTZ_HEAVY_ID if BOLTZ_HEAVY_ID in chains else "A"
+    l_id = BOLTZ_LIGHT_ID if BOLTZ_LIGHT_ID in chains else "B"
+    if h_id not in chains or l_id not in chains:
+        return h_id, l_id
+    from binary_antibodies.fab_hidden_switch import _looks_like_vh_nterm
+
+    h_n = _biotite_nterm_oneletter(aa, h_id)
+    l_n = _biotite_nterm_oneletter(aa, l_id)
+    if _looks_like_vh_nterm(l_n) and not _looks_like_vh_nterm(h_n):
+        return l_id, h_id
+    return h_id, l_id
+
+
 def expand_fused_fab_structure(aa, vh_len: int, vl_len: int):
     """
     Remap fused Boltz output (H/L[/T]) to logical chains A,B,C,D[,T] for scoring.
@@ -128,8 +158,7 @@ def expand_fused_fab_structure(aa, vh_len: int, vl_len: int):
     from biotite.structure import concatenate
 
     chains = set(aa.chain_id.tolist())
-    heavy_id = BOLTZ_HEAVY_ID if BOLTZ_HEAVY_ID in chains else "A"
-    light_id = BOLTZ_LIGHT_ID if BOLTZ_LIGHT_ID in chains else "B"
+    heavy_id, light_id = _identify_boltz_ig_chain_ids_biotite(aa)
 
     heavy_res = sorted(int(r) for r in aa.res_id[aa.chain_id == heavy_id])
     light_res = sorted(int(r) for r in aa.res_id[aa.chain_id == light_id])
