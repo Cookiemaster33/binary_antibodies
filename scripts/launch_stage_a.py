@@ -126,13 +126,16 @@ def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> 
 
 def upload_stage_a(ip: str, key: str) -> None:
     print("  Uploading Stage A pipeline files ...")
-    ssh(ip, key, f"mkdir -p {REMOTE_PIPELINE}/inputs")
+    ssh(ip, key, f"mkdir -p {REMOTE_PIPELINE}/inputs {REMOTE_PIPELINE}/binary_antibodies")
 
     files = [
         (ROOT / "structures/domains" / INPUT_PDB, f"{REMOTE_PIPELINE}/inputs/{INPUT_PDB}"),
         (ROOT / "structures/interface" / CONFIG_JSON, f"{REMOTE_PIPELINE}/inputs/{CONFIG_JSON}"),
         (ROOT / "scripts/gpu_setup/run_stage_a_hidden_minibinder.sh", f"{REMOTE_PIPELINE}/run_stage_a.sh"),
         (ROOT / "scripts/gpu_setup/setup_pipeline_rfd3.sh", f"{REMOTE_PIPELINE}/setup_pipeline_rfd3.sh"),
+        (ROOT / "scripts/graft_stage_a_outputs.py", f"{REMOTE_PIPELINE}/graft_stage_a_outputs.py"),
+        (ROOT / "binary_antibodies/__init__.py", f"{REMOTE_PIPELINE}/binary_antibodies/__init__.py"),
+        (ROOT / "binary_antibodies/fab_hidden_switch.py", f"{REMOTE_PIPELINE}/binary_antibodies/fab_hidden_switch.py"),
     ]
     for local, remote in files:
         if not local.exists():

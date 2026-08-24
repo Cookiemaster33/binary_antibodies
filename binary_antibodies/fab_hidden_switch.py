@@ -776,6 +776,132 @@ def stage_a_hotspots(vh_len: int = VH_END) -> str:
     return ",".join(ch1_hotspots_chain_c(vh_len) + [f"B{r}" for r in VL_HOTSPOTS_STAGE_A])
 
 
+def _kabsch_transform(mobile: np.ndarray, target: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (R, mobile_centroid, target_centroid) mapping mobile → target frame."""
+    mc = mobile - mobile.mean(0)
+    tc = target - target.mean(0)
+    v, _, wt = np.linalg.svd(mc.T @ tc)
+    d = np.sign(np.linalg.det(v @ wt))
+    r = v @ np.diag([1.0, 1.0, d]) @ wt
+    return r, mobile.mean(0), target.mean(0)
+
+
+def _read_output_chain_residues(cif_path: Path) -> tuple[list, str]:
+    """Return (residues, one-letter sequence) from RFd3 single-chain CIF output."""
+    from Bio.SeqUtils import seq1
+
+    struct = _load_biopython_structure(cif_path)
+    chain = next(list(struct.get_models())[0].get_chains())
+    residues = [r for r in chain if r.id[0] == " "]
+    seq = "".join(seq1(r.get_resname()) for r in residues)
+    return residues, seq
+
+
+def _infer_mb_segment(
+    seq_len: int,
+    vh_len: int,
+    vl_len: int,
+    ch1_len: int,
+    cl_len: int,
+    mb_min: int = 35,
+    mb_max: int = 55,
+) -> tuple[int, int, int]:
+    """Return (mb_start, mb_end, mb_len) for RFd3 output (0-based residue indices)."""
+    fixed = vh_len + vl_len + ch1_len + cl_len
+    if seq_len >= fixed + mb_min:
+        mb_len = seq_len - fixed
+        if mb_min <= mb_len <= mb_max:
+            return vh_len + vl_len, vh_len + vl_len + mb_len, mb_len
+    compact = vl_len + ch1_len
+    if seq_len >= compact + mb_min:
+        mb_len = seq_len - compact
+        if mb_min <= mb_len <= mb_max:
+            return vl_len, vl_len + mb_len, mb_len
+    raise ValueError(f"Cannot infer minibinder segment from output length {seq_len}")
+
+
+def graft_stage_a_minibinder(
+    out_path: Path,
+    input_pdb: Path,
+    rfd3_cif: Path,
+    vh_len: int = VH_END,
+    vl_len: int = VL_END,
+    ch1_len: int | None = None,
+    cl_len: int | None = None,
+    mb_chain_id: str = "M",
+) -> int:
+    """
+    Build output = exact input Fab (A,B,C,D,T) + designed minibinder (chain M).
+
+    RFd3 only supplies minibinder coordinates; Fab chains are copied verbatim from
+    input_pdb. The minibinder is superimposed via VL (chain B) alignment.
+    Returns minibinder length.
+    """
+    src = _load_biopython_structure(input_pdb)
+    in_model = list(src.get_models())[0]
+    for cid in ("A", "B", "C", "D"):
+        if cid not in in_model.child_dict:
+            raise ValueError(f"Input Fab must contain chain {cid}")
+
+    if ch1_len is None:
+        ch1_len = sum(1 for r in in_model["C"] if r.id[0] == " ")
+    if cl_len is None:
+        cl_len = sum(1 for r in in_model["D"] if r.id[0] == " ")
+
+    out_residues, out_seq = _read_output_chain_residues(rfd3_cif)
+    mb_start, mb_end, mb_len = _infer_mb_segment(
+        len(out_seq), vh_len, vl_len, ch1_len, cl_len
+    )
+
+    def ca_coords(residues: list) -> np.ndarray:
+        return np.array([r["CA"].get_coord() for r in residues if "CA" in r])
+
+    out_vl = out_residues[:vl_len] if mb_start == vl_len else out_residues[vh_len:vh_len + vl_len]
+    in_vl = [r for r in in_model["B"].get_residues() if r.id[0] == " "]
+    rot, out_cent, in_cent = _kabsch_transform(ca_coords(out_vl), ca_coords(in_vl))
+
+    mb_res = out_residues[mb_start:mb_end]
+    struct = S.Structure("grafted")
+    out_model = M.Model(0)
+
+    for cid in ("A", "B", "C", "D"):
+        chain = Ch.Chain(cid)
+        for i, res in enumerate([r for r in in_model[cid].get_residues() if r.id[0] == " "], start=1):
+            _copy_residue(res, chain, i)
+        out_model.add(chain)
+
+    mb_chain = Ch.Chain(mb_chain_id)
+    for i, res in enumerate(mb_res, start=1):
+        new_res = Res.Residue((" ", i, " "), res.get_resname(), " ")
+        for atom in res.get_atoms():
+            coord = atom.get_coord()
+            xformed = (coord - out_cent) @ rot + in_cent
+            new_res.add(
+                At.Atom(
+                    atom.name,
+                    xformed,
+                    atom.bfactor,
+                    atom.occupancy,
+                    atom.altloc,
+                    atom.fullname,
+                    atom.serial_number,
+                    atom.element,
+                )
+            )
+        mb_chain.add(new_res)
+    out_model.add(mb_chain)
+
+    if "T" in in_model.child_dict:
+        t_chain = Ch.Chain("T")
+        for i, res in enumerate([r for r in in_model["T"].get_residues() if r.id[0] == " "], start=1):
+            _copy_residue(res, t_chain, i)
+        out_model.add(t_chain)
+
+    struct.add(out_model)
+    _write_structure(struct, out_path)
+    return mb_len
+
+
 def write_json(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2) + "\n")

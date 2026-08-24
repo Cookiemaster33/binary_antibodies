@@ -104,6 +104,16 @@ docker run --rm --gpus all \
     python3 /workspace/run_rfd3_stage_a.py
 
 echo "RFd3 Stage A: $(ls $PIPELINE/outputs/rfd3_stage_a/sa_*.cif 2>/dev/null | wc -l) designs"
+
+echo ""
+echo "=== Step 2: Graft minibinder onto exact input Fab ==="
+mkdir -p "$PIPELINE/outputs/stage_a_grafted"
+PYTHONPATH="$PIPELINE:${PYTHONPATH:-}" python3 "$PIPELINE/graft_stage_a_outputs.py" \
+    --input "$PIPELINE/inputs/$INPUT_PDB_NAME" \
+    --rfd3-dir "$PIPELINE/outputs/rfd3_stage_a" \
+    --out-dir "$PIPELINE/outputs/stage_a_grafted"
+
+echo "Grafted: $(ls $PIPELINE/outputs/stage_a_grafted/*_grafted.pdb 2>/dev/null | wc -l) structures"
 echo ""
 echo "===== Stage A RFd3 complete: $(date) ====="
-echo "Next: MPNN → Boltz → global RMSD validation (wire in follow-up)"
+echo "Outputs: outputs/stage_a_grafted/*_grafted.pdb (input Fab unchanged + chain M)"

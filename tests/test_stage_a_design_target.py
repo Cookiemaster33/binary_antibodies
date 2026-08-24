@@ -18,6 +18,7 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     build_stage_a_design_target_pdb,
     extract_chain_sequences,
     fab_has_split_chains,
+    graft_stage_a_minibinder,
     infer_already_split,
     stage_a_contig,
     stage_a_fixed_atoms,
@@ -150,6 +151,39 @@ class TestStageADesignTarget(unittest.TestCase):
             # separation opens the VH–VL interface and modestly adjusts VL/CL position.
             self.assertGreater(dist_opened, 25.0)
             self.assertNotAlmostEqual(dist_opened, dist_native, delta=0.5)
+
+    def test_graft_preserves_input_fab(self):
+        fab_cif = (
+            ROOT
+            / "pipeline_results/stage_0_full_fab_fused_t025/structures/top5_holo"
+            / "rank079_s0_native_split_s296_model_0_split.cif"
+        )
+        rfd3_cif = (
+            ROOT / "pipeline_results/stage_a_rank079_split_cif_v4/structures/sample_cifs/sa_b000_000.cif"
+        )
+        if not fab_cif.exists() or not rfd3_cif.exists():
+            self.skipTest("graft test inputs not in workspace")
+
+        import numpy as np
+        from Bio.PDB import PDBParser
+
+        with tempfile.TemporaryDirectory() as tmp:
+            inp_pdb = Path(tmp) / "in.pdb"
+            out_pdb = Path(tmp) / "out.pdb"
+            build_stage_a_design_target_pdb(inp_pdb, source_pdb=fab_cif, already_split=True)
+            graft_stage_a_minibinder(out_pdb, inp_pdb, rfd3_cif)
+
+            inp = PDBParser(QUIET=True).get_structure("i", str(inp_pdb))
+            out = PDBParser(QUIET=True).get_structure("o", str(out_pdb))
+            mi = list(inp.get_models())[0]
+            mo = list(out.get_models())[0]
+            self.assertIn("M", mo.child_dict)
+
+            for cid in ("A", "B", "C", "D"):
+                ci = np.array([a.coord for a in mi[cid].get_atoms() if a.name == "CA"])
+                co = np.array([a.coord for a in mo[cid].get_atoms() if a.name == "CA"])
+                rmsd = np.sqrt(((ci - co) ** 2).sum(1).mean())
+                self.assertLess(rmsd, 0.01, f"chain {cid} moved after graft")
 
     def test_build_script_config(self):
         fab_cif = (
