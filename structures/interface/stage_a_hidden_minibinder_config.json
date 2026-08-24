@@ -18,8 +18,8 @@
     "T": "HER2 epitope stub 1-12 (fixed, Stage B)"
   },
   "rfd3": {
-    "contig": "A1-113,B1-107/0,35-55,C1-107,D1-107",
-    "mb_length_range": "35-55",
+    "contig": "B1-107/0,35-55,C1-107",
+    "unindex": "A1-113,D1-107,T1-12",
     "select_fixed_atoms": {
       "A1-113": "ALL",
       "B1-107": "ALL",
@@ -27,7 +27,8 @@
       "D1-107": "ALL",
       "T1-12": "ALL"
     },
-    "select_hotspots": "C26,C27,C29,C30,C46,C47,C48,C49,C50,C51,C52,C53,C60,B35,B37,B39,B43,B44,B45,B46,B47,B95,B99,B103,B104"
+    "select_hotspots": "C26,C27,C29,C30,C46,C47,C48,C49,C50,C51,C52,C53,C60,B35,B37,B39,B43,B44,B45,B46,B47,B95,B99,B103,B104",
+    "mb_length_range": "35-55"
   },
   "validation": {
     "metric": "global_assembly_rmsd",

@@ -21,19 +21,33 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     infer_already_split,
     stage_a_contig,
     stage_a_fixed_atoms,
+    stage_a_rfd3_config,
+    stage_a_unindex,
 )
 
 
 class TestStageADesignTarget(unittest.TestCase):
     def test_contig_unlinked_minibinder(self):
-        contig = stage_a_contig(113, 107, 101, 113, "35-55")
+        contig = stage_a_contig(113, 107, 107, 107, "35-55")
         self.assertIn("/0,35-55,", contig)
-        self.assertTrue(contig.startswith("A1-113,B1-107"))
-        self.assertTrue(contig.endswith("C1-101,D1-113"))
+        self.assertTrue(contig.startswith("B1-107"))
+        self.assertTrue(contig.endswith("C1-107"))
+
+    def test_unindex_fixed_context(self):
+        unindex = stage_a_unindex(113, 107, 107, 12)
+        self.assertIn("A1-113", unindex)
+        self.assertIn("D1-107", unindex)
+        self.assertIn("T1-12", unindex)
+
+    def test_rfd3_config_uses_unindex(self):
+        cfg = stage_a_rfd3_config(113, 107, 107, 107, "35-55", 12)
+        self.assertIn("unindex", cfg)
+        self.assertIn("A1-113", cfg["unindex"])
+        self.assertNotIn("A1-113", cfg["contig"])
 
     def test_fixed_atoms_cover_full_fab(self):
-        fixed = stage_a_fixed_atoms(113, 107, 101, 113, 12)
-        self.assertEqual(set(fixed), {"A1-113", "B1-107", "C1-101", "D1-113", "T1-12"})
+        fixed = stage_a_fixed_atoms(113, 107, 107, 107, 12)
+        self.assertEqual(set(fixed), {"A1-113", "B1-107", "C1-107", "D1-107", "T1-12"})
 
     def test_holo_split_cif_chains(self):
         fab_cif = (
@@ -168,6 +182,7 @@ class TestStageADesignTarget(unittest.TestCase):
             )
             cfg = json.loads(out_json.read_text())
             self.assertIn("/0,35-55,", cfg["rfd3"]["contig"])
+            self.assertIn("unindex", cfg["rfd3"])
             self.assertIn("A1-113", cfg["rfd3"]["select_fixed_atoms"])
             self.assertFalse(cfg["layout"]["minibinder_linked"])
             seqs = extract_chain_sequences(out_pdb)

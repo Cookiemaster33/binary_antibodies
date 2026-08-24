@@ -82,7 +82,9 @@ You can also pass a fused holo CIF directly; VL/CL separation is applied on the 
 
 **Layout:** Full Fab (A=VH, B=VL, C=CH1, D=CL, T=epitope) fixed as steric context. VL/CL are translated **45 Å** away from VH/CH1 to open space between the CH1 and VL hotspot surfaces.
 
-**RFd3 contig:** `A1-113,B1-107/0,35-55,C1-101,D1-113` — minibinder is **not** covalently linked to VH/VL (flexible linker added later).
+**RFd3 contig:** `B1-107/0,35-55,C1-107` — minibinder designed between VL and CH1.
+
+**Unindexed fixed context:** `A1-113,D1-107,T1-12` — VH, CL, and epitope stay fixed in 3D space during diffusion but are not in the output polymer (matches integrated pipeline pattern). This prevents Fab domains from reorienting relative to each other, which happened when all chains were in the contig with `/0` breaks.
 
 **Hotspots:** CH1 (C) + VL framework (B)
 

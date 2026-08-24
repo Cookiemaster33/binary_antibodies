@@ -714,12 +714,41 @@ def stage_a_contig(
     cl_len: int,
     mb_length_range: str = "35-55",
 ) -> str:
-    """RFd3 contig: full fixed Fab with unlinked minibinder between VL and CH1.
+    """RFd3 contig: VL and CH1 in output polymer with designed MB between them.
 
-    Syntax mirrors integrated pipeline (B/0,50/C): break before designed segment,
-  then continue to next fixed chain. Do not append /0 after a length range.
+    VH, CL, and epitope T are provided as unindexed fixed context (see stage_a_unindex).
     """
-    return f"A1-{vh_len},B1-{vl_len}/0,{mb_length_range},C1-{ch1_len},D1-{cl_len}"
+    _ = vh_len, cl_len  # retained for call-site compatibility
+    return f"B1-{vl_len}/0,{mb_length_range},C1-{ch1_len}"
+
+
+def stage_a_unindex(
+    vh_len: int,
+    vl_len: int,
+    cl_len: int,
+    epitope_len: int = len(EPITOPE_SEQ),
+) -> str:
+    """Unindexed fixed Fab context: VH, CL, epitope stay in 3D space but not in output polymer."""
+    _ = vl_len
+    return f"A1-{vh_len},D1-{cl_len},T1-{epitope_len}"
+
+
+def stage_a_rfd3_config(
+    vh_len: int,
+    vl_len: int,
+    ch1_len: int,
+    cl_len: int,
+    mb_length_range: str = "35-55",
+    epitope_len: int = len(EPITOPE_SEQ),
+) -> dict[str, str | dict[str, str]]:
+    """RFd3 inputs that keep the full Fab fixed in 3D while designing MB between VL and CH1."""
+    return {
+        "contig": stage_a_contig(vh_len, vl_len, ch1_len, cl_len, mb_length_range),
+        "unindex": stage_a_unindex(vh_len, vl_len, cl_len, epitope_len),
+        "select_fixed_atoms": stage_a_fixed_atoms(vh_len, vl_len, ch1_len, cl_len, epitope_len),
+        "select_hotspots": stage_a_hotspots(vh_len),
+        "mb_length_range": mb_length_range,
+    }
 
 
 def stage_a_fixed_atoms(

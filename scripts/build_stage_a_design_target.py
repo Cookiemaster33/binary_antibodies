@@ -38,9 +38,7 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     EPITOPE_SEQ,
     build_stage_a_design_target_pdb,
     infer_already_split,
-    stage_a_contig,
-    stage_a_fixed_atoms,
-    stage_a_hotspots,
+    stage_a_rfd3_config,
     write_json,
 )
 
@@ -81,10 +79,7 @@ def build_config(
             "T": f"HER2 epitope stub 1-{epitope_len} (fixed, Stage B)",
         },
         "rfd3": {
-            "contig": stage_a_contig(vh_len, vl_len, ch1_len, cl_len, MB_LENGTH_RANGE),
-            "mb_length_range": MB_LENGTH_RANGE,
-            "select_fixed_atoms": stage_a_fixed_atoms(vh_len, vl_len, ch1_len, cl_len, epitope_len),
-            "select_hotspots": stage_a_hotspots(vh_len),
+            **stage_a_rfd3_config(vh_len, vl_len, ch1_len, cl_len, MB_LENGTH_RANGE, epitope_len),
         },
         "validation": {
             "metric": "global_assembly_rmsd",

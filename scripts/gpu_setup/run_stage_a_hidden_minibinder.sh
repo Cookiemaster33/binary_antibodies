@@ -67,12 +67,14 @@ mb_range = rfd3.get("mb_length_range", os.environ.get("MB_LENGTH_RANGE", "35-55"
 print(f"Stage A RFd3: {N} designs")
 print(f"  input: {INPUT}")
 print(f"  contig: {contig}")
-print(f"  layout: full Fab fixed, unlinked minibinder ({mb_range} aa)")
+print(f"  unindex: {rfd3.get('unindex')}")
+print(f"  layout: VL+CH1 in output; VH/CL/T unindexed fixed context; MB {mb_range} aa")
 print(f"  hotspots: {rfd3['select_hotspots'][:80]}...")
 
 spec = DesignInputSpecification.safe_init(
     input=str(INPUT),
     contig=contig,
+    unindex=rfd3.get("unindex"),
     select_hotspots=rfd3["select_hotspots"],
     select_fixed_atoms=rfd3["select_fixed_atoms"],
 )
