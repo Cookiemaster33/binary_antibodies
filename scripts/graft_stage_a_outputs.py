@@ -39,17 +39,32 @@ def main() -> None:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     ok = 0
+    drifts: list[float] = []
+    layouts: set[str] = set()
     for cif in cifs:
         out = args.out_dir / f"{cif.stem}_grafted.pdb"
         try:
-            mb_len = graft_stage_a_minibinder(out, args.input, cif)
+            info = graft_stage_a_minibinder(out, args.input, cif)
             ok += 1
+            drifts.append(float(info["fab_drift_rmsd_a"]))
+            layouts.add(str(info["layout"]))
             if ok <= 3:
-                print(f"  {cif.name} → {out.name}  (MB={mb_len} aa)")
+                print(
+                    f"  {cif.name} → {out.name}  (MB={info['mb_length']} aa, "
+                    f"layout={info['layout']}, Fab drift in RFd3 output="
+                    f"{info['fab_drift_rmsd_a']} Å)"
+                )
         except Exception as exc:
             print(f"  SKIP {cif.name}: {exc}")
 
     print(f"Grafted {ok}/{len(cifs)} → {args.out_dir}")
+    if drifts:
+        print(f"  layout(s): {', '.join(sorted(layouts))}")
+        print(
+            f"  Fab drift in raw RFd3 outputs: min {min(drifts):.2f} Å, "
+            f"mean {sum(drifts) / len(drifts):.2f} Å, max {max(drifts):.2f} Å"
+        )
+        print("  (grafted files always carry the input Fab coordinates verbatim)")
 
 
 if __name__ == "__main__":

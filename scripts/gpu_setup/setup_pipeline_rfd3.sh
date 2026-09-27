@@ -46,9 +46,19 @@ docker run --rm \
 echo "  Weights:"
 ls "$HOME/.foundry/checkpoints/" 2>/dev/null || echo "  (check ~/.foundry/checkpoints)"
 
-# ── 4. Workspace ──────────────────────────────────────────────
+# ── 4. Host-side Python deps for post-processing ──────────────
+# Grafting and QC run on the host (outside the foundry container) and need
+# numpy + biopython only.
 echo ""
-echo "--- [4/4] Workspace ---"
+echo "--- [4/5] Host Python deps ---"
+python3 -m pip install --quiet --upgrade pip 2>&1 | tail -2 || true
+python3 -m pip install --quiet numpy biopython 2>&1 | tail -5 \
+    || python3 -m pip install --quiet --break-system-packages numpy biopython 2>&1 | tail -5
+python3 -c "import numpy, Bio; print(f'  numpy {numpy.__version__}, biopython {Bio.__version__}')"
+
+# ── 5. Workspace ──────────────────────────────────────────────
+echo ""
+echo "--- [5/5] Workspace ---"
 mkdir -p "$HOME/pipeline/inputs" \
          "$HOME/pipeline/outputs/rfd3" \
          "$HOME/pipeline/outputs/mpnn" \

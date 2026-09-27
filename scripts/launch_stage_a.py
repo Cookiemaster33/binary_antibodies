@@ -27,6 +27,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from binary_antibodies.fab_hidden_switch import (
+    COMPACT_MB_LENGTH_RANGE,
+    DEFAULT_MB_LENGTH_RANGE,
+    STAGE_A_SAMPLER,
+)
 from binary_antibodies.lambda_client import LambdaClient, resolve_lambda_api_key
 
 REMOTE_USER = "ubuntu"
@@ -78,6 +83,14 @@ def scp(local: str, ip: str, remote: str, key: str) -> None:
         ["scp"] + ssh_opts(key) + [local, f"{REMOTE_USER}@{ip}:{remote}"],
         check=True,
     )
+
+
+def scp_from(ip: str, remote: str, local: str, key: str, recursive: bool = False) -> int:
+    cmd = ["scp"] + ssh_opts(key)
+    if recursive:
+        cmd.append("-r")
+    cmd += [f"{REMOTE_USER}@{ip}:{remote}", local]
+    return subprocess.run(cmd, check=False).returncode
 
 
 def wait_ssh(ip: str, key: str, timeout_s: int = 600) -> None:
@@ -134,8 +147,16 @@ def upload_stage_a(ip: str, key: str) -> None:
         (ROOT / "scripts/gpu_setup/run_stage_a_hidden_minibinder.sh", f"{REMOTE_PIPELINE}/run_stage_a.sh"),
         (ROOT / "scripts/gpu_setup/setup_pipeline_rfd3.sh", f"{REMOTE_PIPELINE}/setup_pipeline_rfd3.sh"),
         (ROOT / "scripts/graft_stage_a_outputs.py", f"{REMOTE_PIPELINE}/graft_stage_a_outputs.py"),
-        (ROOT / "binary_antibodies/__init__.py", f"{REMOTE_PIPELINE}/binary_antibodies/__init__.py"),
+        (
+            ROOT / "scripts/analyze_stage_a_minibinders.py",
+            f"{REMOTE_PIPELINE}/analyze_stage_a_minibinders.py",
+        ),
+        (
+            ROOT / "scripts/gpu_setup/remote_package_init.py",
+            f"{REMOTE_PIPELINE}/binary_antibodies/__init__.py",
+        ),
         (ROOT / "binary_antibodies/fab_hidden_switch.py", f"{REMOTE_PIPELINE}/binary_antibodies/fab_hidden_switch.py"),
+        (ROOT / "binary_antibodies/backbone_ss.py", f"{REMOTE_PIPELINE}/binary_antibodies/backbone_ss.py"),
     ]
     for local, remote in files:
         if not local.exists():
@@ -163,11 +184,23 @@ def run_setup(ip: str, key: str) -> None:
         time.sleep(20)
 
 
-def run_stage_a(ip: str, key: str, n_designs: int) -> None:
+def run_stage_a(
+    ip: str,
+    key: str,
+    n_designs: int,
+    mb_length_ranges: str,
+    is_non_loopy: bool,
+    step_scale: float,
+    gamma_0: float,
+) -> None:
     env = " ".join([
         f"N_DESIGNS={n_designs}",
         f"INPUT_PDB={INPUT_PDB}",
         f"CONFIG_JSON={CONFIG_JSON}",
+        f"MB_LENGTH_RANGES={mb_length_ranges}",
+        f"IS_NON_LOOPY={1 if is_non_loopy else 0}",
+        f"STEP_SCALE={step_scale}",
+        f"GAMMA_0={gamma_0}",
     ])
     print("  Starting Stage A RFd3 in tmux session 'stage_a' ...")
     ssh(
@@ -192,6 +225,44 @@ def wait_for_pipeline(ip: str, key: str, timeout_s: int = 14400) -> bool:
     return False
 
 
+def fetch_results(ip: str, key: str, results_dir: Path, fab_pdb: Path) -> None:
+    """Pull grafted structures, raw RFd3 CIFs, QC table and logs into results_dir."""
+    structures = results_dir / "structures"
+    inputs = results_dir / "inputs"
+    final = results_dir / "final"
+    for d in (structures, inputs, final):
+        d.mkdir(parents=True, exist_ok=True)
+
+    print(f"  Fetching results → {results_dir}")
+    ssh(
+        ip,
+        key,
+        f"cd {REMOTE_PIPELINE}/outputs && tar czf {REMOTE_PIPELINE}/grafted_pdbs.tar.gz "
+        f"-C stage_a_grafted . && tar czf {REMOTE_PIPELINE}/rfd3_stage_a_cifs.tar.gz "
+        f"-C rfd3_stage_a .",
+        check=False,
+    )
+    scp_from(ip, f"{REMOTE_PIPELINE}/grafted_pdbs.tar.gz", str(structures), key)
+    scp_from(ip, f"{REMOTE_PIPELINE}/rfd3_stage_a_cifs.tar.gz", str(structures), key)
+    scp_from(ip, f"{REMOTE_PIPELINE}/final/stage_a_minibinder_qc.csv", str(final), key)
+    scp_from(ip, f"{REMOTE_PIPELINE}/stage_a_pipeline.log", str(final), key)
+    scp_from(ip, f"{REMOTE_PIPELINE}/inputs/{INPUT_PDB}", str(inputs), key)
+    scp_from(ip, f"{REMOTE_PIPELINE}/inputs/{CONFIG_JSON}", str(inputs), key)
+
+    samples = structures / "grafted"
+    samples.mkdir(parents=True, exist_ok=True)
+    ssh(
+        ip,
+        key,
+        f"mkdir -p {REMOTE_PIPELINE}/sample_out && "
+        f"ls {REMOTE_PIPELINE}/outputs/stage_a_grafted/*_grafted.pdb | head -5 | "
+        f"xargs -I{{}} cp {{}} {REMOTE_PIPELINE}/sample_out/",
+        check=False,
+    )
+    scp_from(ip, f"{REMOTE_PIPELINE}/sample_out/*", str(samples), key)
+    print(f"  Source Fab was: {fab_pdb}")
+
+
 def print_monitor_commands(ip: str, key: str) -> None:
     print("\nMonitor:")
     print(f"  ssh -i {key} {REMOTE_USER}@{ip} 'tail -f {REMOTE_PIPELINE}/stage_a_pipeline.log'")
@@ -208,7 +279,27 @@ def main() -> None:
         "--fab-pdb",
         type=Path,
         default=DEFAULT_STAGE0_FAB,
-        help="Stage 0 split Fab (*_split.cif) or fused holo for build_stage_a_design_target.py",
+        help="Placed/split Fab (chains A–D[,T]) or fused holo for build_stage_a_design_target.py. "
+        "If the arms are already separated the coordinates are used verbatim.",
+    )
+    p.add_argument(
+        "--mb-length-ranges",
+        default=f"{DEFAULT_MB_LENGTH_RANGE},{COMPACT_MB_LENGTH_RANGE}",
+        help="Comma-separated minibinder length windows to sample "
+        f"(default '{DEFAULT_MB_LENGTH_RANGE},{COMPACT_MB_LENGTH_RANGE}')",
+    )
+    p.add_argument(
+        "--no-non-loopy",
+        action="store_true",
+        help="Disable is_non_loopy (the helix bias); off-target designs become loopier",
+    )
+    p.add_argument("--step-scale", type=float, default=STAGE_A_SAMPLER["step_scale"])
+    p.add_argument("--gamma-0", type=float, default=STAGE_A_SAMPLER["gamma_0"])
+    p.add_argument(
+        "--results-dir",
+        type=Path,
+        default=None,
+        help="Local directory to pull results into when the run completes",
     )
     p.add_argument("--no-terminate", action="store_true")
     p.add_argument("--no-wait", action="store_true", help="Start pipeline and exit without waiting for completion.")
@@ -254,12 +345,15 @@ def main() -> None:
     if not fab_pdb.exists():
         sys.exit(f"ERROR: Stage 0 Fab not found: {fab_pdb}")
     print(f"  Stage 0 Fab source: {fab_pdb}")
+    primary_range = args.mb_length_ranges.split(",")[0].strip()
     subprocess.run(
         [
             sys.executable,
             str(ROOT / "scripts/build_stage_a_design_target.py"),
             "--fab-pdb",
             str(fab_pdb),
+            "--mb-length-range",
+            primary_range,
         ],
         check=True,
     )
@@ -279,17 +373,31 @@ def main() -> None:
         ip = active["ip"]
         print(f"\nInstance {iid} @ {ip}")
         print(f"  Branch: {GITHUB_BRANCH}")
-        print(f"  Designs: {args.n_designs}")
+        print(f"  Designs: {args.n_designs}  length windows: {args.mb_length_ranges}")
+        print(
+            f"  Helical conditioning: is_non_loopy={not args.no_non_loopy}, "
+            f"step_scale={args.step_scale}, gamma_0={args.gamma_0}"
+        )
 
         wait_ssh(ip, ssh_key)
         upload_stage_a(ip, ssh_key)
         run_setup(ip, ssh_key)
-        run_stage_a(ip, ssh_key, args.n_designs)
+        run_stage_a(
+            ip,
+            ssh_key,
+            args.n_designs,
+            args.mb_length_ranges,
+            not args.no_non_loopy,
+            args.step_scale,
+            args.gamma_0,
+        )
         print_monitor_commands(ip, ssh_key)
 
         if not args.no_wait:
             if wait_for_pipeline(ip, ssh_key):
                 ssh(ip, ssh_key, f"ls {REMOTE_PIPELINE}/outputs/rfd3_stage_a/*.cif 2>/dev/null | wc -l", check=False)
+                if args.results_dir:
+                    fetch_results(ip, ssh_key, args.results_dir, fab_pdb)
                 if not args.no_terminate:
                     print(f"\nTerminating {iid} ...")
                     client.terminate(iid)
