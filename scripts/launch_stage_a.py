@@ -125,14 +125,48 @@ def ensure_ephemeral_ssh_key(client: LambdaClient) -> str:
     return str(EPHEMERAL_KEY_PATH)
 
 
+MATERIALISED_KEY_PATH = Path.home() / ".ssh" / "lambda_agent_key_from_env"
+
+
+def looks_like_private_key(value: str) -> bool:
+    return "PRIVATE KEY" in value
+
+
+def materialise_private_key(material: str) -> str:
+    """Write inline private-key material to disk and return its path.
+
+    ``LAMBDA_SSH_KEY`` sometimes carries the key itself rather than a path (this
+    is how secrets are injected into Cloud Agent VMs).
+    """
+    MATERIALISED_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    text = material if material.endswith("\n") else material + "\n"
+    MATERIALISED_KEY_PATH.write_text(text)
+    MATERIALISED_KEY_PATH.chmod(0o600)
+    return str(MATERIALISED_KEY_PATH)
+
+
 def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> tuple[str, str]:
-    """Return (private_key_path, ssh_key_name_for_launch). Lambda allows one key only."""
+    """Return (private_key_path, ssh_key_name_for_launch). Lambda allows one key only.
+
+    Never print the key itself: the value may be the private key material.
+    """
+    if looks_like_private_key(preferred):
+        registered = {k.get("name") for k in client.list_ssh_keys()}
+        if ssh_key_name in registered:
+            print(f"  Using inline SSH key material for registered key '{ssh_key_name}'.")
+            return materialise_private_key(preferred), ssh_key_name
+        print(
+            f"  Inline SSH key material provided but '{ssh_key_name}' is not registered "
+            "with Lambda — using ephemeral key."
+        )
+        return ensure_ephemeral_ssh_key(client), EPHEMERAL_KEY_NAME
+
     preferred_path = os.path.expanduser(preferred)
     if os.path.abspath(preferred_path) == os.path.abspath(str(EPHEMERAL_KEY_PATH)):
         return str(EPHEMERAL_KEY_PATH), EPHEMERAL_KEY_NAME
     if ssh_key_usable(preferred):
         return preferred_path, ssh_key_name
-    print(f"  SSH key not found at {preferred} — using ephemeral key.")
+    print(f"  SSH key not found at {preferred_path} — using ephemeral key.")
     key_path = ensure_ephemeral_ssh_key(client)
     return key_path, EPHEMERAL_KEY_NAME
 
@@ -377,6 +411,17 @@ def main() -> None:
         help="Poll for a suitable instance type for this many minutes before giving up",
     )
     p.add_argument(
+        "--attach-instance-id",
+        default="",
+        help="Reuse an instance that is already launched instead of starting a new one",
+    )
+    p.add_argument(
+        "--boot-timeout-s",
+        type=int,
+        default=1800,
+        help="How long to wait for the instance to become active (default 1800)",
+    )
+    p.add_argument(
         "--batch-size",
         type=int,
         default=None,
@@ -447,35 +492,53 @@ def main() -> None:
 
     ssh_key, launch_key_name = resolve_ssh_key(client, args.ssh_key, args.ssh_key_name)
 
-    deadline = time.time() + args.wait_for_capacity_min * 60
-    while True:
-        try:
-            instance_type, region, price = select_instance_type(
-                client, args.instance_type or None, args.max_price
-            )
-            break
-        except RuntimeError as exc:
-            if time.time() >= deadline:
-                sys.exit(f"ERROR: {exc}")
-            print(f"  {exc}\n  Waiting for capacity ...")
-            time.sleep(120)
+    if args.attach_instance_id:
+        iid = args.attach_instance_id
+        existing = client.get_instance(iid)
+        instance_type = existing.get("instance_type", {}).get("name", "unknown")
+        print(f"  Attaching to existing instance {iid} ({instance_type})")
+        # The instance only accepts the key it was launched with.
+        instance_keys = existing.get("ssh_key_names") or []
+        if instance_keys and launch_key_name not in instance_keys:
+            if EPHEMERAL_KEY_NAME in instance_keys and EPHEMERAL_KEY_PATH.exists():
+                print(f"  Switching to '{EPHEMERAL_KEY_NAME}' to match the instance's key.")
+                ssh_key, launch_key_name = str(EPHEMERAL_KEY_PATH), EPHEMERAL_KEY_NAME
+            else:
+                sys.exit(
+                    f"ERROR: instance {iid} accepts SSH keys {instance_keys}, but the "
+                    f"resolved key is '{launch_key_name}' and no matching private key "
+                    "is available locally."
+                )
+    else:
+        deadline = time.time() + args.wait_for_capacity_min * 60
+        while True:
+            try:
+                instance_type, region, price = select_instance_type(
+                    client, args.instance_type or None, args.max_price
+                )
+                break
+            except RuntimeError as exc:
+                if time.time() >= deadline:
+                    sys.exit(f"ERROR: {exc}")
+                print(f"  {exc}\n  Waiting for capacity ...")
+                time.sleep(120)
+        print(f"  Instance: {instance_type} in {region} (${price:.2f}/h)")
+        inst = client.launch(
+            instance_type,
+            region,
+            ssh_key_names=[launch_key_name],
+            name="stage-a-hidden-minibinder",
+        )
+        iid = inst["id"]
+
     batch_size = args.batch_size or BATCH_SIZE_BY_TYPE.get(instance_type, DEFAULT_BATCH_SIZE)
     low_memory = instance_type in BATCH_SIZE_BY_TYPE
     print(
-        f"  Instance: {instance_type} in {region} (${price:.2f}/h), batch size {batch_size}"
-        + (", low-memory mode" if low_memory else "")
+        f"  Batch size {batch_size}" + (", low-memory mode" if low_memory else "")
     )
-
-    inst = client.launch(
-        instance_type,
-        region,
-        ssh_key_names=[launch_key_name],
-        name="stage-a-hidden-minibinder",
-    )
-    iid = inst["id"]
     ip = ""
     try:
-        active = client.wait_until_active(iid)
+        active = client.wait_until_active(iid, timeout_s=args.boot_timeout_s)
         ip = active["ip"]
         print(f"\nInstance {iid} @ {ip}")
         print(f"  Branch: {GITHUB_BRANCH}")
