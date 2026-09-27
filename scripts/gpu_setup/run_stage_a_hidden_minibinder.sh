@@ -25,6 +25,7 @@ MB_LENGTH_RANGES=${MB_LENGTH_RANGES:-60-85,40-55}
 IS_NON_LOOPY=${IS_NON_LOOPY:-1}
 STEP_SCALE=${STEP_SCALE:-3.0}
 GAMMA_0=${GAMMA_0:-0.2}
+LOW_MEMORY_MODE=${LOW_MEMORY_MODE:-0}
 
 INPUT_PDB_NAME=${INPUT_PDB:-fab_hidden_minibinder_stage_a.pdb}
 CONFIG_JSON=${CONFIG_JSON:-stage_a_hidden_minibinder_config.json}
@@ -103,7 +104,14 @@ def build_spec(length_range):
 
 
 def build_engine():
-    engine_kwargs = dict(RFD3InferenceConfig(diffusion_batch_size=BATCH))
+    config_kwargs = {"diffusion_batch_size": BATCH}
+    if os.environ.get("LOW_MEMORY_MODE", "0") == "1":
+        config_kwargs["low_memory_mode"] = True
+    try:
+        engine_kwargs = dict(RFD3InferenceConfig(**config_kwargs))
+    except TypeError as exc:
+        print(f"  WARNING: RFd3 rejected {sorted(config_kwargs)} ({exc}); using batch size only")
+        engine_kwargs = dict(RFD3InferenceConfig(diffusion_batch_size=BATCH))
     sampler = engine_kwargs.get("inference_sampler")
     applied = {}
     for key, value in (("step_scale", STEP_SCALE), ("gamma_0", GAMMA_0)):
@@ -154,6 +162,7 @@ docker run --rm --gpus all \
     -e IS_NON_LOOPY=$IS_NON_LOOPY \
     -e STEP_SCALE=$STEP_SCALE \
     -e GAMMA_0=$GAMMA_0 \
+    -e LOW_MEMORY_MODE=$LOW_MEMORY_MODE \
     -e INPUT_PDB=$INPUT_PDB_NAME \
     -e CONFIG_JSON=$CONFIG_JSON \
     -e FOUNDRY_CHECKPOINT_DIRS=/weights \

@@ -37,7 +37,7 @@ from binary_antibodies.lambda_client import LambdaClient, resolve_lambda_api_key
 REMOTE_USER = "ubuntu"
 REMOTE_PIPELINE = "/home/ubuntu/pipeline"
 REMOTE_TMUX = "tmux"
-GITHUB_BRANCH = "cursor/conditional-nanobody-design-992c"
+GITHUB_BRANCH = "cursor/helical-minibinder-fixed-fab-992c"
 INPUT_PDB = "fab_hidden_minibinder_stage_a.pdb"
 CONFIG_JSON = "stage_a_hidden_minibinder_config.json"
 DEFAULT_STAGE0_FAB = (
@@ -192,9 +192,13 @@ def run_stage_a(
     is_non_loopy: bool,
     step_scale: float,
     gamma_0: float,
+    batch_size: int,
+    low_memory_mode: bool,
 ) -> None:
     env = " ".join([
         f"N_DESIGNS={n_designs}",
+        f"BATCH_SIZE={batch_size}",
+        f"LOW_MEMORY_MODE={1 if low_memory_mode else 0}",
         f"INPUT_PDB={INPUT_PDB}",
         f"CONFIG_JSON={CONFIG_JSON}",
         f"MB_LENGTH_RANGES={mb_length_ranges}",
@@ -263,6 +267,66 @@ def fetch_results(ip: str, key: str, results_dir: Path, fab_pdb: Path) -> None:
     print(f"  Source Fab was: {fab_pdb}")
 
 
+# Preference order for RFd3: single-GPU 40-80 GB cards first, then smaller cards,
+# then multi-GPU boxes (only one GPU is used, so they are a last resort on cost).
+INSTANCE_PREFERENCE = [
+    "gpu_1x_a100_sxm4",
+    "gpu_1x_a100",
+    "gpu_1x_a100_80gb_sxm4",
+    "gpu_1x_h100_pcie",
+    "gpu_1x_h100_sxm5",
+    "gpu_1x_gh200",
+    "gpu_1x_a6000",
+    "gpu_1x_a10",
+    "gpu_2x_a100",
+    "gpu_4x_a100",
+    "gpu_8x_a100_80gb_sxm4",
+    "gpu_8x_a100",
+]
+
+# RFd3 on the ~530-residue Fab + minibinder system. Smaller cards need a smaller
+# diffusion batch to stay inside VRAM.
+BATCH_SIZE_BY_TYPE = {
+    "gpu_1x_a10": 2,
+    "gpu_1x_a6000": 4,
+}
+DEFAULT_BATCH_SIZE = 10
+
+
+def select_instance_type(
+    client: LambdaClient, requested: str | None, max_price: float | None
+) -> tuple[str, str, float]:
+    """Pick (instance_type, region, price_per_hour) from what currently has capacity."""
+    available = {t["name"]: t for t in client.available_instance_types()}
+    if not available:
+        raise RuntimeError("No Lambda instance types currently have capacity")
+
+    if requested:
+        if requested not in available:
+            raise RuntimeError(
+                f"{requested} has no capacity. Available: "
+                + ", ".join(f"{n} (${available[n]['price_per_hour']:.2f}/h)" for n in available)
+            )
+        chosen = requested
+    else:
+        ordered = [n for n in INSTANCE_PREFERENCE if n in available]
+        ordered += sorted(n for n in available if n not in INSTANCE_PREFERENCE)
+        if max_price is not None:
+            affordable = [n for n in ordered if available[n]["price_per_hour"] <= max_price]
+            if not affordable:
+                raise RuntimeError(
+                    f"No instance type with capacity is within ${max_price:.2f}/h. Available: "
+                    + ", ".join(
+                        f"{n} (${available[n]['price_per_hour']:.2f}/h)" for n in ordered
+                    )
+                )
+            ordered = affordable
+        chosen = ordered[0]
+
+    info = available[chosen]
+    return chosen, info["available_regions"][0], info["price_per_hour"]
+
+
 def print_monitor_commands(ip: str, key: str) -> None:
     print("\nMonitor:")
     print(f"  ssh -i {key} {REMOTE_USER}@{ip} 'tail -f {REMOTE_PIPELINE}/stage_a_pipeline.log'")
@@ -295,6 +359,29 @@ def main() -> None:
     )
     p.add_argument("--step-scale", type=float, default=STAGE_A_SAMPLER["step_scale"])
     p.add_argument("--gamma-0", type=float, default=STAGE_A_SAMPLER["gamma_0"])
+    p.add_argument(
+        "--instance-type",
+        default="",
+        help="Force a Lambda instance type; default picks the best one with capacity",
+    )
+    p.add_argument(
+        "--max-price",
+        type=float,
+        default=None,
+        help="Skip instance types above this $/hour when auto-selecting",
+    )
+    p.add_argument(
+        "--wait-for-capacity-min",
+        type=int,
+        default=0,
+        help="Poll for a suitable instance type for this many minutes before giving up",
+    )
+    p.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="RFd3 diffusion batch size (default depends on the GPU)",
+    )
     p.add_argument(
         "--results-dir",
         type=Path,
@@ -360,9 +447,28 @@ def main() -> None:
 
     ssh_key, launch_key_name = resolve_ssh_key(client, args.ssh_key, args.ssh_key_name)
 
+    deadline = time.time() + args.wait_for_capacity_min * 60
+    while True:
+        try:
+            instance_type, region, price = select_instance_type(
+                client, args.instance_type or None, args.max_price
+            )
+            break
+        except RuntimeError as exc:
+            if time.time() >= deadline:
+                sys.exit(f"ERROR: {exc}")
+            print(f"  {exc}\n  Waiting for capacity ...")
+            time.sleep(120)
+    batch_size = args.batch_size or BATCH_SIZE_BY_TYPE.get(instance_type, DEFAULT_BATCH_SIZE)
+    low_memory = instance_type in BATCH_SIZE_BY_TYPE
+    print(
+        f"  Instance: {instance_type} in {region} (${price:.2f}/h), batch size {batch_size}"
+        + (", low-memory mode" if low_memory else "")
+    )
+
     inst = client.launch(
-        "gpu_1x_a100_sxm4",
-        "us-east-1",
+        instance_type,
+        region,
         ssh_key_names=[launch_key_name],
         name="stage-a-hidden-minibinder",
     )
@@ -390,6 +496,8 @@ def main() -> None:
             not args.no_non_loopy,
             args.step_scale,
             args.gamma_0,
+            batch_size,
+            low_memory,
         )
         print_monitor_commands(ip, ssh_key)
 
