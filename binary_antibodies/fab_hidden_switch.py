@@ -53,6 +53,19 @@ VL_INTERFACE_FW = [35, 37, 39, 43, 44, 45, 46, 47, 104, 105, 106, 107, 108, 109,
 CH1_HOTSPOTS_HEAVY = [139, 140, 142, 143, 159, 160, 161, 162, 163, 164, 165, 166, 173]
 VL_HOTSPOTS_STAGE_A = [35, 37, 39, 43, 44, 45, 46, 47, 95, 99, 103, 104]
 
+# The CH1 and VL hotspot surfaces of the split Fab sit ~30-50 A apart, so a
+# minibinder that touches both has to be elongated. An alpha helix rises 1.5 A
+# per residue, so a ~30-residue helix spans ~45 A: a helical hairpin / bundle of
+# 60-85 residues is the topology that can actually bridge the gap. The older
+# 35-55 window only fits one spanning helix plus loops.
+DEFAULT_MB_LENGTH_RANGE = "60-85"
+COMPACT_MB_LENGTH_RANGE = "40-55"
+
+# Low-temperature sampler settings from the upstream RFd3 protein-binder example.
+# Higher step_scale and lower gamma_0 trade diversity for designability, which
+# also shifts the secondary-structure distribution towards helices.
+STAGE_A_SAMPLER = {"step_scale": 3.0, "gamma_0": 0.2}
+
 
 def in_ranges(resnum: int, ranges: Iterable[tuple[int, int]]) -> bool:
     return any(lo <= resnum <= hi for lo, hi in ranges)
@@ -596,14 +609,85 @@ def fab_has_split_chains(source_pdb: Path) -> bool:
     return {"A", "B"}.issubset(chains) and "H" not in chains and "L" not in chains
 
 
+def fab_arms_are_separated(source_pdb: Path, min_gap_a: float = 8.0) -> bool:
+    """True when the VH/CH1 and VL/CL arms are already pulled apart in the input.
+
+    Measured as the closest CA-CA approach between arm 1 (A+C) and arm 2 (B+D).
+    An assembled Fab has packed VH-VL and CH1-CL interfaces (~4-5 A contacts), so
+    any gap beyond ``min_gap_a`` means the arms have been separated deliberately.
+    """
+    model = list(_load_biopython_structure(source_pdb).get_models())[0]
+
+    def arm_ca(chain_ids: tuple[str, ...]) -> np.ndarray:
+        coords = [
+            res["CA"].get_coord()
+            for cid in chain_ids
+            if cid in model.child_dict
+            for res in model[cid]
+            if res.id[0] == " " and "CA" in res
+        ]
+        return np.array(coords)
+
+    arm1, arm2 = arm_ca(("A", "C")), arm_ca(("B", "D"))
+    if len(arm1) == 0 or len(arm2) == 0:
+        return False
+    gap = float(np.linalg.norm(arm1[:, None, :] - arm2[None, :, :], axis=2).min())
+    return gap >= min_gap_a
+
+
 def infer_already_split(source_pdb: Path | None) -> bool:
-    """True when Fab coordinates should be used as-is (no VL/CL re-translation)."""
+    """True when Fab coordinates should be used as-is (no VL/CL re-translation).
+
+    Detection is based on the structure's own geometry, not its filename: a file
+    that already has logical A-D chains with separated arms is a deliberate
+    placement (e.g. arms positioned by hand in PyMOL) and must be passed through
+    verbatim. Relying on a ``_split`` filename suffix silently re-translated such
+    inputs by 45 A, which destroyed the intended geometry.
+    """
     if source_pdb is None:
         return False
-    name = source_pdb.name.lower()
-    if name.endswith("_split.cif") or name.endswith("_split.pdb") or name.endswith("_split.mmcif"):
-        return True
-    return "_split" in source_pdb.stem and fab_has_split_chains(source_pdb)
+    if not fab_has_split_chains(source_pdb):
+        return False
+    return fab_arms_are_separated(source_pdb)
+
+
+def verify_design_target_matches_source(
+    design_pdb: Path, source_pdb: Path, tol_a: float = 1e-3
+) -> dict[str, float]:
+    """Assert the built design target reproduces the source coordinates exactly.
+
+    Guards the promise that a hand-placed Fab is passed through untouched. Chains
+    are compared in file order per chain id; raises if any CA moves by more than
+    ``tol_a``. Returns the per-chain maximum deviation.
+    """
+
+    def chain_ca(path: Path) -> dict[str, np.ndarray]:
+        model = list(_load_biopython_structure(path).get_models())[0]
+        return {
+            chain.id: np.array(
+                [res["CA"].get_coord() for res in chain if res.id[0] == " " and "CA" in res]
+            )
+            for chain in model.get_chains()
+        }
+
+    design, source = chain_ca(design_pdb), chain_ca(source_pdb)
+    deviations: dict[str, float] = {}
+    problems: list[str] = []
+    for cid, coords in design.items():
+        ref = source.get(cid)
+        if ref is None or len(ref) != len(coords):
+            problems.append(f"chain {cid}: no length-matched counterpart in source")
+            continue
+        dev = float(np.abs(coords - ref).max()) if len(coords) else 0.0
+        deviations[cid] = round(dev, 6)
+        if dev > tol_a:
+            problems.append(f"chain {cid}: moved by {dev:.3f} Å")
+    if problems:
+        raise ValueError(
+            "Design target does not reproduce the source Fab placement: "
+            + "; ".join(problems)
+        )
+    return deviations
 
 
 def _assemble_fab_structure(
@@ -712,25 +796,34 @@ def stage_a_contig(
     vl_len: int,
     ch1_len: int,
     cl_len: int,
-    mb_length_range: str = "35-55",
-) -> str:
-    """RFd3 contig: VL and CH1 in output polymer with designed MB between them.
-
-    VH, CL, and epitope T are provided as unindexed fixed context (see stage_a_unindex).
-    """
-    _ = vh_len, cl_len  # retained for call-site compatibility
-    return f"B1-{vl_len}/0,{mb_length_range},C1-{ch1_len}"
-
-
-def stage_a_unindex(
-    vh_len: int,
-    vl_len: int,
-    cl_len: int,
+    mb_length_range: str = DEFAULT_MB_LENGTH_RANGE,
     epitope_len: int = len(EPITOPE_SEQ),
 ) -> str:
-    """Unindexed fixed Fab context: VH, CL, epitope stay in 3D space but not in output polymer."""
-    _ = vl_len
-    return f"A1-{vh_len},D1-{cl_len},T1-{epitope_len}"
+    """RFd3 contig in the canonical binder-design layout.
+
+    The designed minibinder comes first as its own chain, then a chain break,
+    then every Fab chain as a separate fixed target chain:
+
+        ``55-75,/0,A1-113,/0,B1-107,/0,C1-107,/0,D1-107,/0,T1-12``
+
+    This matters. A designed segment that sits *between* two motif segments in a
+    contig (e.g. ``B1-107/0,35-55,C1-107``) is covalently bonded to both of them,
+    so RFd3 has to translate and rotate the Fab domains until a single polymer can
+    physically connect them - that is what moved the manually placed arms in
+    earlier runs - and it forces the "minibinder" to be an extended linker rather
+    than a folded binder. Keeping the minibinder on its own chain removes both
+    failure modes.
+    """
+    target = ",/0,".join(
+        [
+            f"A1-{vh_len}",
+            f"B1-{vl_len}",
+            f"C1-{ch1_len}",
+            f"D1-{cl_len}",
+            f"T1-{epitope_len}",
+        ]
+    )
+    return f"{mb_length_range},/0,{target}"
 
 
 def stage_a_rfd3_config(
@@ -738,17 +831,37 @@ def stage_a_rfd3_config(
     vl_len: int,
     ch1_len: int,
     cl_len: int,
-    mb_length_range: str = "35-55",
+    mb_length_range: str = DEFAULT_MB_LENGTH_RANGE,
     epitope_len: int = len(EPITOPE_SEQ),
-) -> dict[str, str | dict[str, str]]:
-    """RFd3 inputs that keep the full Fab fixed in 3D while designing MB between VL and CH1."""
-    return {
-        "contig": stage_a_contig(vh_len, vl_len, ch1_len, cl_len, mb_length_range),
-        "unindex": stage_a_unindex(vh_len, vl_len, cl_len, epitope_len),
+    *,
+    ori_token: list[float] | None = None,
+    is_non_loopy: bool = True,
+) -> dict[str, object]:
+    """RFd3 inputs that keep the full Fab fixed in 3D while designing a helical MB.
+
+    ``is_non_loopy`` is RFd3's only secondary-structure lever (there is no
+    ``select_ss``); upstream reports it yields "a lot more helices and fewer loops
+    (and less sheets)". Pair it with the low-temperature sampler settings in
+    :data:`STAGE_A_SAMPLER` for helix-rich, designable backbones.
+    """
+    cfg: dict[str, object] = {
+        "dialect": 2,
+        "contig": stage_a_contig(vh_len, vl_len, ch1_len, cl_len, mb_length_range, epitope_len),
         "select_fixed_atoms": stage_a_fixed_atoms(vh_len, vl_len, ch1_len, cl_len, epitope_len),
         "select_hotspots": stage_a_hotspots(vh_len),
+        "is_non_loopy": is_non_loopy,
         "mb_length_range": mb_length_range,
+        "sampler": dict(STAGE_A_SAMPLER),
     }
+    if ori_token is not None:
+        # Place the designed chain's centre of mass in the inter-arm gap. The
+        # documented "hotspots" strategy offsets the origin 10 A *outward* from the
+        # hotspot centroid, which would push the minibinder out of the gap, so pin
+        # the origin explicitly instead.
+        cfg["ori_token"] = [round(float(v), 3) for v in ori_token]
+    else:
+        cfg["infer_ori_strategy"] = "hotspots"
+    return cfg
 
 
 def stage_a_fixed_atoms(
@@ -774,6 +887,45 @@ def ch1_hotspots_chain_c(vh_len: int = VH_END) -> list[str]:
 
 def stage_a_hotspots(vh_len: int = VH_END) -> str:
     return ",".join(ch1_hotspots_chain_c(vh_len) + [f"B{r}" for r in VL_HOTSPOTS_STAGE_A])
+
+
+def stage_a_hotspot_geometry(design_pdb: Path, vh_len: int = VH_END) -> dict[str, object]:
+    """Measure the CH1 <-> VL gap the minibinder has to bridge.
+
+    Returns the two hotspot centroids, their separation, the midpoint (used as the
+    RFd3 ``ori_token``) and the closest approach between the two hotspot surfaces.
+    """
+    model = list(_load_biopython_structure(design_pdb).get_models())[0]
+
+    def hotspot_ca(chain_id: str, resnums: Iterable[int]) -> np.ndarray:
+        by_num = {
+            res.id[1]: res["CA"].get_coord()
+            for res in model[chain_id]
+            if res.id[0] == " " and "CA" in res
+        }
+        found = [by_num[n] for n in resnums if n in by_num]
+        if not found:
+            raise ValueError(f"No hotspot CA atoms found in chain {chain_id} of {design_pdb}")
+        return np.array(found)
+
+    ch1_ca = hotspot_ca("C", [r - vh_len for r in CH1_HOTSPOTS_HEAVY if r > vh_len])
+    vl_ca = hotspot_ca("B", VL_HOTSPOTS_STAGE_A)
+    ch1_centroid, vl_centroid = ch1_ca.mean(0), vl_ca.mean(0)
+    pair_dists = np.linalg.norm(ch1_ca[:, None, :] - vl_ca[None, :, :], axis=2)
+    return {
+        "ch1_hotspot_centroid": [round(float(v), 3) for v in ch1_centroid],
+        "vl_hotspot_centroid": [round(float(v), 3) for v in vl_centroid],
+        "centroid_separation_a": round(float(np.linalg.norm(ch1_centroid - vl_centroid)), 2),
+        "midpoint": [round(float(v), 3) for v in (ch1_centroid + vl_centroid) / 2.0],
+        "closest_hotspot_approach_a": round(float(pair_dists.min()), 2),
+        "n_ch1_hotspots": int(len(ch1_ca)),
+        "n_vl_hotspots": int(len(vl_ca)),
+    }
+
+
+def stage_a_ori_token(design_pdb: Path, vh_len: int = VH_END) -> list[float]:
+    """RFd3 origin token: the midpoint of the CH1 and VL hotspot centroids."""
+    return list(stage_a_hotspot_geometry(design_pdb, vh_len)["midpoint"])  # type: ignore[arg-type]
 
 
 def _kabsch_transform(mobile: np.ndarray, target: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -803,8 +955,8 @@ def _infer_mb_segment(
     vl_len: int,
     ch1_len: int,
     cl_len: int,
-    mb_min: int = 35,
-    mb_max: int = 55,
+    mb_min: int = 20,
+    mb_max: int = 120,
 ) -> tuple[int, int, int]:
     """Return (mb_start, mb_end, mb_len) for RFd3 output (0-based residue indices)."""
     fixed = vh_len + vl_len + ch1_len + cl_len
@@ -820,6 +972,64 @@ def _infer_mb_segment(
     raise ValueError(f"Cannot infer minibinder segment from output length {seq_len}")
 
 
+def _ordered_output_chains(cif_path: Path) -> list[tuple[str, list]]:
+    """Output chains in file order, as (chain_id, standard residues)."""
+    model = list(_load_biopython_structure(cif_path).get_models())[0]
+    return [
+        (chain.id, [res for res in chain if res.id[0] == " "])
+        for chain in model.get_chains()
+        if any(res.id[0] == " " for res in chain)
+    ]
+
+
+def _split_minibinder_chain(
+    chains: list[tuple[str, list]],
+    fab_lengths: list[int],
+    fab_centroids: list[np.ndarray] | None = None,
+) -> tuple[list, list[list]]:
+    """Separate the designed chain from the fixed Fab chains in a multi-chain output.
+
+    The Fab chains normally come back in contig order (A, B, C, D, T), so the
+    designed chain is the one whose removal leaves exactly the expected Fab residue
+    counts in order. If RFd3 ever reorders chains, fall back to matching each
+    output chain to the nearest input chain of equal length by centroid - the Fab
+    is returned in the input frame, so centroids identify chains unambiguously even
+    though VL, CH1 and CL all have 107 residues.
+    """
+    for idx in range(len(chains)):
+        rest = [residues for i, (_cid, residues) in enumerate(chains) if i != idx]
+        if [len(r) for r in rest] == fab_lengths:
+            return chains[idx][1], rest
+
+    if fab_centroids is not None and len(chains) == len(fab_lengths) + 1:
+        def centroid(residues: list) -> np.ndarray:
+            return np.array(
+                [res["CA"].get_coord() for res in residues if "CA" in res]
+            ).mean(0)
+
+        for idx in range(len(chains)):
+            candidates = [residues for i, (_cid, residues) in enumerate(chains) if i != idx]
+            remaining = list(candidates)
+            ordered: list[list] = []
+            ok = True
+            for want_len, want_centroid in zip(fab_lengths, fab_centroids):
+                matches = [r for r in remaining if len(r) == want_len]
+                if not matches:
+                    ok = False
+                    break
+                best = min(matches, key=lambda r: float(np.linalg.norm(centroid(r) - want_centroid)))
+                ordered.append(best)
+                remaining.remove(best)
+            if ok and not remaining:
+                return chains[idx][1], ordered
+
+    observed = {cid: len(residues) for cid, residues in chains}
+    raise ValueError(
+        f"Cannot identify designed chain; output chains {observed} do not leave "
+        f"Fab counts {fab_lengths} after removing one chain"
+    )
+
+
 def graft_stage_a_minibinder(
     out_path: Path,
     input_pdb: Path,
@@ -829,44 +1039,97 @@ def graft_stage_a_minibinder(
     ch1_len: int | None = None,
     cl_len: int | None = None,
     mb_chain_id: str = "M",
-) -> int:
+) -> dict[str, object]:
     """
     Build output = exact input Fab (A,B,C,D,T) + designed minibinder (chain M).
 
-    RFd3 only supplies minibinder coordinates; Fab chains are copied verbatim from
-    input_pdb. The minibinder is superimposed via VL (chain B) alignment.
-    Returns minibinder length.
+    The Fab chains are copied verbatim from ``input_pdb``, so the final file is
+    guaranteed to carry the user's placement of the arms bit-for-bit. Only the
+    minibinder comes from RFd3.
+
+    Two RFd3 output layouts are supported:
+
+    * current - the designed minibinder is its own chain alongside the fixed Fab
+      chains. RFd3 returns the Fab in the input frame, so ``fab_drift_rmsd_a``
+      reports how far it actually moved and no superposition is applied unless
+      that drift exceeds ``max_drift_a``.
+    * legacy - the whole assembly is one fused polymer (VH|VL|MB|CH1|CL). The
+      minibinder is superimposed via VL.
+
+    Returns a dict with ``mb_length``, ``layout`` and ``fab_drift_rmsd_a``.
     """
+    max_drift_a = 1.0
     src = _load_biopython_structure(input_pdb)
     in_model = list(src.get_models())[0]
     for cid in ("A", "B", "C", "D"):
         if cid not in in_model.child_dict:
             raise ValueError(f"Input Fab must contain chain {cid}")
 
-    if ch1_len is None:
-        ch1_len = sum(1 for r in in_model["C"] if r.id[0] == " ")
-    if cl_len is None:
-        cl_len = sum(1 for r in in_model["D"] if r.id[0] == " ")
+    def std_residues(chain_id: str) -> list:
+        return [res for res in in_model[chain_id].get_residues() if res.id[0] == " "]
 
-    out_residues, out_seq = _read_output_chain_residues(rfd3_cif)
-    mb_start, mb_end, mb_len = _infer_mb_segment(
-        len(out_seq), vh_len, vl_len, ch1_len, cl_len
-    )
+    if ch1_len is None:
+        ch1_len = len(std_residues("C"))
+    if cl_len is None:
+        cl_len = len(std_residues("D"))
 
     def ca_coords(residues: list) -> np.ndarray:
-        return np.array([r["CA"].get_coord() for r in residues if "CA" in r])
+        return np.array([res["CA"].get_coord() for res in residues if "CA" in res])
 
-    out_vl = out_residues[:vl_len] if mb_start == vl_len else out_residues[vh_len:vh_len + vl_len]
-    in_vl = [r for r in in_model["B"].get_residues() if r.id[0] == " "]
-    rot, out_cent, in_cent = _kabsch_transform(ca_coords(out_vl), ca_coords(in_vl))
+    out_chains = _ordered_output_chains(rfd3_cif)
+    in_chain_ids = [cid for cid in ("A", "B", "C", "D", "T") if cid in in_model.child_dict]
 
-    mb_res = out_residues[mb_start:mb_end]
+    if len(out_chains) > 1:
+        layout = "separate_chain"
+        fab_lengths = [len(std_residues(cid)) for cid in in_chain_ids]
+        fab_centroids = [ca_coords(std_residues(cid)).mean(0) for cid in in_chain_ids]
+        mb_res, out_fab = _split_minibinder_chain(out_chains, fab_lengths, fab_centroids)
+        out_fab_ca = np.vstack([ca_coords(residues) for residues in out_fab])
+        in_fab_ca = np.vstack([ca_coords(std_residues(cid)) for cid in in_chain_ids])
+        drift = float(np.sqrt(((out_fab_ca - in_fab_ca) ** 2).sum(1).mean()))
+        if drift <= max_drift_a:
+            rot = np.eye(3)
+            out_cent = in_cent = np.zeros(3)
+        else:
+            rot, out_cent, in_cent = _kabsch_transform(out_fab_ca, in_fab_ca)
+    else:
+        layout = "fused_polymer"
+        out_residues, out_seq = _read_output_chain_residues(rfd3_cif)
+        mb_start, mb_end, _mb_len = _infer_mb_segment(
+            len(out_seq), vh_len, vl_len, ch1_len, cl_len
+        )
+        mb_res = out_residues[mb_start:mb_end]
+        out_vl = (
+            out_residues[:vl_len]
+            if mb_start == vl_len
+            else out_residues[vh_len : vh_len + vl_len]
+        )
+        rot, out_cent, in_cent = _kabsch_transform(ca_coords(out_vl), ca_coords(std_residues("B")))
+        if mb_start == vl_len:
+            segments = [("B", 0, vl_len), ("C", mb_end, mb_end + ch1_len)]
+        else:
+            segments = [
+                ("A", 0, vh_len),
+                ("B", vh_len, vh_len + vl_len),
+                ("C", mb_end, mb_end + ch1_len),
+                ("D", mb_end + ch1_len, mb_end + ch1_len + cl_len),
+            ]
+        # Drift after superposing on VL: how far the rest of the Fab was moved by
+        # RFd3 relative to the input placement.
+        sq_dev: list[np.ndarray] = []
+        for cid, lo, hi in segments:
+            seg = ca_coords(out_residues[lo:hi])
+            ref = ca_coords(std_residues(cid))
+            if len(seg) != len(ref):
+                continue
+            sq_dev.append((((seg - out_cent) @ rot + in_cent - ref) ** 2).sum(1))
+        drift = float(np.sqrt(np.concatenate(sq_dev).mean())) if sq_dev else float("nan")
+
     struct = S.Structure("grafted")
     out_model = M.Model(0)
-
     for cid in ("A", "B", "C", "D"):
         chain = Ch.Chain(cid)
-        for i, res in enumerate([r for r in in_model[cid].get_residues() if r.id[0] == " "], start=1):
+        for i, res in enumerate(std_residues(cid), start=1):
             _copy_residue(res, chain, i)
         out_model.add(chain)
 
@@ -874,8 +1137,7 @@ def graft_stage_a_minibinder(
     for i, res in enumerate(mb_res, start=1):
         new_res = Res.Residue((" ", i, " "), res.get_resname(), " ")
         for atom in res.get_atoms():
-            coord = atom.get_coord()
-            xformed = (coord - out_cent) @ rot + in_cent
+            xformed = (atom.get_coord() - out_cent) @ rot + in_cent
             new_res.add(
                 At.Atom(
                     atom.name,
@@ -893,13 +1155,18 @@ def graft_stage_a_minibinder(
 
     if "T" in in_model.child_dict:
         t_chain = Ch.Chain("T")
-        for i, res in enumerate([r for r in in_model["T"].get_residues() if r.id[0] == " "], start=1):
+        for i, res in enumerate(std_residues("T"), start=1):
             _copy_residue(res, t_chain, i)
         out_model.add(t_chain)
 
     struct.add(out_model)
     _write_structure(struct, out_path)
-    return mb_len
+    return {
+        "mb_length": len(mb_res),
+        "layout": layout,
+        "fab_drift_rmsd_a": round(drift, 3),
+        "realigned": bool(drift > max_drift_a),
+    }
 
 
 def write_json(path: Path, data: dict) -> None:
