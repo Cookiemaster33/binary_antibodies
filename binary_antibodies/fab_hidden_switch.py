@@ -923,9 +923,78 @@ def stage_a_hotspot_geometry(design_pdb: Path, vh_len: int = VH_END) -> dict[str
     }
 
 
+def stage_a_gap_centre(
+    design_pdb: Path,
+    vh_len: int = VH_END,
+    *,
+    axis_range: tuple[float, float] = (0.2, 0.8),
+    max_perpendicular_a: float = 10.0,
+) -> dict[str, object]:
+    """Find the roomiest point in the CH1 <-> VL gap for the designed chain's origin.
+
+    The plain midpoint of the two hotspot centroids lies on the line joining them,
+    which for this Fab passes within ~4.6 A of Fab atoms - effectively on the
+    protein surface. Search along that axis and a bounded perpendicular disc for
+    the point with the largest clearance to any Fab heavy atom, so the minibinder
+    starts in open space between the arms rather than buried against one of them.
+    """
+    geometry = stage_a_hotspot_geometry(design_pdb, vh_len)
+    start = np.array(geometry["ch1_hotspot_centroid"], dtype=float)
+    end = np.array(geometry["vl_hotspot_centroid"], dtype=float)
+    axis = end - start
+    axis_unit = axis / np.linalg.norm(axis)
+
+    helper = np.array([0.0, 0.0, 1.0])
+    if abs(float(np.dot(helper, axis_unit))) > 0.9:
+        helper = np.array([1.0, 0.0, 0.0])
+    perp1 = np.cross(axis_unit, helper)
+    perp1 /= np.linalg.norm(perp1)
+    perp2 = np.cross(axis_unit, perp1)
+
+    model = list(_load_biopython_structure(design_pdb).get_models())[0]
+    fab = np.array(
+        [
+            atom.get_coord()
+            for chain in model.get_chains()
+            for res in chain
+            if res.id[0] == " "
+            for atom in res
+            if atom.element != "H"
+        ]
+    )
+
+    def clearance(point: np.ndarray) -> float:
+        return float(np.linalg.norm(fab - point, axis=1).min())
+
+    best_point = start + 0.5 * axis
+    best_clearance = clearance(best_point)
+    best_offset = 0.0
+    for t in np.linspace(axis_range[0], axis_range[1], 25):
+        base = start + t * axis
+        for radius in np.linspace(0.0, max_perpendicular_a, 6):
+            angles = [0.0] if radius == 0.0 else np.linspace(0, 2 * np.pi, 12, endpoint=False)
+            for angle in angles:
+                point = base + radius * (np.cos(angle) * perp1 + np.sin(angle) * perp2)
+                value = clearance(point)
+                # Prefer clearance, but break ties towards the axis so the origin
+                # stays between the two hotspot surfaces.
+                if value > best_clearance + 1e-6 or (
+                    abs(value - best_clearance) <= 1e-6 and radius < best_offset
+                ):
+                    best_point, best_clearance, best_offset = point, value, float(radius)
+
+    return {
+        "ori_token": [round(float(v), 3) for v in best_point],
+        "clearance_a": round(best_clearance, 2),
+        "perpendicular_offset_a": round(best_offset, 2),
+        "midpoint_clearance_a": round(clearance(start + 0.5 * axis), 2),
+        **geometry,
+    }
+
+
 def stage_a_ori_token(design_pdb: Path, vh_len: int = VH_END) -> list[float]:
-    """RFd3 origin token: the midpoint of the CH1 and VL hotspot centroids."""
-    return list(stage_a_hotspot_geometry(design_pdb, vh_len)["midpoint"])  # type: ignore[arg-type]
+    """RFd3 origin token: the roomiest point in the gap between CH1 and VL."""
+    return list(stage_a_gap_centre(design_pdb, vh_len)["ori_token"])  # type: ignore[arg-type]
 
 
 def _kabsch_transform(mobile: np.ndarray, target: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:

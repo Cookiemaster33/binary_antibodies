@@ -40,8 +40,7 @@ from binary_antibodies.fab_hidden_switch import (  # noqa: E402
     EPITOPE_SEQ,
     build_stage_a_design_target_pdb,
     infer_already_split,
-    stage_a_hotspot_geometry,
-    stage_a_ori_token,
+    stage_a_gap_centre,
     stage_a_rfd3_config,
     verify_design_target_matches_source,
     write_json,
@@ -172,8 +171,8 @@ def main() -> None:
     if already_split and args.fab_pdb is not None:
         passthrough = verify_design_target_matches_source(args.out_pdb, args.fab_pdb)
 
-    geometry = stage_a_hotspot_geometry(args.out_pdb)
-    ori_token = None if args.infer_ori_strategy else stage_a_ori_token(args.out_pdb)
+    geometry = stage_a_gap_centre(args.out_pdb)
+    ori_token = None if args.infer_ori_strategy else list(geometry["ori_token"])
     config = build_config(
         vh_len,
         vl_len,
@@ -210,7 +209,11 @@ def main() -> None:
     print(f"  helical conditioning: is_non_loopy={config['rfd3']['is_non_loopy']}, "
           f"sampler={config['rfd3']['sampler']}")
     if ori_token is not None:
-        print(f"  ori_token (gap midpoint): {ori_token}")
+        print(
+            f"  ori_token (roomiest point in the gap): {ori_token} — "
+            f"{geometry['clearance_a']} Å clear of the Fab "
+            f"(plain centroid midpoint would be {geometry['midpoint_clearance_a']} Å)"
+        )
     else:
         print("  ori_token: inferred from hotspots")
     if args.fab_pdb:
