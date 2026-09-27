@@ -18,6 +18,8 @@ Usage
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import os
 import subprocess
 import sys
@@ -68,10 +70,11 @@ def ssh_key_usable(key: str) -> bool:
     return os.path.isfile(path) and os.access(path, os.R_OK)
 
 
-def ssh(ip: str, key: str, cmd: str, check: bool = True) -> int:
+def ssh(ip: str, key: str, cmd: str, check: bool = True, quiet: bool = False) -> int:
     r = subprocess.run(
         ["ssh"] + ssh_opts(key) + [f"{REMOTE_USER}@{ip}", cmd],
         check=False,
+        capture_output=quiet,
     )
     if check and r.returncode != 0:
         raise RuntimeError(f"SSH failed ({r.returncode}): {cmd[:120]}")
@@ -105,6 +108,34 @@ def wait_ssh(ip: str, key: str, timeout_s: int = 600) -> None:
     raise TimeoutError(f"SSH not ready on {ip}")
 
 
+def wait_until_reachable(
+    client: LambdaClient, instance_id: str, key: str, timeout_s: int
+) -> str:
+    """Return the instance IP once SSH answers.
+
+    Lambda can report ``booting`` long after an instance is usable (and, rarely,
+    long after it is wedged), so treat SSH reachability as the readiness signal
+    and use the reported status only for hard failures.
+    """
+    print(f"  Waiting for instance {instance_id} to accept SSH", end="", flush=True)
+    deadline = time.time() + timeout_s
+    ip = ""
+    while time.time() < deadline:
+        inst = client.get_instance(instance_id)
+        status = inst.get("status", "unknown")
+        if status in ("terminated", "terminating", "unhealthy"):
+            raise RuntimeError(f"Instance {instance_id} entered state '{status}'")
+        ip = inst.get("ip") or ""
+        if ip and ssh(ip, key, "echo ok", check=False, quiet=True) == 0:
+            print(f"\n  Reachable at {ip} (Lambda status: {status})")
+            return ip
+        print("." if ip else "_", end="", flush=True)
+        time.sleep(15)
+    raise TimeoutError(
+        f"Instance {instance_id} (ip={ip or 'none'}) did not accept SSH within {timeout_s}s"
+    )
+
+
 def ensure_ephemeral_ssh_key(client: LambdaClient) -> str:
     """Create a local ephemeral key and register it with Lambda if needed."""
     EPHEMERAL_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -126,39 +157,73 @@ def ensure_ephemeral_ssh_key(client: LambdaClient) -> str:
 
 
 MATERIALISED_KEY_PATH = Path.home() / ".ssh" / "lambda_agent_key_from_env"
+OPENSSH_HEADER = "-----BEGIN OPENSSH PRIVATE KEY-----"
+OPENSSH_FOOTER = "-----END OPENSSH PRIVATE KEY-----"
 
 
 def looks_like_private_key(value: str) -> bool:
-    return "PRIVATE KEY" in value
+    """True when the value is private-key material rather than a path.
+
+    Secrets injected into Cloud Agent VMs can arrive as the key body with the PEM
+    header and footer stripped, so also accept base64 that decodes to an OpenSSH
+    key blob.
+    """
+    if "PRIVATE KEY" in value:
+        return True
+    if "\n" not in value and len(value) < 200:
+        return False
+    try:
+        return base64.b64decode("".join(value.split()), validate=True).startswith(
+            b"openssh-key-v1"
+        )
+    except (binascii.Error, ValueError):
+        return False
 
 
 def materialise_private_key(material: str) -> str:
-    """Write inline private-key material to disk and return its path.
-
-    ``LAMBDA_SSH_KEY`` sometimes carries the key itself rather than a path (this
-    is how secrets are injected into Cloud Agent VMs).
-    """
+    """Write inline private-key material to disk and return its path."""
+    body = material.strip()
+    if OPENSSH_HEADER not in body:
+        wrapped = "\n".join(
+            [OPENSSH_HEADER, *(line for line in body.splitlines() if line), OPENSSH_FOOTER]
+        )
+    else:
+        wrapped = body
     MATERIALISED_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    text = material if material.endswith("\n") else material + "\n"
-    MATERIALISED_KEY_PATH.write_text(text)
+    MATERIALISED_KEY_PATH.write_text(wrapped + "\n")
     MATERIALISED_KEY_PATH.chmod(0o600)
     return str(MATERIALISED_KEY_PATH)
+
+
+def public_key_of(private_key_path: str) -> str:
+    """Derive the OpenSSH public key (type + base64 body) from a private key."""
+    result = subprocess.run(
+        ["ssh-keygen", "-y", "-f", private_key_path],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return " ".join(result.stdout.split()[:2])
 
 
 def resolve_ssh_key(client: LambdaClient, preferred: str, ssh_key_name: str) -> tuple[str, str]:
     """Return (private_key_path, ssh_key_name_for_launch). Lambda allows one key only.
 
-    Never print the key itself: the value may be the private key material.
+    Never print the key itself: the value may be private key material.
     """
     if looks_like_private_key(preferred):
-        registered = {k.get("name") for k in client.list_ssh_keys()}
-        if ssh_key_name in registered:
-            print(f"  Using inline SSH key material for registered key '{ssh_key_name}'.")
-            return materialise_private_key(preferred), ssh_key_name
-        print(
-            f"  Inline SSH key material provided but '{ssh_key_name}' is not registered "
-            "with Lambda — using ephemeral key."
-        )
+        try:
+            key_path = materialise_private_key(preferred)
+            pub = public_key_of(key_path)
+        except (subprocess.CalledProcessError, OSError) as exc:
+            print(f"  Inline SSH key material is unusable ({exc}) — using ephemeral key.")
+            return ensure_ephemeral_ssh_key(client), EPHEMERAL_KEY_NAME
+        for entry in client.list_ssh_keys():
+            registered = " ".join(entry.get("public_key", "").split()[:2])
+            if registered and registered == pub:
+                print(f"  Using inline SSH key material (registered as '{entry['name']}').")
+                return key_path, entry["name"]
+        print("  Inline SSH key is not registered with Lambda — using ephemeral key.")
         return ensure_ephemeral_ssh_key(client), EPHEMERAL_KEY_NAME
 
     preferred_path = os.path.expanduser(preferred)
@@ -538,8 +603,7 @@ def main() -> None:
     )
     ip = ""
     try:
-        active = client.wait_until_active(iid, timeout_s=args.boot_timeout_s)
-        ip = active["ip"]
+        ip = wait_until_reachable(client, iid, ssh_key, args.boot_timeout_s)
         print(f"\nInstance {iid} @ {ip}")
         print(f"  Branch: {GITHUB_BRANCH}")
         print(f"  Designs: {args.n_designs}  length windows: {args.mb_length_ranges}")
@@ -548,7 +612,6 @@ def main() -> None:
             f"step_scale={args.step_scale}, gamma_0={args.gamma_0}"
         )
 
-        wait_ssh(ip, ssh_key)
         upload_stage_a(ip, ssh_key)
         run_setup(ip, ssh_key)
         run_stage_a(
