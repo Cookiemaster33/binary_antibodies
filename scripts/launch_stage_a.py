@@ -484,7 +484,13 @@ def main() -> None:
         "--boot-timeout-s",
         type=int,
         default=1800,
-        help="How long to wait for the instance to become active (default 1800)",
+        help="How long to wait for the instance to accept SSH (default 1800)",
+    )
+    p.add_argument(
+        "--launch-attempts",
+        type=int,
+        default=3,
+        help="How many instances to try if one never finishes booting",
     )
     p.add_argument(
         "--batch-size",
@@ -574,36 +580,51 @@ def main() -> None:
                     f"resolved key is '{launch_key_name}' and no matching private key "
                     "is available locally."
                 )
+        ip = wait_until_reachable(client, iid, ssh_key, args.boot_timeout_s)
     else:
-        deadline = time.time() + args.wait_for_capacity_min * 60
-        while True:
+        capacity_deadline = time.time() + args.wait_for_capacity_min * 60
+        iid, instance_type, ip = "", "", ""
+        for attempt in range(1, args.launch_attempts + 1):
+            while True:
+                try:
+                    instance_type, region, price = select_instance_type(
+                        client, args.instance_type or None, args.max_price
+                    )
+                    break
+                except RuntimeError as exc:
+                    if time.time() >= capacity_deadline:
+                        sys.exit(f"ERROR: {exc}")
+                    print(f"  {exc}\n  Waiting for capacity ...")
+                    time.sleep(120)
+            print(
+                f"  Attempt {attempt}/{args.launch_attempts}: {instance_type} in {region} "
+                f"(${price:.2f}/h)"
+            )
+            iid = client.launch(
+                instance_type,
+                region,
+                ssh_key_names=[launch_key_name],
+                name="stage-a-hidden-minibinder",
+            )["id"]
             try:
-                instance_type, region, price = select_instance_type(
-                    client, args.instance_type or None, args.max_price
-                )
+                ip = wait_until_reachable(client, iid, ssh_key, args.boot_timeout_s)
                 break
-            except RuntimeError as exc:
-                if time.time() >= deadline:
-                    sys.exit(f"ERROR: {exc}")
-                print(f"  {exc}\n  Waiting for capacity ...")
-                time.sleep(120)
-        print(f"  Instance: {instance_type} in {region} (${price:.2f}/h)")
-        inst = client.launch(
-            instance_type,
-            region,
-            ssh_key_names=[launch_key_name],
-            name="stage-a-hidden-minibinder",
-        )
-        iid = inst["id"]
+            except (RuntimeError, TimeoutError) as exc:
+                # Lambda occasionally hands out an instance that never finishes
+                # booting; release it and try for another one.
+                print(f"\n  {exc}\n  Terminating {iid} and retrying ...")
+                client.terminate(iid)
+                iid, ip = "", ""
+                time.sleep(60)
+        if not ip:
+            sys.exit(f"ERROR: no instance became reachable after {args.launch_attempts} attempts")
 
     batch_size = args.batch_size or BATCH_SIZE_BY_TYPE.get(instance_type, DEFAULT_BATCH_SIZE)
     low_memory = instance_type in BATCH_SIZE_BY_TYPE
     print(
         f"  Batch size {batch_size}" + (", low-memory mode" if low_memory else "")
     )
-    ip = ""
     try:
-        ip = wait_until_reachable(client, iid, ssh_key, args.boot_timeout_s)
         print(f"\nInstance {iid} @ {ip}")
         print(f"  Branch: {GITHUB_BRANCH}")
         print(f"  Designs: {args.n_designs}  length windows: {args.mb_length_ranges}")
