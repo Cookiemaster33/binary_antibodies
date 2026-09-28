@@ -71,10 +71,15 @@ def ssh_key_usable(key: str) -> bool:
 
 
 def ssh(ip: str, key: str, cmd: str, check: bool = True, quiet: bool = False) -> int:
+    kwargs: dict = {"check": False}
+    if quiet:
+        # Suppress output and prevent SSH from reading stdin (which would block
+        # indefinitely when the parent stdin is a tty or pipe).
+        kwargs["capture_output"] = True
+        kwargs["stdin"] = subprocess.DEVNULL
     r = subprocess.run(
         ["ssh"] + ssh_opts(key) + [f"{REMOTE_USER}@{ip}", cmd],
-        check=False,
-        capture_output=quiet,
+        **kwargs,
     )
     if check and r.returncode != 0:
         raise RuntimeError(f"SSH failed ({r.returncode}): {cmd[:120]}")
