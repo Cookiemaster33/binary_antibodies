@@ -1,0 +1,306 @@
+{
+  "VH1_seq": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAPSV",
+  "NB_seq": "QVQLQESGGGSVQAGGSLKLTCAASGYIFNSCGMGWYRQSPGRERELVSRISGDGDTWHKESVKGRFTISQDNVKKTLYLQMNSLKPEDTAVYFCAVCYNLETYWGQGTQVTVSS",
+  "designs": [
+    {
+      "rank": 1,
+      "backbone": "mb_b014_004",
+      "minibinder_sequence": "SDGSTGPPLSNCDPTNRGTTLNSNGNGVNGGLANSSNAGNTCYCENGVCMNETTSQ",
+      "sequence_recovery": 0.16363635659217834
+    },
+    {
+      "rank": 2,
+      "backbone": "mb_b012_000",
+      "minibinder_sequence": "ADGTSPGTFCDRYTPGQPAVDTSLSPANYDASKLLQVQPFIDNYSKELLTQQDSSQ",
+      "sequence_recovery": 0.20000000298023224
+    },
+    {
+      "rank": 3,
+      "backbone": "mb_b002_005",
+      "minibinder_sequence": "SGRPGTPELIAQFDRPTGPQVYREGVGNPVGNKSLPLDEYQKEVAKVGKLEQPASQ",
+      "sequence_recovery": 0.23636363446712494
+    },
+    {
+      "rank": 4,
+      "backbone": "mb_b000_005",
+      "minibinder_sequence": "GGGFTDSPFGPGTVTLSNTVASPLSNGTIPSPAVTNAGDDKGAGPPDWLRAKTGKQ",
+      "sequence_recovery": 0.2545454502105713
+    },
+    {
+      "rank": 5,
+      "backbone": "mb_b008_000",
+      "minibinder_sequence": "ADQKVETPPRTEVSTYWDVKPGQKLVVGVAQDYIAVSPLYGPGSNYTSNLDLSAPQ",
+      "sequence_recovery": 0.2545454502105713
+    },
+    {
+      "rank": 6,
+      "backbone": "mb_b011_000",
+      "minibinder_sequence": "GGSSGPGLPSGDGDIAWEKQSDGTWKPYVTDSSGTVYTNAGNAATPESEVKKKSPQ",
+      "sequence_recovery": 0.2545454502105713
+    },
+    {
+      "rank": 7,
+      "backbone": "mb_b012_005",
+      "minibinder_sequence": "SGEVAPFPGSNYDPNAPRILSEGHTVTISNSGTATWSTTAEPGRLETTERPKSSGQ",
+      "sequence_recovery": 0.2545454502105713
+    },
+    {
+      "rank": 8,
+      "backbone": "mb_b002_003",
+      "minibinder_sequence": "GGGFTGVGDGSTLSNGSPSNGCVNVIHSGKPEPGCLCPDEDNNSTKVDTRARSTGQ",
+      "sequence_recovery": 0.27272728085517883
+    },
+    {
+      "rank": 9,
+      "backbone": "mb_b004_005",
+      "minibinder_sequence": "SSQGTPSLTAEFAAAENLPTTTQVLDDGSVASVSSNGSVTTSYPSSRGTYTNDTGQ",
+      "sequence_recovery": 0.27272728085517883
+    },
+    {
+      "rank": 10,
+      "backbone": "mb_b007_000",
+      "minibinder_sequence": "GPGPPYPQSPRFGAIGSAPAHPWAKRITTTPVGSNNEYQSDWQLTSNQSLAAPGAQ",
+      "sequence_recovery": 0.27272728085517883
+    },
+    {
+      "rank": 11,
+      "backbone": "mb_b014_001",
+      "minibinder_sequence": "GAEDSDGLFPAQPWTSAKCQTGSSHTGPIPQPKLDNKNEPDQLCGDPLTGAKLSNQ",
+      "sequence_recovery": 0.27272728085517883
+    },
+    {
+      "rank": 12,
+      "backbone": "mb_b018_006",
+      "minibinder_sequence": "ANSSEPRPPPGGEPPNPAVDFPAASKLATNPAAAGWNGSTDKSPPSVHGAAPTTEQ",
+      "sequence_recovery": 0.27272728085517883
+    },
+    {
+      "rank": 13,
+      "backbone": "mb_b000_003",
+      "minibinder_sequence": "GPEGSTLSICDPLGSEAYLNLVRDVNGLVQPYYVKNGSWVDSSDAAQKLEDTTGKQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 14,
+      "backbone": "mb_b001_000",
+      "minibinder_sequence": "GDGSPAPPEMSDTTKYCTVYSNGVGDGLDYDPGYQTSVNPTSPPYATKSLPQVPGQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 15,
+      "backbone": "mb_b004_003",
+      "minibinder_sequence": "SLGGGGKNGYQRYLATGEGACLPIPEGVLGEEVPRSGTGAANCSTDTVVDMEPTGQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 16,
+      "backbone": "mb_b005_005",
+      "minibinder_sequence": "AGQPSNLYLEFKQAPPSKAQDWPIDTTPWEKANKLSSSDQCINGPCREAKDANGNQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 17,
+      "backbone": "mb_b010_001",
+      "minibinder_sequence": "AGQPGPPEFAPWQTEGVGGLAAHSKSSVQWVTTINSSTQTVSTTPAPGQTVVTSGQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 18,
+      "backbone": "mb_b010_004",
+      "minibinder_sequence": "AQEPGDGPPGDLDDYVESPPGGKGPVNAVLSGSKIVSKLPNGKISSYPALPETPEQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 19,
+      "backbone": "mb_b010_007",
+      "minibinder_sequence": "GGFSNPSPEECDLPAVNGKQTDPPASSDVGPLGLSQIQDPNSGAFGVKGSPDPTKQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 20,
+      "backbone": "mb_b011_003",
+      "minibinder_sequence": "GGGPPWCTETVTSRVLGNSGCNTAQTLTSSSNGTVSYTRPDGTAVAATGFLDPNQQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 21,
+      "backbone": "mb_b013_004",
+      "minibinder_sequence": "AQSPALPEAGPSGDIYPSGTVEDEVDSNMNTKTVKIYSGSYLNYSGAPDPAELKQQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 22,
+      "backbone": "mb_b015_003",
+      "minibinder_sequence": "GGSTPMSDPSSYTVRGYYNGKPVWGANESKLAAMTPEEIKKKWDEYSKETPDLTNQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 23,
+      "backbone": "mb_b015_009",
+      "minibinder_sequence": "AQWTPTPEELAALGVPTGDSIDDTWSAAEKHDKWKPIPAGSTTFEAPIKTAKSSGQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 24,
+      "backbone": "mb_b016_000",
+      "minibinder_sequence": "GQSTAGFCTCTVENGKRISGESDDPLLPLGSLTPSGTKSPVLYSAGTPTNPPGEPQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 25,
+      "backbone": "mb_b016_003",
+      "minibinder_sequence": "SSSGSVVPNGYMGDALGTACCLYGHVSCTRSSSGTITCTYSSGGGVYPAEPKPEGQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 26,
+      "backbone": "mb_b018_003",
+      "minibinder_sequence": "AQQPGSPFTCSTSLQNCSDSSLQCDFDPGWVDKNGKASGNLSAEVCKKLYAEPGTQ",
+      "sequence_recovery": 0.290909081697464
+    },
+    {
+      "rank": 27,
+      "backbone": "mb_b002_008",
+      "minibinder_sequence": "ADGSTPRPEDLAPCPAEVEGDKYVLTEPNAIPNVPSSGTAQPSWSFPAGQGDRTTQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 28,
+      "backbone": "mb_b005_000",
+      "minibinder_sequence": "GGGSNGAAPETPLTPSITLVSDPSQPTTLLPDKVGSLYTLGPSVPSTPAHFLAPGQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 29,
+      "backbone": "mb_b006_007",
+      "minibinder_sequence": "GGWQGAPPNVKTGEPMDLTGKTVLASPNGGDVSKTLNPEEDKKILPQALAEGQKQQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 30,
+      "backbone": "mb_b008_001",
+      "minibinder_sequence": "ADSSSGVPGFCTNAPSTQIDPYFESTVDLKQEIKAGNGTAVCNGNSQPYSGKTAGQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 31,
+      "backbone": "mb_b009_009",
+      "minibinder_sequence": "GGPASPELLAEWVAIGSSLADPGLDFLNLQIPPPPPPRVYQPTFPTQVPAAPTPGQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 32,
+      "backbone": "mb_b011_009",
+      "minibinder_sequence": "ATPSASYSNRGSSGFTASGSRNITTPDTFTPNPCPEGGSGTNPGAYPPSALPETSQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 33,
+      "backbone": "mb_b012_006",
+      "minibinder_sequence": "ADSQASAPLPGGQLVYNPLEPGKSLYDSISVSPTRLSTPLDLEAIKAATKDLIKNQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 34,
+      "backbone": "mb_b013_002",
+      "minibinder_sequence": "ANETSTDLVPSSSTAVAYSSVNPDGTPDPNAPSGGLGNGVNECPAPLPEVSNVPGQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 35,
+      "backbone": "mb_b013_006",
+      "minibinder_sequence": "AQGPAPPNDPGRRRSGSQVTPTVVGNANPNDAATVTGDGGKGSAVTITTAAAESGQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 36,
+      "backbone": "mb_b014_003",
+      "minibinder_sequence": "SSEPGVCDTGCPLGPTQIDGNYVAEPPVGSSPGTKWTHIGPCGTKSSDYLPPEPGQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 37,
+      "backbone": "mb_b014_005",
+      "minibinder_sequence": "GPAPNESLVKGFKLSNCTTVPSTTLSTTITSSSPSSITNTATGANGQSWSSKAPGQ",
+      "sequence_recovery": 0.30909091234207153
+    },
+    {
+      "rank": 38,
+      "backbone": "mb_b000_004",
+      "minibinder_sequence": "SNGPPQPSSSLGVVCDPDGTRTGSPFNLPPSTHTIEVDGKTYTSVTPDVPESPEPQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 39,
+      "backbone": "mb_b002_000",
+      "minibinder_sequence": "LGSHPLTERRRYGLTAASEVERARKVCELTGAGCSLCPLQSGDPTKVHGEPITTGQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 40,
+      "backbone": "mb_b002_001",
+      "minibinder_sequence": "AGERLSSVEGVPLPSVRLTNSLKGSGTGSTIGASSLYNNQGAPLPSTLPENTPENQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 41,
+      "backbone": "mb_b003_001",
+      "minibinder_sequence": "GGPVLPCDGPAGSALLTPALEPSVSLSGSVEDTPVLPSSTASSPPVEPYAAPTTDQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 42,
+      "backbone": "mb_b003_009",
+      "minibinder_sequence": "GGGGTLSVSGSSRVDAGIDDNNTLVSVDSSGNRISLPYPKEVIDERIKEADAPGGQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 43,
+      "backbone": "mb_b005_001",
+      "minibinder_sequence": "GGDNVVSGRPSASSTPNEAKAATGGATGVYNQGTGTSTSDLGKGDRSMNLFNTAGQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 44,
+      "backbone": "mb_b007_001",
+      "minibinder_sequence": "GGSSPQSDPDRAYGAYAPPNTQNNINLTVGETPTGPRILGRGDPTTAEPIADVSTQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 45,
+      "backbone": "mb_b007_006",
+      "minibinder_sequence": "GGSSTSEDSTTCIDTVSGSSQVLTPYTGADGTELGALVQSDGSVVPIPLAADQGKQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 46,
+      "backbone": "mb_b010_005",
+      "minibinder_sequence": "GAETTLYEALSNNSNPELRVSGTGSIKDLETGKVYPCVEQPVYDGSPANAVPEGKQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 47,
+      "backbone": "mb_b012_003",
+      "minibinder_sequence": "SSPPFPGGPAAPRVIDAGINPGDLYSQNGGVNSATSQNGPAYPGGGGYAIAPGYSQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 48,
+      "backbone": "mb_b012_007",
+      "minibinder_sequence": "SSPGFVSTDLPCAGSVDDYLDSAGNVHTVDNSGNRTVKAIDAAGAAAAKAEQGKTQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 49,
+      "backbone": "mb_b015_002",
+      "minibinder_sequence": "MGSPYSNGDRAGCGLSDGGALLYANPSGTDTLTTCNYSCTTCLAEKTATGDPSASQ",
+      "sequence_recovery": 0.3272727131843567
+    },
+    {
+      "rank": 50,
+      "backbone": "mb_b017_000",
+      "minibinder_sequence": "AGRPGPNFCPLPSTQSLNLVNQVPSGTGSGSSPPSVSYYGAGGANQPIGAPPQPGQ",
+      "sequence_recovery": 0.3272727131843567
+    }
+  ]
+}

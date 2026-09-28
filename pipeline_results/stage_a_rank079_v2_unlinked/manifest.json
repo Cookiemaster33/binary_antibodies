@@ -1,0 +1,38 @@
+{
+  "stage": "A",
+  "version": "v2_unlinked_full_fab",
+  "stage0_design_id": "rank079_s0_native_split_s296",
+  "n_designs": 200,
+  "layout": {
+    "separation_a": 45.0,
+    "minibinder_linked": false,
+    "full_fab_context": true
+  },
+  "contig": "A1-113,B1-107/0,35-55,C1-101,D1-113",
+  "minibinder_length_range": {
+    "min": 36,
+    "max": 55,
+    "unique": [
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      46,
+      47,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55
+    ]
+  },
+  "files": {
+    "sequences_json": "final/stage_a_sequences.json",
+    "minibinder_fasta": "final/stage_a_minibinder_sequences.fasta",
+    "cif_archive": "structures/rfd3_stage_a_cifs.tar.gz"
+  }
+}

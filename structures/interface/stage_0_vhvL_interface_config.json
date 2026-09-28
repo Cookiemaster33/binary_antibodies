@@ -1,0 +1,93 @@
+{
+  "stage": "0",
+  "approach": "split_mpnn_whole_interface",
+  "description": "Whole-interface: all 23 VH/VL framework interface residues redesigned; top 100 by static VH\u2013VL weakening \u2192 holo Boltz.",
+  "input_pdb": "structures/domains/fab_stage_0_vhvL_interface.pdb",
+  "split_mpnn_pdb": "structures/domains/fab_stage_0_split_mpnn.pdb",
+  "source_fab": "1N8Z (trastuzumab)",
+  "chains": {
+    "A": "VH 1-113",
+    "B": "VL 1-107",
+    "C": "CH1 1-101",
+    "D": "CL 1-113 (steric context only)",
+    "T": "HER2 epitope stub 1-12 (holo closure context)"
+  },
+  "split_mpnn": {
+    "separation_A": 30.0,
+    "core_max_heavy_A": null,
+    "designed_residues": [
+      "A34",
+      "A38",
+      "A42",
+      "A43",
+      "A44",
+      "A45",
+      "A46",
+      "A47",
+      "A49",
+      "A87",
+      "A89",
+      "B35",
+      "B37",
+      "B39",
+      "B43",
+      "B44",
+      "B45",
+      "B46",
+      "B47",
+      "B104",
+      "B105",
+      "B106",
+      "B107"
+    ],
+    "vh_closure_core": [],
+    "vl_closure_core": [],
+    "n_sequences": 1000,
+    "top_n_boltz": 100,
+    "temperature": 0.25,
+    "mpnn_rank_by": "static_vh_vl_interface_contacts_asc"
+  },
+  "native_chain_sequences": {
+    "A": "DIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCQQHYTTPPTFGQGTKVEIKRTVAAP",
+    "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIHWVRQAPGKGLEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGFYAM",
+    "C": "SVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFNRGEC",
+    "D": "DYWGQGTLVTVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEP",
+    "T": "CPACPAPELLGG"
+  },
+  "validation": {
+    "mode": "holo_static_pisa",
+    "static_interface": "Weighted VH\u2013VL contacts on native Fab geometry from designed A/B sequence",
+    "holo_fold": "Boltz A+B+C+D+T \u2014 epitope engagement and Fab-like geometry",
+    "pisa": {
+      "enabled": true,
+      "docker_image": "pdbegroup/pisa:latest",
+      "pisa_cfg": "/usr/share/pisa/setup/pisa_cfg_tmp",
+      "fv_chains": ["A", "B"],
+      "score_fv_only": true,
+      "use_docker": true,
+      "work_subdir": "pisa_work"
+    },
+    "metrics": [
+      "static_vh_vl_interface_contacts",
+      "static_fraction_of_native_contacts",
+      "holo_fv_framework_rmsd_A",
+      "holo_fv_interface_framework_rmsd_A",
+      "holo_fv_cdr_rmsd_A",
+      "cdr_epitope_contacts",
+      "vh_vl_interface_clashes",
+      "pisa_int_area_A2",
+      "pisa_int_solv_en_kcal",
+      "pisa_delta_int_solv_en_vs_native_kcal",
+      "pisa_int_area_fraction_of_native"
+    ],
+    "filters": {
+      "max_static_fraction_of_native_contacts": 0.45,
+      "max_holo_clashes_4A": 50,
+      "max_holo_fv_framework_rmsd_A": 6.0,
+      "max_holo_fv_cdr_rmsd_A": 6.0,
+      "min_holo_cdr_epitope_contacts": 6,
+      "max_holo_vh_vl_interface_clashes": 0
+    }
+  },
+  "next_stage": "Feed top Stage 0 Fab (chains A\u2013D) into build_stage_a_design_target.py via --fab-pdb, then run Stage A minibinder design."
+}

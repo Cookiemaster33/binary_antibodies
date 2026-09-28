@@ -1,0 +1,83 @@
+===== Stage 0 split-MPNN pipeline: Sun Jul 26 09:44:51 PM UTC 2026 =====
+GPU: NVIDIA A10
+MPNN: 1000 (batch 100) | Holo Boltz top: 100 (static rank)
+
+=== Step 1: Split-chain ProteinMPNN ===
+Environment variable CCD_MIRROR_PATH not set. Will not be able to use function requiring this variable. To set it you may:
+  (1) add the line 'export VAR_NAME=path/to/variable' to your .bashrc or .zshrc file
+  (2) set it in your current shell with 'export VAR_NAME=path/to/variable'
+  (3) write it to a .env file in the root of the atomworks.io repository
+Environment variable PDB_MIRROR_PATH not set. Will not be able to use function requiring this variable. To set it you may:
+  (1) add the line 'export VAR_NAME=path/to/variable' to your .bashrc or .zshrc file
+  (2) set it in your current shell with 'export VAR_NAME=path/to/variable'
+  (3) write it to a .env file in the root of the atomworks.io repository
+/workspace/run_mpnn_stage_0.py:14: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/inputs/stage_0_vhvL_interface_config.json' mode='r' encoding='utf-8'>
+  cfg = json.load(open(CONFIG))
+Stage 0 split MPNN: /workspace/inputs/fab_stage_0_split_mpnn.pdb
+  approach: split_mpnn_whole_interface
+  designed residues (23): A34, A38, A42, A43, A44, A45, A46, A47, A49, A87...
+  target sequences: 1000 (batch size 100)
+  MPNN batch: 100 sequences (0 done)
+  MPNN batch: 100 sequences (100 done)
+  MPNN batch: 100 sequences (200 done)
+  MPNN batch: 100 sequences (300 done)
+  MPNN batch: 100 sequences (400 done)
+  MPNN batch: 100 sequences (500 done)
+  MPNN batch: 100 sequences (600 done)
+  MPNN batch: 100 sequences (700 done)
+  MPNN batch: 100 sequences (800 done)
+  MPNN batch: 100 sequences (900 done)
+/workspace/run_mpnn_stage_0.py:77: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/outputs/mpnn_stage_0/all_sequences.json' mode='w' encoding='utf-8'>
+  json.dump(results, open(OUT / "all_sequences.json", "w"), indent=2)
+MPNN Stage 0: 1000 sequences → /workspace/outputs/mpnn_stage_0
+  MPNN score range: 0.3913 .. 0.6087
+
+=== Step 2: Build holo Boltz inputs (rank by static VH–VL weakening) ===
+Boltz holo inputs: 100 designs (weakest static contacts 51.1–58.9 of 1000 MPNN)
+
+=== Step 3: Boltz holo (A+B+C+D+T) — 100 designs ===
+Predicting: |          | 0/? [00:00<?, ?it/s]Predicting:   0%|          | 0/100 [00:00<?, ?it/s]Predicting DataLoader 0:   0%|          | 0/100 [00:00<?, ?it/s]Traceback (most recent call last):
+TypeError: triangle_attention() got an unexpected keyword argument 'kv_lengths'
+Predicting DataLoader 0:   0%|          | 0/100 [00:06<?, ?it/s]
+
+=== Step 4: Stage 0 scoring (static interface + holo binding) ===
+Stage 0 scoring: 0/0 pass all filters → /workspace/final/stage_0_results.json
+
+===== Stage 0 complete: Sun Jul 26 09:51:42 PM UTC 2026 =====
+
+=== RETRY Step 3: Boltz holo with --no_kernels (A10 fix) ===
+Checking input data.
+All inputs are already processed.
+Processing 0 inputs with 0 threads.
+0it [00:00, ?it/s]0it [00:00, ?it/s]
+Using bfloat16 Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+Running structure prediction for 100 inputs.
+/home/ubuntu/.local/lib/python3.10/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0
+You are using a CUDA device ('NVIDIA A10') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+2026-07-26 21:54:20.278294: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2026-07-26 21:54:20.290012: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1785102860.303586    5542 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1785102860.308025    5542 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1785102860.318318    5542 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1785102860.318343    5542 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1785102860.318345    5542 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1785102860.318346    5542 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2026-07-26 21:54:20.321320: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX512F AVX512_VNNI, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+Predicting: |          | 0/? [00:00<?, ?it/s]Predicting:   0%|          | 0/100 [00:00<?, ?it/s]Predicting DataLoader 0:   0%|          | 0/100 [00:00<?, ?it/s]Predicting DataLoader 0:   1%|          | 1/100 [00:39<1:05:08,  0.03it/s]Predicting DataLoader 0:   2%|▏         | 2/100 [01:17<1:03:39,  0.03it/s]Predicting DataLoader 0:   3%|▎         | 3/100 [01:56<1:02:58,  0.03it/s]Predicting DataLoader 0:   4%|▍         | 4/100 [02:36<1:02:27,  0.03it/s]Predicting DataLoader 0:   5%|▌         | 5/100 [03:15<1:01:58,  0.03it/s]Predicting DataLoader 0:   6%|▌         | 6/100 [03:55<1:01:28,  0.03it/s]Predicting DataLoader 0:   7%|▋         | 7/100 [04:35<1:00:55,  0.03it/s]Predicting DataLoader 0:   8%|▊         | 8/100 [05:14<1:00:20,  0.03it/s]Predicting DataLoader 0:   9%|▉         | 9/100 [05:54<59:45,  0.03it/s]  Predicting DataLoader 0:  10%|█         | 10/100 [06:34<59:08,  0.03it/s]Predicting DataLoader 0:  11%|█         | 11/100 [07:14<58:31,  0.03it/s]Predicting DataLoader 0:  12%|█▏        | 12/100 [07:53<57:54,  0.03it/s]Predicting DataLoader 0:  13%|█▎        | 13/100 [08:33<57:16,  0.03it/s]Predicting DataLoader 0:  14%|█▍        | 14/100 [09:13<56:38,  0.03it/s]Predicting DataLoader 0:  15%|█▌        | 15/100 [09:53<56:00,  0.03it/s]Predicting DataLoader 0:  16%|█▌        | 16/100 [10:32<55:22,  0.03it/s]Predicting DataLoader 0:  17%|█▋        | 17/100 [11:12<54:43,  0.03it/s]Predicting DataLoader 0:  18%|█▊        | 18/100 [11:52<54:06,  0.03it/s]Predicting DataLoader 0:  19%|█▉        | 19/100 [12:32<53:27,  0.03it/s]Predicting DataLoader 0:  20%|██        | 20/100 [13:12<52:48,  0.03it/s]Predicting DataLoader 0:  21%|██        | 21/100 [13:51<52:09,  0.03it/s]Predicting DataLoader 0:  22%|██▏       | 22/100 [14:31<51:30,  0.03it/s]Predicting DataLoader 0:  23%|██▎       | 23/100 [15:11<50:51,  0.03it/s]Predicting DataLoader 0:  24%|██▍       | 24/100 [15:51<50:12,  0.03it/s]Predicting DataLoader 0:  25%|██▌       | 25/100 [16:30<49:32,  0.03it/s]Predicting DataLoader 0:  26%|██▌       | 26/100 [17:10<48:53,  0.03it/s]Predicting DataLoader 0:  27%|██▋       | 27/100 [17:50<48:14,  0.03it/s]Predicting DataLoader 0:  28%|██▊       | 28/100 [18:30<47:34,  0.03it/s]Predicting DataLoader 0:  29%|██▉       | 29/100 [19:09<46:55,  0.03it/s]Predicting DataLoader 0:  30%|███       | 30/100 [19:49<46:15,  0.03it/s]Predicting DataLoader 0:  31%|███       | 31/100 [20:29<45:36,  0.03it/s]Predicting DataLoader 0:  32%|███▏      | 32/100 [21:09<44:57,  0.03it/s]Predicting DataLoader 0:  33%|███▎      | 33/100 [21:48<44:17,  0.03it/s]Predicting DataLoader 0:  34%|███▍      | 34/100 [22:28<43:37,  0.03it/s]Predicting DataLoader 0:  35%|███▌      | 35/100 [23:08<42:58,  0.03it/s]Predicting DataLoader 0:  36%|███▌      | 36/100 [23:48<42:18,  0.03it/s]Predicting DataLoader 0:  37%|███▋      | 37/100 [24:27<41:39,  0.03it/s]Predicting DataLoader 0:  38%|███▊      | 38/100 [25:07<40:59,  0.03it/s]Predicting DataLoader 0:  39%|███▉      | 39/100 [25:47<40:20,  0.03it/s]Predicting DataLoader 0:  40%|████      | 40/100 [26:27<39:40,  0.03it/s]Predicting DataLoader 0:  41%|████      | 41/100 [27:06<39:01,  0.03it/s]Predicting DataLoader 0:  42%|████▏     | 42/100 [27:46<38:21,  0.03it/s]Predicting DataLoader 0:  43%|████▎     | 43/100 [28:26<37:41,  0.03it/s]Predicting DataLoader 0:  44%|████▍     | 44/100 [29:06<37:02,  0.03it/s]Predicting DataLoader 0:  45%|████▌     | 45/100 [29:45<36:22,  0.03it/s]Predicting DataLoader 0:  46%|████▌     | 46/100 [30:25<35:42,  0.03it/s]Predicting DataLoader 0:  47%|████▋     | 47/100 [31:05<35:03,  0.03it/s]Predicting DataLoader 0:  48%|████▊     | 48/100 [31:44<34:23,  0.03it/s]Predicting DataLoader 0:  49%|████▉     | 49/100 [32:24<33:44,  0.03it/s]Predicting DataLoader 0:  50%|█████     | 50/100 [33:04<33:04,  0.03it/s]Predicting DataLoader 0:  51%|█████     | 51/100 [33:44<32:24,  0.03it/s]Predicting DataLoader 0:  52%|█████▏    | 52/100 [34:23<31:45,  0.03it/s]Predicting DataLoader 0:  53%|█████▎    | 53/100 [35:03<31:05,  0.03it/s]Predicting DataLoader 0:  54%|█████▍    | 54/100 [35:43<30:25,  0.03it/s]Predicting DataLoader 0:  55%|█████▌    | 55/100 [36:22<29:46,  0.03it/s]Predicting DataLoader 0:  56%|█████▌    | 56/100 [37:02<29:06,  0.03it/s]Predicting DataLoader 0:  57%|█████▋    | 57/100 [37:42<28:26,  0.03it/s]Predicting DataLoader 0:  58%|█████▊    | 58/100 [38:22<27:47,  0.03it/s]Predicting DataLoader 0:  59%|█████▉    | 59/100 [39:01<27:07,  0.03it/s]Predicting DataLoader 0:  60%|██████    | 60/100 [39:41<26:27,  0.03it/s]Predicting DataLoader 0:  61%|██████    | 61/100 [40:21<25:48,  0.03it/s]Predicting DataLoader 0:  62%|██████▏   | 62/100 [41:00<25:08,  0.03it/s]Predicting DataLoader 0:  63%|██████▎   | 63/100 [41:40<24:28,  0.03it/s]Predicting DataLoader 0:  64%|██████▍   | 64/100 [42:20<23:48,  0.03it/s]Predicting DataLoader 0:  65%|██████▌   | 65/100 [43:00<23:09,  0.03it/s]Predicting DataLoader 0:  66%|██████▌   | 66/100 [43:39<22:29,  0.03it/s]Predicting DataLoader 0:  67%|██████▋   | 67/100 [44:19<21:49,  0.03it/s]Predicting DataLoader 0:  68%|██████▊   | 68/100 [44:59<21:10,  0.03it/s]Predicting DataLoader 0:  69%|██████▉   | 69/100 [45:39<20:30,  0.03it/s]Predicting DataLoader 0:  70%|███████   | 70/100 [46:18<19:50,  0.03it/s]Predicting DataLoader 0:  71%|███████   | 71/100 [46:58<19:11,  0.03it/s]Predicting DataLoader 0:  72%|███████▏  | 72/100 [47:38<18:31,  0.03it/s]Predicting DataLoader 0:  73%|███████▎  | 73/100 [48:18<17:51,  0.03it/s]Predicting DataLoader 0:  74%|███████▍  | 74/100 [48:57<17:12,  0.03it/s]Predicting DataLoader 0:  75%|███████▌  | 75/100 [49:37<16:32,  0.03it/s]Predicting DataLoader 0:  76%|███████▌  | 76/100 [50:17<15:52,  0.03it/s]Predicting DataLoader 0:  77%|███████▋  | 77/100 [50:57<15:13,  0.03it/s]Predicting DataLoader 0:  78%|███████▊  | 78/100 [51:36<14:33,  0.03it/s]Predicting DataLoader 0:  79%|███████▉  | 79/100 [52:16<13:53,  0.03it/s]Predicting DataLoader 0:  80%|████████  | 80/100 [52:56<13:14,  0.03it/s]Predicting DataLoader 0:  81%|████████  | 81/100 [53:36<12:34,  0.03it/s]Predicting DataLoader 0:  82%|████████▏ | 82/100 [54:15<11:54,  0.03it/s]Predicting DataLoader 0:  83%|████████▎ | 83/100 [54:55<11:14,  0.03it/s]Predicting DataLoader 0:  84%|████████▍ | 84/100 [55:35<10:35,  0.03it/s]Predicting DataLoader 0:  85%|████████▌ | 85/100 [56:15<09:55,  0.03it/s]Predicting DataLoader 0:  86%|████████▌ | 86/100 [56:54<09:15,  0.03it/s]Predicting DataLoader 0:  87%|████████▋ | 87/100 [57:34<08:36,  0.03it/s]Predicting DataLoader 0:  88%|████████▊ | 88/100 [58:14<07:56,  0.03it/s]Predicting DataLoader 0:  89%|████████▉ | 89/100 [58:54<07:16,  0.03it/s]Predicting DataLoader 0:  90%|█████████ | 90/100 [59:33<06:37,  0.03it/s]Predicting DataLoader 0:  91%|█████████ | 91/100 [1:00:13<05:57,  0.03it/s]Predicting DataLoader 0:  92%|█████████▏| 92/100 [1:00:53<05:17,  0.03it/s]Predicting DataLoader 0:  93%|█████████▎| 93/100 [1:01:33<04:37,  0.03it/s]Predicting DataLoader 0:  94%|█████████▍| 94/100 [1:02:12<03:58,  0.03it/s]Predicting DataLoader 0:  95%|█████████▌| 95/100 [1:02:52<03:18,  0.03it/s]Predicting DataLoader 0:  96%|█████████▌| 96/100 [1:03:32<02:38,  0.03it/s]Predicting DataLoader 0:  97%|█████████▋| 97/100 [1:04:12<01:59,  0.03it/s]Predicting DataLoader 0:  98%|█████████▊| 98/100 [1:04:51<01:19,  0.03it/s]Predicting DataLoader 0:  99%|█████████▉| 99/100 [1:05:31<00:39,  0.03it/s]Predicting DataLoader 0: 100%|██████████| 100/100 [1:06:11<00:00,  0.03it/s]Number of failed examples: 0
+Predicting DataLoader 0: 100%|██████████| 100/100 [1:06:11<00:00,  0.03it/s]
+Boltz holo structures: 100
+
+=== RETRY Step 4: Stage 0 scoring ===
+Stage 0 scoring: 0/100 pass all filters → /workspace/final/stage_0_results.json
+  rank009_s0_native_split_s682: static=53.8 (0.4761×WT) holo_iface=85 rmsd=2.874559633810774 cdr-T=209 pass=False
+  rank037_s0_native_split_s266: static=58.85 (0.5208×WT) holo_iface=109 rmsd=2.91002109226671 cdr-T=188 pass=False
+  rank003_s0_native_split_s306: static=52.9 (0.4681×WT) holo_iface=64 rmsd=5.961256111416773 cdr-T=171 pass=False
+  rank002_s0_native_split_s156: static=52.9 (0.4681×WT) holo_iface=63 rmsd=4.851598113063713 cdr-T=157 pass=False
+  rank004_s0_native_split_s646: static=52.9 (0.4681×WT) holo_iface=63 rmsd=5.557257785630813 cdr-T=113 pass=False
+===== Stage 0 retry complete: Sun Jul 26 11:00:42 PM UTC 2026 =====

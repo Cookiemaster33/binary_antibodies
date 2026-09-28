@@ -1,0 +1,493 @@
+{
+  "scoring_mode": "holo_static_pisa",
+  "n_scored": 10,
+  "n_passing": 0,
+  "filters": {
+    "max_static_fraction_of_native_contacts": 0.45,
+    "max_holo_clashes_4A": 50,
+    "max_holo_fv_framework_rmsd_A": 3.5,
+    "max_holo_fv_cdr_rmsd_A": 6.0,
+    "min_holo_cdr_epitope_contacts": 6,
+    "max_holo_vh_vl_interface_clashes": 0
+  },
+  "pisa": {
+    "enabled": true,
+    "docker_image": "pdbegroup/pisa:latest",
+    "fv_chains": [
+      "A",
+      "B"
+    ],
+    "native_reference": {
+      "pisa_status": "ok",
+      "pisa_int_area_A2": 663.38300397,
+      "pisa_int_solv_en_kcal": -10.533987074,
+      "pisa_stab_en_kcal": -13.642247218,
+      "pisa_pvalue": 0.16839606126,
+      "pisa_n_h_bonds": 7,
+      "pisa_n_salt_bridges": 0,
+      "pisa_n_ss_bonds": 0,
+      "pisa_interface_id": 1
+    }
+  },
+  "reference_pdb": "/home/ubuntu/pipeline/inputs/fab_stage_0_vhvL_interface.pdb",
+  "interface_definition": {
+    "vh_framework_interface": [
+      1,
+      36,
+      38,
+      41,
+      42,
+      43,
+      44,
+      46,
+      49,
+      87,
+      89,
+      91,
+      94
+    ],
+    "vl_framework_interface": [
+      35,
+      37,
+      39,
+      43,
+      44,
+      45,
+      46,
+      47,
+      59,
+      60,
+      61,
+      62,
+      99,
+      104,
+      105,
+      106,
+      107
+    ]
+  },
+  "native_wt_interface_contacts": 192,
+  "native_static_interface_contacts": 192.0,
+  "designs": [
+    {
+      "design_id": "rank005_s0_native_split_s77",
+      "static_vh_vl_interface_contacts": 99.75,
+      "chains": {
+        "A": "AIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQPPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIYWWRQAPGQGWEWVARIYPTNGYTEYHPSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRDGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank005_s0_native_split_s77_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 10.308592796325684,
+        "vh_vl_fr4_ca_distance": 37.37983703613281,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 351,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.215476697224324,
+        "holo_fv_interface_framework_rmsd_A": 4.468675347751547,
+        "holo_fv_cdr_rmsd_A": 0.6061336056792117,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 454.39749117,
+        "pisa_int_solv_en_kcal": -5.3735612771,
+        "pisa_stab_en_kcal": -7.8938023395,
+        "pisa_pvalue": 0.3093591858,
+        "pisa_n_h_bonds": 4,
+        "pisa_n_salt_bridges": 2,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 5.16,
+        "pisa_int_area_fraction_of_native": 0.685,
+        "pisa_delta_int_area_A2": -208.99
+      },
+      "static_fraction_of_native_contacts": 0.5195,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank009_s0_native_split_s13",
+      "static_vh_vl_interface_contacts": 101.95,
+      "chains": {
+        "A": "GIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQAPKLLISSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIYWWRQAPGQGWEYVARIYPTNGYTEYHPSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRDGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank009_s0_native_split_s13_model_0.cif",
+        "vh_vl_interface_contacts": 86,
+        "vh_vl_interface_centroid_distance": 7.635026454925537,
+        "vh_vl_fr4_ca_distance": 34.590274810791016,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 391,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.184989280010076,
+        "holo_fv_interface_framework_rmsd_A": 4.287851236151725,
+        "holo_fv_cdr_rmsd_A": 0.9602185268387782,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 626.34701452,
+        "pisa_int_solv_en_kcal": -5.3801662375,
+        "pisa_stab_en_kcal": -9.6765559538,
+        "pisa_pvalue": 0.37687929583,
+        "pisa_n_h_bonds": 8,
+        "pisa_n_salt_bridges": 2,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 5.154,
+        "pisa_int_area_fraction_of_native": 0.9442,
+        "pisa_delta_int_area_A2": -37.04
+      },
+      "static_fraction_of_native_contacts": 0.531,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank008_s0_native_split_s76",
+      "static_vh_vl_interface_contacts": 101.85,
+      "chains": {
+        "A": "SIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQSPKLLISSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIYWWRQAPGQGWEWVARIYPTNGYTEYNSSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRDGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank008_s0_native_split_s76_model_0.cif",
+        "vh_vl_interface_contacts": 82,
+        "vh_vl_interface_centroid_distance": 8.083294868469238,
+        "vh_vl_fr4_ca_distance": 33.4375114440918,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 401,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.239629344184378,
+        "holo_fv_interface_framework_rmsd_A": 4.204474488142083,
+        "holo_fv_cdr_rmsd_A": 0.723967734625431,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 581.32595935,
+        "pisa_int_solv_en_kcal": -6.0677494866,
+        "pisa_stab_en_kcal": -9.4760648759,
+        "pisa_pvalue": 0.30012837221,
+        "pisa_n_h_bonds": 6,
+        "pisa_n_salt_bridges": 2,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 4.466,
+        "pisa_int_area_fraction_of_native": 0.8763,
+        "pisa_delta_int_area_A2": -82.06
+      },
+      "static_fraction_of_native_contacts": 0.5305,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank004_s0_native_split_s63",
+      "static_vh_vl_interface_contacts": 99.75,
+      "chains": {
+        "A": "AIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQPPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIYWWRQAPGQGWEWVARIYPTNGYTEYHSSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRDGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank004_s0_native_split_s63_model_0.cif",
+        "vh_vl_interface_contacts": 106,
+        "vh_vl_interface_centroid_distance": 8.27810001373291,
+        "vh_vl_fr4_ca_distance": 34.63327407836914,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 358,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.141794929383478,
+        "holo_fv_interface_framework_rmsd_A": 4.065484242193027,
+        "holo_fv_cdr_rmsd_A": 0.8539289976947574,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 541.55207189,
+        "pisa_int_solv_en_kcal": -6.478776116,
+        "pisa_stab_en_kcal": -9.4430543419,
+        "pisa_pvalue": 0.27353682599,
+        "pisa_n_h_bonds": 5,
+        "pisa_n_salt_bridges": 2,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 4.055,
+        "pisa_int_area_fraction_of_native": 0.8163,
+        "pisa_delta_int_area_A2": -121.83
+      },
+      "static_fraction_of_native_contacts": 0.5195,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank002_s0_native_split_s35",
+      "static_vh_vl_interface_contacts": 92.7,
+      "chains": {
+        "A": "GIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQEPKLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWWRQAPGQGWEWVARIYPTNGYTEYHPSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRTGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank002_s0_native_split_s35_model_0.cif",
+        "vh_vl_interface_contacts": 95,
+        "vh_vl_interface_centroid_distance": 5.982944488525391,
+        "vh_vl_fr4_ca_distance": 31.600128173828125,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 95,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.5140129571005856,
+        "holo_fv_interface_framework_rmsd_A": 5.145575293579329,
+        "holo_fv_cdr_rmsd_A": 0.7670070965650225,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 711.95580532,
+        "pisa_int_solv_en_kcal": -8.3356735943,
+        "pisa_stab_en_kcal": -12.776045229,
+        "pisa_pvalue": 0.22748418442,
+        "pisa_n_h_bonds": 10,
+        "pisa_n_salt_bridges": 0,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 2.198,
+        "pisa_int_area_fraction_of_native": 1.0732,
+        "pisa_delta_int_area_A2": 48.57
+      },
+      "static_fraction_of_native_contacts": 0.4828,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank001_s0_native_split_s40",
+      "static_vh_vl_interface_contacts": 92.5,
+      "chains": {
+        "A": "GIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQAPKLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIYWWRQAPGQGWEYVARIYPTNGYTEYHPSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRDGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank001_s0_native_split_s40_model_0.cif",
+        "vh_vl_interface_contacts": 100,
+        "vh_vl_interface_centroid_distance": 5.878200054168701,
+        "vh_vl_fr4_ca_distance": 31.38258934020996,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 385,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 2.4560803385280985,
+        "holo_fv_interface_framework_rmsd_A": 4.997598436010472,
+        "holo_fv_cdr_rmsd_A": 0.8571399566581799,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 741.46083218,
+        "pisa_int_solv_en_kcal": -8.6086378803,
+        "pisa_stab_en_kcal": -12.160935188,
+        "pisa_pvalue": 0.23486626675,
+        "pisa_n_h_bonds": 8,
+        "pisa_n_salt_bridges": 0,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 1.925,
+        "pisa_int_area_fraction_of_native": 1.1177,
+        "pisa_delta_int_area_A2": 78.08
+      },
+      "static_fraction_of_native_contacts": 0.4818,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank006_s0_native_split_s92",
+      "static_vh_vl_interface_contacts": 99.75,
+      "chains": {
+        "A": "AIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPGQAPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGWEWVARIYPTNGYTEYNSSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRYGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank006_s0_native_split_s92_model_0.cif",
+        "vh_vl_interface_contacts": 105,
+        "vh_vl_interface_centroid_distance": 10.396100044250488,
+        "vh_vl_fr4_ca_distance": 39.23854064941406,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 230,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 2.2152023785146593,
+        "holo_fv_interface_framework_rmsd_A": 4.70939729642527,
+        "holo_fv_cdr_rmsd_A": 0.5587661365717266,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 507.93322725,
+        "pisa_int_solv_en_kcal": -2.4890666439,
+        "pisa_stab_en_kcal": -5.1532896246,
+        "pisa_pvalue": 0.5302055837,
+        "pisa_n_h_bonds": 6,
+        "pisa_n_salt_bridges": 0,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 8.045,
+        "pisa_int_area_fraction_of_native": 0.7657,
+        "pisa_delta_int_area_A2": -155.45
+      },
+      "static_fraction_of_native_contacts": 0.5195,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank003_s0_native_split_s34",
+      "static_vh_vl_interface_contacts": 92.95,
+      "chains": {
+        "A": "TIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQAPKLLIGSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGYEWVARIYPTNGYTEYNSSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRTGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank003_s0_native_split_s34_model_0.cif",
+        "vh_vl_interface_contacts": 77,
+        "vh_vl_interface_centroid_distance": 9.263225555419922,
+        "vh_vl_fr4_ca_distance": 39.83839416503906,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 343,
+        "vh_vl_interface_clashes": 3,
+        "holo_fv_framework_rmsd_A": 2.7634626368826454,
+        "holo_fv_interface_framework_rmsd_A": 5.9403193543963955,
+        "holo_fv_cdr_rmsd_A": 0.8107538709949739,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 419.7718679,
+        "pisa_int_solv_en_kcal": -3.8208445566,
+        "pisa_stab_en_kcal": -6.4850675373,
+        "pisa_pvalue": 0.39552075368,
+        "pisa_n_h_bonds": 6,
+        "pisa_n_salt_bridges": 0,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 6.713,
+        "pisa_int_area_fraction_of_native": 0.6328,
+        "pisa_delta_int_area_A2": -243.61
+      },
+      "static_fraction_of_native_contacts": 0.4841,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank010_s0_native_split_s30",
+      "static_vh_vl_interface_contacts": 102.4,
+      "chains": {
+        "A": "AIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQEPKLLISSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIDWIRQAPGQGYVWVARIYPTNGYTEYHPSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRTGGDGNWTR"
+      },
+      "holo": {
+        "structure": "rank010_s0_native_split_s30_model_0.cif",
+        "vh_vl_interface_contacts": 86,
+        "vh_vl_interface_centroid_distance": 9.14646053314209,
+        "vh_vl_fr4_ca_distance": 39.48440170288086,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 275,
+        "vh_vl_interface_clashes": 4,
+        "holo_fv_framework_rmsd_A": 2.5820115123741254,
+        "holo_fv_interface_framework_rmsd_A": 5.568509080434696,
+        "holo_fv_cdr_rmsd_A": 0.674193460008883,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 444.31107943,
+        "pisa_int_solv_en_kcal": -4.2853647133,
+        "pisa_stab_en_kcal": -6.5055505306,
+        "pisa_pvalue": 0.33975223936,
+        "pisa_n_h_bonds": 5,
+        "pisa_n_salt_bridges": 0,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 6.249,
+        "pisa_int_area_fraction_of_native": 0.6698,
+        "pisa_delta_int_area_A2": -219.07
+      },
+      "static_fraction_of_native_contacts": 0.5333,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank007_s0_native_split_s51",
+      "static_vh_vl_interface_contacts": 101.4,
+      "chains": {
+        "A": "GIQMTQSPSSLSASVGDRVTITCRASQDVNTAVAWYQQKPNQEPKLLIYSASFLYSGVPSRFSGSRSGTDFTLTISSLQPEDFATYYCKQTYTSPPTFGQGTKVEIKRTVAAP",
+        "B": "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIYWIRQAPGQGYEYVARIYPTNGYTEYHSSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRDGGDGNYTR"
+      },
+      "holo": {
+        "structure": "rank007_s0_native_split_s51_model_0.cif",
+        "vh_vl_interface_contacts": 100,
+        "vh_vl_interface_centroid_distance": 9.628266334533691,
+        "vh_vl_fr4_ca_distance": 37.40407180786133,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 293,
+        "vh_vl_interface_clashes": 3,
+        "holo_fv_framework_rmsd_A": 1.5699754546471543,
+        "holo_fv_interface_framework_rmsd_A": 3.1506083364114814,
+        "holo_fv_cdr_rmsd_A": 0.5305101438229091,
+        "pisa_status": "ok",
+        "pisa_int_area_A2": 528.4804139,
+        "pisa_int_solv_en_kcal": -5.3800463234,
+        "pisa_stab_en_kcal": -7.6002321407,
+        "pisa_pvalue": 0.30148130644,
+        "pisa_n_h_bonds": 5,
+        "pisa_n_salt_bridges": 0,
+        "pisa_n_ss_bonds": 0,
+        "pisa_interface_id": 1,
+        "pisa_delta_int_solv_en_vs_native_kcal": 5.154,
+        "pisa_int_area_fraction_of_native": 0.7966,
+        "pisa_delta_int_area_A2": -134.9
+      },
+      "static_fraction_of_native_contacts": 0.5281,
+      "filter_checks": {
+        "passes_interface_weakened": false,
+        "passes_holo_global_clashes": true,
+        "passes_holo_framework_geometry": true,
+        "passes_holo_cdr_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_holo_interface_clean": false
+      },
+      "passes_stage_0": false
+    }
+  ]
+}

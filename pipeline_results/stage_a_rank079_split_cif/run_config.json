@@ -1,0 +1,7 @@
+{
+  "instance_id": "2cccb6b174e74b71a401b6013bd55ea5",
+  "stage0_fab": "pipeline_results/stage_0_full_fab_fused_t025/structures/top5_holo/rank079_s0_native_split_s296_model_0_split.cif",
+  "contig": "A1-113,B1-107/0,35-55,C1-101,D1-113",
+  "separation_a": 45.0,
+  "input_already_split": true
+}

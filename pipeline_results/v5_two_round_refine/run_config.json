@@ -1,0 +1,11 @@
+{
+  "results_dir": "pipeline_results/v5_two_round_refine",
+  "rfd3_rounds": "2",
+  "n_designs_round1": "200",
+  "mb_length_range": "35-70",
+  "rfd3_round2_templates": "5",
+  "rfd3_round2_designs_per_template": "8",
+  "rfd3_partial_t": "2.0",
+  "scoring_note": "Re-scored after fixing chain-A selection bug in scoring.py (initial run reported scRMSD=999 for all designs)",
+  "completed_at": "2026-07-06T23:14:00Z"
+}

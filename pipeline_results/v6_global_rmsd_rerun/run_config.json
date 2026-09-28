@@ -1,0 +1,10 @@
+{
+  "results_dir": "pipeline_results/v6_global_rmsd_rerun",
+  "rfd3_rounds": "2",
+  "n_designs_round1": "200",
+  "mb_length_range": "35-70",
+  "rfd3_round2_templates": "5",
+  "rfd3_round2_designs_per_template": "8",
+  "rfd3_partial_t": "2.0",
+  "completed_at": "2026-07-07T00:25:38Z"
+}

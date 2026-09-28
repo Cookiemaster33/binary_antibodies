@@ -1,0 +1,1137 @@
+{
+  "n_scored": 32,
+  "n_passing": 0,
+  "filters": {
+    "max_apo_fraction_of_native_contacts": 0.45,
+    "min_holo_fraction_of_native_contacts": 0.45,
+    "max_holo_clashes_4A": 50,
+    "max_holo_fv_framework_rmsd_A": 3.5,
+    "min_holo_cdr_epitope_contacts": 6,
+    "max_holo_vh_vl_interface_clashes": 0,
+    "min_holo_minus_apo_contact_delta": 15
+  },
+  "reference_pdb": "/workspace/inputs/fab_stage_0_vhvL_interface.pdb",
+  "native_apo_interface_contacts": 113,
+  "designs": [
+    {
+      "design_id": "rank23_s0_native_split_s0",
+      "apo": {
+        "structure": "rank23_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 68,
+        "vh_vl_interface_centroid_distance": 10.27157974243164,
+        "vh_vl_fr4_ca_distance": 35.507301330566406,
+        "inter_chain_clashes_4A": 38
+      },
+      "holo": {
+        "structure": "rank23_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 119,
+        "vh_vl_interface_centroid_distance": 8.80289363861084,
+        "vh_vl_fr4_ca_distance": 33.3454475402832,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 216,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 1.0221363116521984
+      },
+      "holo_minus_apo_contact_delta": 51,
+      "fr4_distance_delta": 2.161853790283203,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6018,
+      "holo_fraction_of_native_contacts": 1.0531,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_holo_geometry": true,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank22_s0_native_split_s0",
+      "apo": {
+        "structure": "rank22_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 75,
+        "vh_vl_interface_centroid_distance": 10.49267578125,
+        "vh_vl_fr4_ca_distance": 33.7552375793457,
+        "inter_chain_clashes_4A": 35
+      },
+      "holo": {
+        "structure": "rank22_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 115,
+        "vh_vl_interface_centroid_distance": 7.9824957847595215,
+        "vh_vl_fr4_ca_distance": 33.77180099487305,
+        "inter_chain_clashes_4A": 31,
+        "cdr_epitope_contacts": 224,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.416210043362613
+      },
+      "holo_minus_apo_contact_delta": 40,
+      "fr4_distance_delta": -0.01656341552734375,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6637,
+      "holo_fraction_of_native_contacts": 1.0177,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": true,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank16_s0_native_split_s0",
+      "apo": {
+        "structure": "rank16_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 66,
+        "vh_vl_interface_centroid_distance": 11.37713623046875,
+        "vh_vl_fr4_ca_distance": 34.78470230102539,
+        "inter_chain_clashes_4A": 28
+      },
+      "holo": {
+        "structure": "rank16_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 5.124374866485596,
+        "vh_vl_fr4_ca_distance": 30.817216873168945,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 274,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.885141269271281
+      },
+      "holo_minus_apo_contact_delta": 13,
+      "fr4_distance_delta": 3.9674854278564453,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.5841,
+      "holo_fraction_of_native_contacts": 0.6991,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank05_s0_native_split_s0",
+      "apo": {
+        "structure": "rank05_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 67,
+        "vh_vl_interface_centroid_distance": 11.416071891784668,
+        "vh_vl_fr4_ca_distance": 34.31669616699219,
+        "inter_chain_clashes_4A": 28
+      },
+      "holo": {
+        "structure": "rank05_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 80,
+        "vh_vl_interface_centroid_distance": 5.248822212219238,
+        "vh_vl_fr4_ca_distance": 30.858007431030273,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 246,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.827384980511221
+      },
+      "holo_minus_apo_contact_delta": 13,
+      "fr4_distance_delta": 3.458688735961914,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.5929,
+      "holo_fraction_of_native_contacts": 0.708,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank03_s0_native_split_s0",
+      "apo": {
+        "structure": "rank03_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 11.73532485961914,
+        "vh_vl_fr4_ca_distance": 34.8814811706543,
+        "inter_chain_clashes_4A": 27
+      },
+      "holo": {
+        "structure": "rank03_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 74,
+        "vh_vl_interface_centroid_distance": 5.153146266937256,
+        "vh_vl_fr4_ca_distance": 30.60727882385254,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 250,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.9129479751804785
+      },
+      "holo_minus_apo_contact_delta": 12,
+      "fr4_distance_delta": 4.274202346801758,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.5487,
+      "holo_fraction_of_native_contacts": 0.6549,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank07_s0_native_split_s0",
+      "apo": {
+        "structure": "rank07_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 11.260300636291504,
+        "vh_vl_fr4_ca_distance": 36.29875564575195,
+        "inter_chain_clashes_4A": 26
+      },
+      "holo": {
+        "structure": "rank07_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 7.3011064529418945,
+        "vh_vl_fr4_ca_distance": 35.91687774658203,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 341,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.438407962808445
+      },
+      "holo_minus_apo_contact_delta": 1,
+      "fr4_distance_delta": 0.3818778991699219,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.5575,
+      "holo_fraction_of_native_contacts": 0.5664,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank02_s0_native_split_s0",
+      "apo": {
+        "structure": "rank02_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 11.296955108642578,
+        "vh_vl_fr4_ca_distance": 35.0034065246582,
+        "inter_chain_clashes_4A": 35
+      },
+      "holo": {
+        "structure": "rank02_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 10.2954683303833,
+        "vh_vl_fr4_ca_distance": 37.41279602050781,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 268,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.739229919094217
+      },
+      "holo_minus_apo_contact_delta": 1,
+      "fr4_distance_delta": -2.4093894958496094,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.5664,
+      "holo_fraction_of_native_contacts": 0.5752,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank06_s0_native_split_s0",
+      "apo": {
+        "structure": "rank06_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 69,
+        "vh_vl_interface_centroid_distance": 11.195767402648926,
+        "vh_vl_fr4_ca_distance": 35.823341369628906,
+        "inter_chain_clashes_4A": 27
+      },
+      "holo": {
+        "structure": "rank06_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 9.056315422058105,
+        "vh_vl_fr4_ca_distance": 37.351966857910156,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 215,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.562048365126047
+      },
+      "holo_minus_apo_contact_delta": 1,
+      "fr4_distance_delta": -1.52862548828125,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6106,
+      "holo_fraction_of_native_contacts": 0.6195,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank10_s0_native_split_s0",
+      "apo": {
+        "structure": "rank10_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 11.25979232788086,
+        "vh_vl_fr4_ca_distance": 35.234619140625,
+        "inter_chain_clashes_4A": 30
+      },
+      "holo": {
+        "structure": "rank10_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 9.194478988647461,
+        "vh_vl_fr4_ca_distance": 37.033565521240234,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 290,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.724374063882655
+      },
+      "holo_minus_apo_contact_delta": -1,
+      "fr4_distance_delta": -1.7989463806152344,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.5664,
+      "holo_fraction_of_native_contacts": 0.5575,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank17_s0_native_split_s0",
+      "apo": {
+        "structure": "rank17_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 70,
+        "vh_vl_interface_centroid_distance": 11.214043617248535,
+        "vh_vl_fr4_ca_distance": 35.6070671081543,
+        "inter_chain_clashes_4A": 40
+      },
+      "holo": {
+        "structure": "rank17_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 68,
+        "vh_vl_interface_centroid_distance": 11.78151798248291,
+        "vh_vl_fr4_ca_distance": 38.56013107299805,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 167,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.696116237125881
+      },
+      "holo_minus_apo_contact_delta": -2,
+      "fr4_distance_delta": -2.95306396484375,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6195,
+      "holo_fraction_of_native_contacts": 0.6018,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank18_s0_native_split_s0",
+      "apo": {
+        "structure": "rank18_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 73,
+        "vh_vl_interface_centroid_distance": 6.063971996307373,
+        "vh_vl_fr4_ca_distance": 31.761301040649414,
+        "inter_chain_clashes_4A": 33
+      },
+      "holo": {
+        "structure": "rank18_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 9.977628707885742,
+        "vh_vl_fr4_ca_distance": 37.56920623779297,
+        "inter_chain_clashes_4A": 29,
+        "cdr_epitope_contacts": 125,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.322386819086572
+      },
+      "holo_minus_apo_contact_delta": -2,
+      "fr4_distance_delta": -5.807905197143555,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.646,
+      "holo_fraction_of_native_contacts": 0.6283,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank28_s0_native_split_s0",
+      "apo": {
+        "structure": "rank28_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 83,
+        "vh_vl_interface_centroid_distance": 10.888805389404297,
+        "vh_vl_fr4_ca_distance": 36.01035690307617,
+        "inter_chain_clashes_4A": 27
+      },
+      "holo": {
+        "structure": "rank28_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 8.81689453125,
+        "vh_vl_fr4_ca_distance": 37.783538818359375,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 236,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.598098919754587
+      },
+      "holo_minus_apo_contact_delta": -4,
+      "fr4_distance_delta": -1.7731819152832031,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.7345,
+      "holo_fraction_of_native_contacts": 0.6991,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank01_s0_native_split_s0",
+      "apo": {
+        "structure": "rank01_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 11.387933731079102,
+        "vh_vl_fr4_ca_distance": 37.279571533203125,
+        "inter_chain_clashes_4A": 28
+      },
+      "holo": {
+        "structure": "rank01_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 59,
+        "vh_vl_interface_centroid_distance": 9.036818504333496,
+        "vh_vl_fr4_ca_distance": 37.860137939453125,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 207,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.287575992489863
+      },
+      "holo_minus_apo_contact_delta": -6,
+      "fr4_distance_delta": -0.58056640625,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.5752,
+      "holo_fraction_of_native_contacts": 0.5221,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank04_s0_native_split_s0",
+      "apo": {
+        "structure": "rank04_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 73,
+        "vh_vl_interface_centroid_distance": 11.224028587341309,
+        "vh_vl_fr4_ca_distance": 34.88605880737305,
+        "inter_chain_clashes_4A": 36
+      },
+      "holo": {
+        "structure": "rank04_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 64,
+        "vh_vl_interface_centroid_distance": 10.529033660888672,
+        "vh_vl_fr4_ca_distance": 37.79097366333008,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 188,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.6480140206913285
+      },
+      "holo_minus_apo_contact_delta": -9,
+      "fr4_distance_delta": -2.9049148559570312,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.646,
+      "holo_fraction_of_native_contacts": 0.5664,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank09_s0_native_split_s0",
+      "apo": {
+        "structure": "rank09_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 89,
+        "vh_vl_interface_centroid_distance": 5.542696952819824,
+        "vh_vl_fr4_ca_distance": 32.84939193725586,
+        "inter_chain_clashes_4A": 31
+      },
+      "holo": {
+        "structure": "rank09_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 7.669480800628662,
+        "vh_vl_fr4_ca_distance": 35.44429397583008,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 218,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.644435969278592
+      },
+      "holo_minus_apo_contact_delta": -10,
+      "fr4_distance_delta": -2.5949020385742188,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.7876,
+      "holo_fraction_of_native_contacts": 0.6991,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank20_s0_native_split_s0",
+      "apo": {
+        "structure": "rank20_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 76,
+        "vh_vl_interface_centroid_distance": 10.596726417541504,
+        "vh_vl_fr4_ca_distance": 34.01728439331055,
+        "inter_chain_clashes_4A": 32
+      },
+      "holo": {
+        "structure": "rank20_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 11.544560432434082,
+        "vh_vl_fr4_ca_distance": 38.661537170410156,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 282,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.366390330713508
+      },
+      "holo_minus_apo_contact_delta": -13,
+      "fr4_distance_delta": -4.644252777099609,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6726,
+      "holo_fraction_of_native_contacts": 0.5575,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank15_s0_native_split_s0",
+      "apo": {
+        "structure": "rank15_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 83,
+        "vh_vl_interface_centroid_distance": 10.366076469421387,
+        "vh_vl_fr4_ca_distance": 33.17938232421875,
+        "inter_chain_clashes_4A": 36
+      },
+      "holo": {
+        "structure": "rank15_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 69,
+        "vh_vl_interface_centroid_distance": 9.00914192199707,
+        "vh_vl_fr4_ca_distance": 36.34040069580078,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 236,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.786758589325966
+      },
+      "holo_minus_apo_contact_delta": -14,
+      "fr4_distance_delta": -3.1610183715820312,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.7345,
+      "holo_fraction_of_native_contacts": 0.6106,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank30_s0_native_split_s0",
+      "apo": {
+        "structure": "rank30_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 80,
+        "vh_vl_interface_centroid_distance": 10.709178924560547,
+        "vh_vl_fr4_ca_distance": 34.03803253173828,
+        "inter_chain_clashes_4A": 37
+      },
+      "holo": {
+        "structure": "rank30_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 10.652183532714844,
+        "vh_vl_fr4_ca_distance": 37.375526428222656,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 178,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.217819398884109
+      },
+      "holo_minus_apo_contact_delta": -15,
+      "fr4_distance_delta": -3.337493896484375,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.708,
+      "holo_fraction_of_native_contacts": 0.5752,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank11_s0_native_split_s0",
+      "apo": {
+        "structure": "rank11_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 79,
+        "vh_vl_interface_centroid_distance": 10.38268756866455,
+        "vh_vl_fr4_ca_distance": 34.41325378417969,
+        "inter_chain_clashes_4A": 35
+      },
+      "holo": {
+        "structure": "rank11_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 9.47752857208252,
+        "vh_vl_fr4_ca_distance": 37.83344268798828,
+        "inter_chain_clashes_4A": 24,
+        "cdr_epitope_contacts": 199,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.517105947497449
+      },
+      "holo_minus_apo_contact_delta": -16,
+      "fr4_distance_delta": -3.4201889038085938,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6991,
+      "holo_fraction_of_native_contacts": 0.5575,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank14_s0_native_split_s0",
+      "apo": {
+        "structure": "rank14_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 82,
+        "vh_vl_interface_centroid_distance": 10.490784645080566,
+        "vh_vl_fr4_ca_distance": 33.351932525634766,
+        "inter_chain_clashes_4A": 44
+      },
+      "holo": {
+        "structure": "rank14_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 65,
+        "vh_vl_interface_centroid_distance": 8.73894214630127,
+        "vh_vl_fr4_ca_distance": 35.893550872802734,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 196,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 6.2000859733046285
+      },
+      "holo_minus_apo_contact_delta": -17,
+      "fr4_distance_delta": -2.5416183471679688,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.7257,
+      "holo_fraction_of_native_contacts": 0.5752,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank31_s0_native_split_s0",
+      "apo": {
+        "structure": "rank31_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 82,
+        "vh_vl_interface_centroid_distance": 10.284154891967773,
+        "vh_vl_fr4_ca_distance": 34.11149215698242,
+        "inter_chain_clashes_4A": 35
+      },
+      "holo": {
+        "structure": "rank31_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 62,
+        "vh_vl_interface_centroid_distance": 10.383161544799805,
+        "vh_vl_fr4_ca_distance": 38.68470764160156,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 81,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 6.146198928604592
+      },
+      "holo_minus_apo_contact_delta": -20,
+      "fr4_distance_delta": -4.573215484619141,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.7257,
+      "holo_fraction_of_native_contacts": 0.5487,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank29_s0_native_split_s0",
+      "apo": {
+        "structure": "rank29_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 118,
+        "vh_vl_interface_centroid_distance": 6.686745643615723,
+        "vh_vl_fr4_ca_distance": 33.623130798339844,
+        "inter_chain_clashes_4A": 35
+      },
+      "holo": {
+        "structure": "rank29_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 86,
+        "vh_vl_interface_centroid_distance": 9.107502937316895,
+        "vh_vl_fr4_ca_distance": 38.42824935913086,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 269,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 6.504544708602832
+      },
+      "holo_minus_apo_contact_delta": -32,
+      "fr4_distance_delta": -4.805118560791016,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 1.0442,
+      "holo_fraction_of_native_contacts": 0.7611,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank08_s0_native_split_s0",
+      "apo": {
+        "structure": "rank08_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 106,
+        "vh_vl_interface_centroid_distance": 5.210042476654053,
+        "vh_vl_fr4_ca_distance": 31.87742805480957,
+        "inter_chain_clashes_4A": 36
+      },
+      "holo": {
+        "structure": "rank08_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 68,
+        "vh_vl_interface_centroid_distance": 10.104923248291016,
+        "vh_vl_fr4_ca_distance": 36.78409194946289,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 226,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.739973166109611
+      },
+      "holo_minus_apo_contact_delta": -38,
+      "fr4_distance_delta": -4.90666389465332,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.9381,
+      "holo_fraction_of_native_contacts": 0.6018,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank26_s0_native_split_s0",
+      "apo": {
+        "structure": "rank26_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 118,
+        "vh_vl_interface_centroid_distance": 8.465106010437012,
+        "vh_vl_fr4_ca_distance": 33.97216033935547,
+        "inter_chain_clashes_4A": 24
+      },
+      "holo": {
+        "structure": "rank26_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 74,
+        "vh_vl_interface_centroid_distance": 8.78038215637207,
+        "vh_vl_fr4_ca_distance": 36.66691589355469,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 346,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.674672522809463
+      },
+      "holo_minus_apo_contact_delta": -44,
+      "fr4_distance_delta": -2.6947555541992188,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 1.0442,
+      "holo_fraction_of_native_contacts": 0.6549,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank19_s0_native_split_s0",
+      "apo": {
+        "structure": "rank19_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 107,
+        "vh_vl_interface_centroid_distance": 8.871728897094727,
+        "vh_vl_fr4_ca_distance": 32.848018646240234,
+        "inter_chain_clashes_4A": 40
+      },
+      "holo": {
+        "structure": "rank19_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 63,
+        "vh_vl_interface_centroid_distance": 10.323210716247559,
+        "vh_vl_fr4_ca_distance": 36.19237518310547,
+        "inter_chain_clashes_4A": 25,
+        "cdr_epitope_contacts": 228,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.396021459371186
+      },
+      "holo_minus_apo_contact_delta": -44,
+      "fr4_distance_delta": -3.3443565368652344,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.9469,
+      "holo_fraction_of_native_contacts": 0.5575,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank12_s0_native_split_s0",
+      "apo": {
+        "structure": "rank12_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 125,
+        "vh_vl_interface_centroid_distance": 7.6955766677856445,
+        "vh_vl_fr4_ca_distance": 33.6612434387207,
+        "inter_chain_clashes_4A": 38
+      },
+      "holo": {
+        "structure": "rank12_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 68,
+        "vh_vl_interface_centroid_distance": 8.559008598327637,
+        "vh_vl_fr4_ca_distance": 37.465171813964844,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 224,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.798201316941888
+      },
+      "holo_minus_apo_contact_delta": -57,
+      "fr4_distance_delta": -3.8039283752441406,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 1.1062,
+      "holo_fraction_of_native_contacts": 0.6018,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank27_s0_native_split_s0",
+      "apo": {
+        "structure": "rank27_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 136,
+        "vh_vl_interface_centroid_distance": 7.875726699829102,
+        "vh_vl_fr4_ca_distance": 34.53923034667969,
+        "inter_chain_clashes_4A": 27
+      },
+      "holo": {
+        "structure": "rank27_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 69,
+        "vh_vl_interface_centroid_distance": 10.028397560119629,
+        "vh_vl_fr4_ca_distance": 36.872718811035156,
+        "inter_chain_clashes_4A": 28,
+        "cdr_epitope_contacts": 244,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.275028126328743
+      },
+      "holo_minus_apo_contact_delta": -67,
+      "fr4_distance_delta": -2.3334884643554688,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 1.2035,
+      "holo_fraction_of_native_contacts": 0.6106,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank24_s0_native_split_s0",
+      "apo": {
+        "structure": "rank24_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 148,
+        "vh_vl_interface_centroid_distance": 7.318985939025879,
+        "vh_vl_fr4_ca_distance": 33.63753890991211,
+        "inter_chain_clashes_4A": 32
+      },
+      "holo": {
+        "structure": "rank24_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 77,
+        "vh_vl_interface_centroid_distance": 10.494627952575684,
+        "vh_vl_fr4_ca_distance": 37.652442932128906,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 148,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 5.173140749824453
+      },
+      "holo_minus_apo_contact_delta": -71,
+      "fr4_distance_delta": -4.014904022216797,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 1.3097,
+      "holo_fraction_of_native_contacts": 0.6814,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank13_s0_native_split_s0",
+      "apo": {
+        "structure": "rank13_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 10.505303382873535,
+        "vh_vl_fr4_ca_distance": 33.74828338623047,
+        "inter_chain_clashes_4A": 35
+      },
+      "holo": {
+        "structure": "rank13_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 71,
+        "vh_vl_interface_centroid_distance": 8.683473587036133,
+        "vh_vl_fr4_ca_distance": 36.58094787597656,
+        "inter_chain_clashes_4A": 27,
+        "cdr_epitope_contacts": 222,
+        "vh_vl_interface_clashes": 0,
+        "holo_fv_framework_rmsd_A": 4.680789237694247
+      },
+      "holo_minus_apo_contact_delta": 0,
+      "fr4_distance_delta": -2.8326644897460938,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6283,
+      "holo_fraction_of_native_contacts": 0.6283,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": true
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank21_s0_native_split_s0",
+      "apo": {
+        "structure": "rank21_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 77,
+        "vh_vl_interface_centroid_distance": 9.41542911529541,
+        "vh_vl_fr4_ca_distance": 33.490081787109375,
+        "inter_chain_clashes_4A": 33
+      },
+      "holo": {
+        "structure": "rank21_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 73,
+        "vh_vl_interface_centroid_distance": 9.788281440734863,
+        "vh_vl_fr4_ca_distance": 37.600189208984375,
+        "inter_chain_clashes_4A": 26,
+        "cdr_epitope_contacts": 256,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 4.477850681092967
+      },
+      "holo_minus_apo_contact_delta": -4,
+      "fr4_distance_delta": -4.110107421875,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.6814,
+      "holo_fraction_of_native_contacts": 0.646,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank32_s0_native_split_s0",
+      "apo": {
+        "structure": "rank32_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 89,
+        "vh_vl_interface_centroid_distance": 7.689481258392334,
+        "vh_vl_fr4_ca_distance": 35.59648895263672,
+        "inter_chain_clashes_4A": 44
+      },
+      "holo": {
+        "structure": "rank32_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 60,
+        "vh_vl_interface_centroid_distance": 10.293302536010742,
+        "vh_vl_fr4_ca_distance": 37.0051383972168,
+        "inter_chain_clashes_4A": 35,
+        "cdr_epitope_contacts": 118,
+        "vh_vl_interface_clashes": 2,
+        "holo_fv_framework_rmsd_A": 4.74817793444151
+      },
+      "holo_minus_apo_contact_delta": -29,
+      "fr4_distance_delta": -1.4086494445800781,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 0.7876,
+      "holo_fraction_of_native_contacts": 0.531,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    },
+    {
+      "design_id": "rank25_s0_native_split_s0",
+      "apo": {
+        "structure": "rank25_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 120,
+        "vh_vl_interface_centroid_distance": 7.791713714599609,
+        "vh_vl_fr4_ca_distance": 34.53874969482422,
+        "inter_chain_clashes_4A": 33
+      },
+      "holo": {
+        "structure": "rank25_s0_native_split_s0_model_0.cif",
+        "vh_vl_interface_contacts": 83,
+        "vh_vl_interface_centroid_distance": 8.228931427001953,
+        "vh_vl_fr4_ca_distance": 37.63673400878906,
+        "inter_chain_clashes_4A": 30,
+        "cdr_epitope_contacts": 273,
+        "vh_vl_interface_clashes": 1,
+        "holo_fv_framework_rmsd_A": 4.599510782426661
+      },
+      "holo_minus_apo_contact_delta": -37,
+      "fr4_distance_delta": -3.0979843139648438,
+      "wedge_suspect": false,
+      "apo_fraction_of_native_contacts": 1.0619,
+      "holo_fraction_of_native_contacts": 0.7345,
+      "filter_checks": {
+        "passes_apo_weakened": false,
+        "passes_holo_paired": true,
+        "passes_holo_global_clashes": true,
+        "passes_contact_delta": false,
+        "passes_holo_geometry": false,
+        "passes_cdr_engagement": true,
+        "passes_anti_wedge": false
+      },
+      "passes_stage_0": false
+    }
+  ]
+}

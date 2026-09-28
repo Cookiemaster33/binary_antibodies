@@ -1,0 +1,58 @@
+{
+  "stage": "A",
+  "approach": "hidden_trivalent_minibinder",
+  "description": "Stage A: design connected VH\u2013minibinder\u2013VL hub seated in native Fab. Hotspots on CH1 (chain C) and VL (chain B). Epitope stub (chain T) provides steric masking context for Stage B target arm.",
+  "input_pdb": "structures/domains/fab_hidden_minibinder_stage_a.pdb",
+  "source_fab": "1N8Z (trastuzumab)",
+  "chains": {
+    "A": "VH 1-113",
+    "B": "VL 1-107",
+    "C": "CH1 1-101",
+    "D": "CL 1-113 (steric context only)",
+    "T": "HER2 epitope stub 1-12 (steric context, Stage B)"
+  },
+  "rfd3": {
+    "contig": "A1-113,35-55,B1-107",
+    "mb_length_range": "35-55",
+    "select_fixed_atoms": {
+      "C1-101": "ALL",
+      "D1-113": "ALL",
+      "T1-12": "ALL"
+    },
+    "hotspots_ch1_chain_c": [
+      "C26",
+      "C27",
+      "C29",
+      "C30",
+      "C46",
+      "C47",
+      "C48",
+      "C49",
+      "C50",
+      "C51",
+      "C52",
+      "C53",
+      "C60"
+    ],
+    "hotspots_vl_chain_b": [
+      "B35",
+      "B37",
+      "B39",
+      "B43",
+      "B44",
+      "B45",
+      "B46",
+      "B47",
+      "B95",
+      "B99",
+      "B103",
+      "B104"
+    ],
+    "select_hotspots": "C26,C27,C29,C30,C46,C47,C48,C49,C50,C51,C52,C53,C60,B35,B37,B39,B43,B44,B45,B46,B47,B95,B99,B103,B104"
+  },
+  "validation": {
+    "metric": "global_assembly_rmsd",
+    "note": "Score Boltz refold vs RFd3 for full A\u2013MB\u2013B chain with C,D,T as context"
+  },
+  "stage_b_note": "Stage B will add target-arm hotspots on chain T and extend contig to include a third binding patch against the epitope stub."
+}

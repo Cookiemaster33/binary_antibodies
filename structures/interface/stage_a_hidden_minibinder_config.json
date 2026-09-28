@@ -1,0 +1,89 @@
+{
+  "stage": "A",
+  "approach": "hidden_trivalent_minibinder",
+  "description": "Stage A: design an unlinked, helix-biased minibinder that bridges the CH1 (C) and VL (B) hotspot surfaces of the split Fab. The full Fab (A\u2013D) plus epitope stub (T) is a rigid target: every Fab chain is a separate fixed target chain in the contig and the minibinder is its own designed chain, so RFd3 never has to move the arms to satisfy chain connectivity.",
+  "input_pdb": "structures/domains/fab_hidden_minibinder_stage_a.pdb",
+  "source_fab": "pipeline_results/stage_0_full_fab_fused_t025/structures/top5_holo/rank079_s0_native_split_s296_model_0_split.cif",
+  "layout": {
+    "separation_a": 0.0,
+    "minibinder_linked": false,
+    "full_fab_context": true,
+    "minibinder_own_chain": true,
+    "input_already_split": true,
+    "source_passthrough_max_dev_a": {
+      "A": 0.0,
+      "B": 0.0,
+      "C": 0.0,
+      "D": 0.0,
+      "T": 0.0
+    }
+  },
+  "chains": {
+    "A": "VH 1-113 (fixed target)",
+    "B": "VL 1-107 (fixed target, hotspot)",
+    "C": "CH1 1-107 (fixed target, hotspot)",
+    "D": "CL 1-107 (fixed target)",
+    "T": "HER2 epitope stub 1-12 (fixed target, Stage B)",
+    "M": "designed minibinder (added by graft_stage_a_outputs.py)"
+  },
+  "hotspot_geometry": {
+    "ch1_hotspot_centroid": [
+      -7.764,
+      -9.683,
+      16.521
+    ],
+    "vl_hotspot_centroid": [
+      38.247,
+      -12.325,
+      -5.049
+    ],
+    "centroid_separation_a": 50.89,
+    "midpoint": [
+      15.241,
+      -11.004,
+      5.736
+    ],
+    "closest_hotspot_approach_a": 31.94,
+    "n_ch1_hotspots": 13,
+    "n_vl_hotspots": 12
+  },
+  "secondary_structure": {
+    "goal": "alpha-helical minibinder (helical hairpin / bundle)",
+    "levers": [
+      "is_non_loopy=true \u2014 RFd3's only SS lever; more helices, fewer loops and sheets",
+      "low-temperature sampling (step_scale=3.0, gamma_0=0.2)",
+      "length window 60-85 aa \u2014 long enough for helices that span the gap",
+      "minibinder on its own chain so it folds as a binder, not a linker"
+    ],
+    "qc": "scripts/analyze_stage_a_minibinders.py reports helix fraction per design"
+  },
+  "rfd3": {
+    "dialect": 2,
+    "contig": "60-85,/0,A1-113,/0,B1-107,/0,C1-107,/0,D1-107,/0,T1-12",
+    "select_fixed_atoms": {
+      "A1-113": "ALL",
+      "B1-107": "ALL",
+      "C1-107": "ALL",
+      "D1-107": "ALL",
+      "T1-12": "ALL"
+    },
+    "select_hotspots": "C26,C27,C29,C30,C46,C47,C48,C49,C50,C51,C52,C53,C60,B35,B37,B39,B43,B44,B45,B46,B47,B95,B99,B103,B104",
+    "is_non_loopy": true,
+    "mb_length_range": "60-85",
+    "sampler": {
+      "step_scale": 3.0,
+      "gamma_0": 0.2
+    },
+    "ori_token": [
+      15.241,
+      -11.004,
+      5.736
+    ]
+  },
+  "validation": {
+    "metric": "global_assembly_rmsd",
+    "note": "Score Boltz refold of Fab + unlinked minibinder vs RFd3 with A\u2013D,T fixed"
+  },
+  "stage_b_note": "Stage B will add target-arm hotspots on chain T. A flexible linker between minibinder and Fab can be added after selecting a backbone.",
+  "requires_stage_0": true
+}
