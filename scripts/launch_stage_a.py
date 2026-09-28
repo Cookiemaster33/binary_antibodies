@@ -310,6 +310,8 @@ def run_stage_a(
         f"STEP_SCALE={step_scale}",
         f"GAMMA_0={gamma_0}",
     ])
+    # Kill any leftover session from a previous attempt before creating a new one.
+    ssh(ip, key, f"{REMOTE_TMUX} kill-session -t stage_a 2>/dev/null || true", check=False, quiet=True)
     print("  Starting Stage A RFd3 in tmux session 'stage_a' ...")
     ssh(
         ip,
