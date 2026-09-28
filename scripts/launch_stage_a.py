@@ -328,9 +328,19 @@ def wait_for_pipeline(ip: str, key: str, timeout_s: int = 14400) -> bool:
         if ssh(ip, key, f"grep -q 'Stage A RFd3 complete' {REMOTE_PIPELINE}/stage_a_pipeline.log", check=False) == 0:
             print("  Stage A RFd3 complete!")
             return True
-        if ssh(ip, key, f"{REMOTE_TMUX} has-session -t stage_a", check=False) != 0:
+        session_running = ssh(ip, key, f"{REMOTE_TMUX} has-session -t stage_a", check=False, quiet=True) == 0
+        if not session_running:
+            # Session ended — check if outputs are present before declaring failure.
+            n_out = ssh(ip, key, f"ls {REMOTE_PIPELINE}/outputs/rfd3_stage_a/*.cif 2>/dev/null | wc -l", check=False, quiet=True)
+            if ssh(
+                ip, key,
+                f"test -f {REMOTE_PIPELINE}/final/stage_a_minibinder_qc.csv",
+                check=False, quiet=True,
+            ) == 0:
+                print("  Pipeline finished (QC CSV present). Fetching results.")
+                return True
             ssh(ip, key, f"tail -40 {REMOTE_PIPELINE}/stage_a_pipeline.log", check=False)
-            raise RuntimeError("Stage A tmux session ended before completion")
+            raise RuntimeError("Stage A tmux session ended before QC CSV was written")
         time.sleep(120)
     return False
 
