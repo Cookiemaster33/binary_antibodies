@@ -368,13 +368,16 @@ def fetch_results(ip: str, key: str, results_dir: Path, fab_pdb: Path) -> None:
 
 # Preference order for RFd3: single-GPU 40-80 GB cards first, then smaller cards,
 # then multi-GPU boxes (only one GPU is used, so they are a last resort on cost).
+# ARM-based instances (GH200 = Grace-Hopper) cannot run the x86-only
+# rosettacommons/foundry Docker image and are excluded permanently.
+ARM_INSTANCE_TYPES: frozenset[str] = frozenset({"gpu_1x_gh200"})
+
 INSTANCE_PREFERENCE = [
     "gpu_1x_a100_sxm4",
     "gpu_1x_a100",
     "gpu_1x_a100_80gb_sxm4",
     "gpu_1x_h100_pcie",
     "gpu_1x_h100_sxm5",
-    "gpu_1x_gh200",
     "gpu_1x_a6000",
     "gpu_1x_a10",
     "gpu_2x_a100",
@@ -395,10 +398,18 @@ DEFAULT_BATCH_SIZE = 10
 def select_instance_type(
     client: LambdaClient, requested: str | None, max_price: float | None
 ) -> tuple[str, str, float]:
-    """Pick (instance_type, region, price_per_hour) from what currently has capacity."""
-    available = {t["name"]: t for t in client.available_instance_types()}
+    """Pick (instance_type, region, price_per_hour) from what currently has capacity.
+
+    ARM-architecture instances (GH200 etc.) are excluded — they cannot run the
+    x86-only rosettacommons/foundry Docker image.
+    """
+    available = {
+        t["name"]: t
+        for t in client.available_instance_types()
+        if t["name"] not in ARM_INSTANCE_TYPES
+    }
     if not available:
-        raise RuntimeError("No Lambda instance types currently have capacity")
+        raise RuntimeError("No Lambda x86 instance types currently have capacity")
 
     if requested:
         if requested not in available:
