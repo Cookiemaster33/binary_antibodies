@@ -43,9 +43,7 @@ GITHUB_BRANCH = "cursor/helical-minibinder-fixed-fab-992c"
 INPUT_PDB = "fab_hidden_minibinder_stage_a.pdb"
 CONFIG_JSON = "stage_a_hidden_minibinder_config.json"
 DEFAULT_STAGE0_FAB = (
-    ROOT
-    / "pipeline_results/stage_0_full_fab_fused_t025/structures/top5_holo"
-    / "rank079_s0_native_split_s296_model_0_split.cif"
+    ROOT / "structures" / "rank079_s0_native_split_s296_model_0_split.cif"
 )
 DEFAULT_STAGE0_HOLO = (
     ROOT
