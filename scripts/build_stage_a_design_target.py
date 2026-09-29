@@ -62,17 +62,27 @@ def build_config(
     mb_length_range: str,
     geometry: dict,
     ori_token: list[float] | None,
-    epitope_len: int = len(EPITOPE_SEQ),
+    epitope_len: int = 0,
 ) -> dict:
+    chains: dict = {
+        "A": f"VH 1-{vh_len} (fixed target)",
+        "B": f"VL 1-{vl_len} (fixed target, hotspot)",
+        "C": f"CH1 1-{ch1_len} (fixed target, hotspot)",
+        "D": f"CL 1-{cl_len} (fixed target)",
+        "M": "designed minibinder (added by graft_stage_a_outputs.py)",
+    }
+    if epitope_len > 0:
+        chains["T"] = f"HER2 epitope stub 1-{epitope_len} (fixed target, Stage B)"
     return {
         "stage": "A",
         "approach": "hidden_trivalent_minibinder",
         "description": (
             "Stage A: design an unlinked, helix-biased minibinder that bridges the CH1 (C) "
-            "and VL (B) hotspot surfaces of the split Fab. The full Fab (A–D) plus epitope "
-            "stub (T) is a rigid target: every Fab chain is a separate fixed target chain in "
-            "the contig and the minibinder is its own designed chain, so RFd3 never has to "
-            "move the arms to satisfy chain connectivity."
+            "and VL (B) hotspot surfaces of the split Fab. The Fab (A–D) is a rigid target: "
+            "every chain is a separate fixed target chain in the contig and the minibinder is "
+            "its own designed chain, so RFd3 never has to move the arms to satisfy chain "
+            "connectivity. The epitope stub (T) is excluded — in the split geometry it is "
+            "displaced far from the inter-arm gap and adds no useful context."
         ),
         "input_pdb": str(OUT_PDB.relative_to(ROOT)),
         "source_fab": source,
@@ -81,15 +91,9 @@ def build_config(
             "minibinder_linked": False,
             "full_fab_context": True,
             "minibinder_own_chain": True,
+            "epitope_excluded": epitope_len == 0,
         },
-        "chains": {
-            "A": f"VH 1-{vh_len} (fixed target)",
-            "B": f"VL 1-{vl_len} (fixed target, hotspot)",
-            "C": f"CH1 1-{ch1_len} (fixed target, hotspot)",
-            "D": f"CL 1-{cl_len} (fixed target)",
-            "T": f"HER2 epitope stub 1-{epitope_len} (fixed target, Stage B)",
-            "M": "designed minibinder (added by graft_stage_a_outputs.py)",
-        },
+        "chains": chains,
         "hotspot_geometry": geometry,
         "secondary_structure": {
             "goal": "alpha-helical minibinder (helical hairpin / bundle)",
@@ -114,10 +118,10 @@ def build_config(
         },
         "validation": {
             "metric": "global_assembly_rmsd",
-            "note": "Score Boltz refold of Fab + unlinked minibinder vs RFd3 with A–D,T fixed",
+            "note": "Score Boltz refold of Fab + unlinked minibinder vs RFd3 with A–D fixed",
         },
         "stage_b_note": (
-            "Stage B will add target-arm hotspots on chain T. A flexible linker between "
+            "Stage B will introduce the target-arm hotspots. A flexible linker between "
             "minibinder and Fab can be added after selecting a backbone."
         ),
         "requires_stage_0": True,

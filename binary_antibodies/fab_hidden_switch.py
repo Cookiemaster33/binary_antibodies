@@ -903,8 +903,9 @@ def auto_split_fab_arms(
         ch1_vl_cent = float(np.linalg.norm(ch1_cent - vl_ca.mean(0)))
 
         struct = _assemble_fab_structure(
-            vh_res, new_vl, ch1_res, new_cl, epitope_from_source,
+            vh_res, new_vl, ch1_res, new_cl, None,
             f"{struct_name_prefix}_{int(d)}a",
+            place_stub_if_missing=False,
         )
         out_path = out_dir / f"{prefix}_{int(d)}a.pdb"
         _write_structure(struct, out_path)
@@ -945,9 +946,16 @@ def build_stage_a_design_target_pdb(
     struct_name: str = "stage_a",
     *,
     already_split: bool = False,
+    include_epitope: bool = False,
 ) -> tuple[int, int, int, int]:
     """
-    Build Stage A RFd3 target: full Fab (A–D + epitope T) with VL/CL translated apart.
+    Build Stage A RFd3 target: Fab chains A–D with VL/CL translated apart.
+
+    The epitope stub (chain T) is **excluded by default**.  In the split
+    configuration the stub is geometrically displaced far from the inter-arm
+    gap (it was synthesised at the VH–VL groove of the assembled Fab), so it
+    contributes no useful context to RFd3 and can mislead the origin placement.
+    Pass ``include_epitope=True`` only for debugging or legacy compatibility.
 
     ``separation_a`` is the **target CH1–CL centroid distance** in Å.  VL and CL
     are moved together as a rigid arm along the CH1→CL axis so the arms stay
@@ -961,8 +969,10 @@ def build_stage_a_design_target_pdb(
     if not already_split and separation_a > 0:
         vl_res, cl_res = _auto_split_vl_cl(ch1_res, cl_res, vl_res, separation_a)
 
+    epitope = epitope_from_source if include_epitope else None
     struct = _assemble_fab_structure(
-        vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name
+        vh_res, vl_res, ch1_res, cl_res, epitope, struct_name,
+        place_stub_if_missing=False,
     )
     _write_structure(struct, out_pdb)
     return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
@@ -974,14 +984,17 @@ def stage_a_contig(
     ch1_len: int,
     cl_len: int,
     mb_length_range: str = DEFAULT_MB_LENGTH_RANGE,
-    epitope_len: int = len(EPITOPE_SEQ),
+    epitope_len: int = 0,
 ) -> str:
     """RFd3 contig in the canonical binder-design layout.
 
     The designed minibinder comes first as its own chain, then a chain break,
     then every Fab chain as a separate fixed target chain:
 
-        ``55-75,/0,A1-113,/0,B1-107,/0,C1-107,/0,D1-107,/0,T1-12``
+        ``60-85,/0,A1-113,/0,B1-107,/0,C1-107,/0,D1-107``
+
+    Chain T (epitope stub) is omitted by default: in the split Fab geometry it
+    sits far from the inter-arm gap and adds no useful RFd3 context.
 
     This matters. A designed segment that sits *between* two motif segments in a
     contig (e.g. ``B1-107/0,35-55,C1-107``) is covalently bonded to both of them,
@@ -991,16 +1004,10 @@ def stage_a_contig(
     than a folded binder. Keeping the minibinder on its own chain removes both
     failure modes.
     """
-    target = ",/0,".join(
-        [
-            f"A1-{vh_len}",
-            f"B1-{vl_len}",
-            f"C1-{ch1_len}",
-            f"D1-{cl_len}",
-            f"T1-{epitope_len}",
-        ]
-    )
-    return f"{mb_length_range},/0,{target}"
+    fab_chains = [f"A1-{vh_len}", f"B1-{vl_len}", f"C1-{ch1_len}", f"D1-{cl_len}"]
+    if epitope_len > 0:
+        fab_chains.append(f"T1-{epitope_len}")
+    return f"{mb_length_range},/0," + ",/0,".join(fab_chains)
 
 
 def stage_a_rfd3_config(
@@ -1009,7 +1016,7 @@ def stage_a_rfd3_config(
     ch1_len: int,
     cl_len: int,
     mb_length_range: str = DEFAULT_MB_LENGTH_RANGE,
-    epitope_len: int = len(EPITOPE_SEQ),
+    epitope_len: int = 0,
     *,
     ori_token: list[float] | None = None,
     is_non_loopy: bool = True,
@@ -1046,16 +1053,21 @@ def stage_a_fixed_atoms(
     vl_len: int,
     ch1_len: int,
     cl_len: int,
-    epitope_len: int = len(EPITOPE_SEQ),
+    epitope_len: int = 0,
 ) -> dict[str, str]:
-    """All Fab + epitope chains fixed; only the unlinked minibinder is designed."""
-    return {
+    """All Fab chains fixed; only the unlinked minibinder is designed.
+
+    Chain T (epitope stub) is excluded by default for Stage A.
+    """
+    fixed = {
         f"A1-{vh_len}": "ALL",
         f"B1-{vl_len}": "ALL",
         f"C1-{ch1_len}": "ALL",
         f"D1-{cl_len}": "ALL",
-        f"T1-{epitope_len}": "ALL",
     }
+    if epitope_len > 0:
+        fixed[f"T1-{epitope_len}"] = "ALL"
+    return fixed
 
 
 def ch1_hotspots_chain_c(vh_len: int = VH_END) -> list[str]:
