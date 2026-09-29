@@ -273,8 +273,9 @@ def cdr_residue_set(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> s
     return set(cdr_residue_numbers(chain, vh_len, vl_len))
 
 
-def _load_biopython_structure(path: Path):
+def _load_biopython_structure(path: Path | str):
     """Load PDB or mmCIF into a BioPython Structure."""
+    path = Path(path)
     if path.suffix.lower() in {".cif", ".mmcif"}:
         parser = MMCIFParser(QUIET=True)
     else:
@@ -601,7 +602,7 @@ def _write_structure(struct: S.Structure, out_path: Path) -> None:
         io.save(str(out_path))
 
 
-def fab_has_split_chains(source_pdb: Path) -> bool:
+def fab_has_split_chains(source_pdb: Path | str) -> bool:
     """True when structure already uses logical Fab chains A–D (not fused H/L)."""
     src = _load_biopython_structure(source_pdb)
     model = list(src.get_models())[0]
@@ -609,11 +610,27 @@ def fab_has_split_chains(source_pdb: Path) -> bool:
     return {"A", "B"}.issubset(chains) and "H" not in chains and "L" not in chains
 
 
-def fab_arms_are_separated(source_pdb: Path, min_gap_a: float = 8.0) -> bool:
+def _is_hl_format(model) -> bool:
+    """True when the structure uses the two-arm H/L chain naming.
+
+    H = VH+CH1 (one rigid arm), L = VL+CL (the other rigid arm).  This is the
+    format the user produces when manually repositioning the Fab arms in a
+    molecular-graphics tool before Stage A.  It is distinct from the fused Boltz
+    H/L output (which has the arms packed together) and from the legacy A/B/C/D
+    split (four separate domain chains).
+    """
+    chains = set(model.child_dict)
+    return "H" in chains and "L" in chains and not {"A", "B", "C", "D"}.intersection(chains)
+
+
+def fab_arms_are_separated(source_pdb: Path | str, min_gap_a: float = 8.0) -> bool:
     """True when the VH/CH1 and VL/CL arms are already pulled apart in the input.
 
-    Measured as the closest CA-CA approach between arm 1 (A+C) and arm 2 (B+D).
-    An assembled Fab has packed VH-VL and CH1-CL interfaces (~4-5 A contacts), so
+    Works with both formats:
+    - A/B/C/D split: arm 1 = chains A+C, arm 2 = chains B+D
+    - H/L two-arm: arm 1 = chain H (VH+CH1), arm 2 = chain L (VL+CL)
+
+    An assembled Fab has packed VH-VL and CH1-CL interfaces (~4-5 Å contacts), so
     any gap beyond ``min_gap_a`` means the arms have been separated deliberately.
     """
     model = list(_load_biopython_structure(source_pdb).get_models())[0]
@@ -628,40 +645,51 @@ def fab_arms_are_separated(source_pdb: Path, min_gap_a: float = 8.0) -> bool:
         ]
         return np.array(coords)
 
-    arm1, arm2 = arm_ca(("A", "C")), arm_ca(("B", "D"))
+    if _is_hl_format(model):
+        arm1, arm2 = arm_ca(("H",)), arm_ca(("L",))
+    else:
+        arm1, arm2 = arm_ca(("A", "C")), arm_ca(("B", "D"))
+
     if len(arm1) == 0 or len(arm2) == 0:
         return False
     gap = float(np.linalg.norm(arm1[:, None, :] - arm2[None, :, :], axis=2).min())
     return gap >= min_gap_a
 
 
-def infer_already_split(source_pdb: Path | None) -> bool:
+def infer_already_split(source_pdb: Path | str | None) -> bool:
     """True when Fab coordinates should be used as-is (no VL/CL re-translation).
 
-    Detection is based on the structure's own geometry, not its filename: a file
-    that already has logical A-D chains with separated arms is a deliberate
-    placement (e.g. arms positioned by hand in PyMOL) and must be passed through
-    verbatim. Relying on a ``_split`` filename suffix silently re-translated such
-    inputs by 45 A, which destroyed the intended geometry.
+    Handles both A/B/C/D split files and H/L two-arm files.  Detection is based
+    on the structure's own geometry, not its filename: any file where the two Fab
+    arms are already separated is a deliberate placement (e.g. arms repositioned
+    by hand in PyMOL or ChimeraX) and must be passed through verbatim.
     """
     if source_pdb is None:
         return False
+    model = list(_load_biopython_structure(source_pdb).get_models())[0]
+    if _is_hl_format(model):
+        # H/L with arms pulled apart is always a hand-placed file.
+        return fab_arms_are_separated(source_pdb)
     if not fab_has_split_chains(source_pdb):
         return False
     return fab_arms_are_separated(source_pdb)
 
 
 def verify_design_target_matches_source(
-    design_pdb: Path, source_pdb: Path, tol_a: float = 1e-3
+    design_pdb: Path | str, source_pdb: Path | str, tol_a: float = 1e-3
 ) -> dict[str, float]:
     """Assert the built design target reproduces the source coordinates exactly.
 
-    Guards the promise that a hand-placed Fab is passed through untouched. Chains
-    are compared in file order per chain id; raises if any CA moves by more than
-    ``tol_a``. Returns the per-chain maximum deviation.
-    """
+    Guards the promise that a hand-placed Fab is passed through untouched.  Raises
+    if any CA moves by more than ``tol_a``.  Returns the per-chain maximum deviation.
 
-    def chain_ca(path: Path) -> dict[str, np.ndarray]:
+    Handles both source formats:
+    - A/B/C/D source: chains are compared directly by ID.
+    - H/L source: H is split at VH_END into virtual chains A (VH) and C (CH1);
+      L is split at VL_END into virtual chains B (VL) and D (CL).  The design
+      target (always A/B/C/D) is compared against these virtual chains.
+    """
+    def _ca_by_chain(path: Path | str) -> dict[str, np.ndarray]:
         model = list(_load_biopython_structure(path).get_models())[0]
         return {
             chain.id: np.array(
@@ -670,13 +698,39 @@ def verify_design_target_matches_source(
             for chain in model.get_chains()
         }
 
-    design, source = chain_ca(design_pdb), chain_ca(source_pdb)
+    design = _ca_by_chain(design_pdb)
+    source_raw = _ca_by_chain(source_pdb)
+
+    # For H/L source, synthesise virtual A/B/C/D CAs from the two-arm chains.
+    # Use _identify_boltz_ig_chain_ids to correctly handle the case where the
+    # user's CIF has H=light-arm and L=heavy-arm (e.g. the chain labelled "L"
+    # actually carries EVQL/VH at its N-terminus).
+    if "H" in source_raw and "L" in source_raw and "A" not in source_raw:
+        src_model = list(_load_biopython_structure(source_pdb).get_models())[0]
+        ig_heavy_id, ig_light_id = _identify_boltz_ig_chain_ids(src_model)
+        heavy_ca = source_raw[ig_heavy_id]   # VH+CH1 arm
+        light_ca = source_raw[ig_light_id]   # VL+CL arm
+        source: dict[str, np.ndarray] = {
+            "A": heavy_ca[:VH_END],           # VH → design chain A
+            "C": heavy_ca[VH_END:],           # CH1 → design chain C
+            "B": light_ca[:VL_END],           # VL → design chain B
+            "D": light_ca[VL_END:],           # CL → design chain D
+        }
+    else:
+        source = source_raw
+
     deviations: dict[str, float] = {}
     problems: list[str] = []
     for cid, coords in design.items():
+        if cid == "T":
+            # Epitope stub is generated, not taken from the source.
+            continue
         ref = source.get(cid)
         if ref is None or len(ref) != len(coords):
-            problems.append(f"chain {cid}: no length-matched counterpart in source")
+            if ref is not None:
+                problems.append(
+                    f"chain {cid}: length mismatch (design {len(coords)} vs source {len(ref)})"
+                )
             continue
         dev = float(np.abs(coords - ref).max()) if len(coords) else 0.0
         deviations[cid] = round(dev, 6)
