@@ -52,7 +52,8 @@
     ],
     "closest_hotspot_approach_a": 14.48,
     "n_ch1_hotspots": 13,
-    "n_vl_hotspots": 12
+    "n_vl_hotspots": 12,
+    "ch1_cl_centroid_a": 50.9
   },
   "secondary_structure": {
     "goal": "alpha-helical minibinder (helical hairpin / bundle)",

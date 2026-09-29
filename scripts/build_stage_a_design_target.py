@@ -35,9 +35,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from binary_antibodies.fab_hidden_switch import (  # noqa: E402
+    DEFAULT_AUTO_SPLIT_DISTANCES,
     DEFAULT_MB_LENGTH_RANGE,
     DEFAULT_STAGE_A_SEPARATION_A,
     EPITOPE_SEQ,
+    auto_split_fab_arms,
     build_stage_a_design_target_pdb,
     infer_already_split,
     stage_a_gap_centre,
@@ -122,31 +124,124 @@ def build_config(
     }
 
 
+def _print_summary(
+    out_pdb: Path,
+    out_json: Path,
+    config: dict,
+    geometry: dict,
+    already_split: bool,
+    passthrough: dict | None,
+    separation_a: float,
+    fab_pdb: Path | None,
+) -> None:
+    print(f"Wrote design target PDB → {out_pdb}")
+    print(f"Wrote RFd3 config       → {out_json}")
+    print(f"  contig: {config['rfd3']['contig']}")
+    if already_split:
+        print("  input: arms already separated — coordinates used verbatim (no re-translation)")
+        if passthrough is not None:
+            worst = max(passthrough.values())
+            print(f"  verified passthrough: max CA deviation vs source = {worst:.6f} Å")
+    else:
+        print(f"  auto-split: CH1–CL centroid target = {separation_a} Å")
+        print(f"  actual CH1–CL centroid: {geometry.get('ch1_cl_centroid_a', 'n/a')} Å")
+    print(f"  hotspots: {len(config['rfd3']['select_hotspots'].split(','))} residues")
+    print(
+        f"  CH1↔VL hotspot gap: {geometry['centroid_separation_a']} Å centroid-to-centroid, "
+        f"{geometry['closest_hotspot_approach_a']} Å closest approach"
+    )
+    print(f"  minibinder length: {config['rfd3']['mb_length_range']} aa")
+    print(f"  helical conditioning: is_non_loopy={config['rfd3']['is_non_loopy']}, "
+          f"sampler={config['rfd3']['sampler']}")
+    ori = config["rfd3"].get("ori_token")
+    if ori is not None:
+        print(
+            f"  ori_token (roomiest point in the gap): {ori} — "
+            f"{geometry['clearance_a']} Å clear of the Fab "
+            f"(plain centroid midpoint would be {geometry['midpoint_clearance_a']} Å)"
+        )
+    else:
+        print("  ori_token: inferred from hotspots")
+    if fab_pdb:
+        print(f"  Fab source: {fab_pdb}")
+    else:
+        print("  WARNING: using native Fab — run Stage 0 first for production designs.")
+
+
+def _build_one(
+    out_pdb: Path,
+    out_json: Path,
+    fab_pdb: Path | None,
+    already_split: bool,
+    separation_a: float,
+    mb_length_range: str,
+    infer_ori: bool,
+) -> None:
+    source = str(fab_pdb) if fab_pdb else "1N8Z (trastuzumab)"
+    effective_sep = 0.0 if already_split else separation_a
+    vh_len, vl_len, ch1_len, cl_len = build_stage_a_design_target_pdb(
+        out_pdb,
+        source_pdb=fab_pdb,
+        separation_a=effective_sep,
+        already_split=already_split,
+    )
+
+    passthrough: dict[str, float] | None = None
+    if already_split and fab_pdb is not None:
+        passthrough = verify_design_target_matches_source(out_pdb, fab_pdb)
+
+    geometry = stage_a_gap_centre(out_pdb)
+    ori_token = None if infer_ori else list(geometry["ori_token"])
+    config = build_config(
+        vh_len, vl_len, ch1_len, cl_len,
+        source, effective_sep, mb_length_range, geometry, ori_token,
+    )
+    if already_split:
+        config["layout"]["input_already_split"] = True
+    if passthrough is not None:
+        config["layout"]["source_passthrough_max_dev_a"] = passthrough
+    write_json(out_json, config)
+    _print_summary(out_pdb, out_json, config, geometry, already_split, passthrough, separation_a, fab_pdb)
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="Build Stage A hidden minibinder design target.")
     p.add_argument(
         "--fab-pdb",
         type=Path,
         default=None,
-        help="Stage 0 holo (fused H/L) or pre-built *_split.cif. Default: native 1N8Z.",
+        help="Stage 0 holo (fused H/L) or pre-built *_split.cif / H/L CIF. Default: native 1N8Z.",
     )
     p.add_argument(
         "--separation-a",
         type=float,
         default=DEFAULT_STAGE_A_SEPARATION_A,
-        help=f"Å translation of VL/CL away from VH/CH1 (default {DEFAULT_STAGE_A_SEPARATION_A}; "
-        "ignored for *_split.cif inputs)",
+        help=(
+            f"Target CH1–CL centroid distance in Å for auto-split (default {DEFAULT_STAGE_A_SEPARATION_A}). "
+            "Ignored when the source already has separated arms."
+        ),
     )
     p.add_argument(
         "--already-split",
         action="store_true",
-        help="Fab coordinates already separated; do not re-translate VL/CL (auto for *_split.cif)",
+        help="Fab coordinates already separated; do not re-translate VL/CL (auto for *_split.cif / H/L CIF)",
+    )
+    p.add_argument(
+        "--split-distances",
+        default=None,
+        metavar="D1,D2,...",
+        help=(
+            "Comma-separated list of CH1–CL centroid distances (Å) to test. "
+            "Generates one PDB + JSON per distance, named *_<d>a.pdb/.json. "
+            f"Default distances when flag given with no value: "
+            f"{','.join(str(int(d)) for d in DEFAULT_AUTO_SPLIT_DISTANCES)}. "
+            "Ignored when source arms are already separated."
+        ),
     )
     p.add_argument(
         "--mb-length-range",
         default=DEFAULT_MB_LENGTH_RANGE,
-        help=f"Minibinder length window, 'min-max' (default {DEFAULT_MB_LENGTH_RANGE}; "
-        "long enough for helices that span the CH1↔VL gap)",
+        help=f"Minibinder length window, 'min-max' (default {DEFAULT_MB_LENGTH_RANGE})",
     )
     p.add_argument(
         "--infer-ori-strategy",
@@ -157,69 +252,32 @@ def main() -> None:
     p.add_argument("--out-json", type=Path, default=OUT_JSON)
     args = p.parse_args()
 
-    source = str(args.fab_pdb) if args.fab_pdb else "1N8Z (trastuzumab)"
     already_split = args.already_split or infer_already_split(args.fab_pdb)
-    effective_sep = 0.0 if already_split else args.separation_a
-    vh_len, vl_len, ch1_len, cl_len = build_stage_a_design_target_pdb(
-        args.out_pdb,
-        source_pdb=args.fab_pdb,
-        separation_a=effective_sep,
-        already_split=already_split,
-    )
 
-    passthrough: dict[str, float] | None = None
-    if already_split and args.fab_pdb is not None:
-        passthrough = verify_design_target_matches_source(args.out_pdb, args.fab_pdb)
-
-    geometry = stage_a_gap_centre(args.out_pdb)
-    ori_token = None if args.infer_ori_strategy else list(geometry["ori_token"])
-    config = build_config(
-        vh_len,
-        vl_len,
-        ch1_len,
-        cl_len,
-        source,
-        effective_sep,
-        args.mb_length_range,
-        geometry,
-        ori_token,
-    )
-    if already_split:
-        config["layout"]["input_already_split"] = True
-    if passthrough is not None:
-        config["layout"]["source_passthrough_max_dev_a"] = passthrough
-    write_json(args.out_json, config)
-
-    print(f"Wrote design target PDB → {args.out_pdb}")
-    print(f"Wrote RFd3 config       → {args.out_json}")
-    print(f"  contig: {config['rfd3']['contig']}")
-    if already_split:
-        print("  input: arms already separated — coordinates used verbatim (no re-translation)")
-        if passthrough is not None:
-            worst = max(passthrough.values())
-            print(f"  verified passthrough: max CA deviation vs source = {worst:.6f} Å")
+    if args.split_distances is not None and not already_split:
+        # Multi-distance mode: generate one design target per requested separation.
+        distances = [float(x.strip()) for x in args.split_distances.split(",") if x.strip()]
+        if not distances:
+            distances = list(DEFAULT_AUTO_SPLIT_DISTANCES)
+        out_dir = args.out_pdb.parent
+        stem = args.out_pdb.stem
+        json_dir = args.out_json.parent
+        json_stem = args.out_json.stem
+        print(f"Auto-split mode: generating {len(distances)} design targets at distances "
+              f"{', '.join(str(int(d)) for d in distances)} Å CH1–CL centroid")
+        print()
+        for d in distances:
+            pdb_path = out_dir / f"{stem}_{int(d)}a.pdb"
+            json_path = json_dir / f"{json_stem}_{int(d)}a.json"
+            print(f"--- {int(d)} Å ---")
+            _build_one(pdb_path, json_path, args.fab_pdb, False, d,
+                       args.mb_length_range, args.infer_ori_strategy)
+            print()
     else:
-        print(f"  separation: {args.separation_a} Å (VL/CL away from VH/CH1)")
-    print(f"  hotspots: {len(config['rfd3']['select_hotspots'].split(','))} residues")
-    print(
-        f"  CH1↔VL hotspot gap: {geometry['centroid_separation_a']} Å centroid-to-centroid, "
-        f"{geometry['closest_hotspot_approach_a']} Å closest approach"
-    )
-    print(f"  minibinder length: {args.mb_length_range} aa")
-    print(f"  helical conditioning: is_non_loopy={config['rfd3']['is_non_loopy']}, "
-          f"sampler={config['rfd3']['sampler']}")
-    if ori_token is not None:
-        print(
-            f"  ori_token (roomiest point in the gap): {ori_token} — "
-            f"{geometry['clearance_a']} Å clear of the Fab "
-            f"(plain centroid midpoint would be {geometry['midpoint_clearance_a']} Å)"
+        _build_one(
+            args.out_pdb, args.out_json, args.fab_pdb, already_split,
+            args.separation_a, args.mb_length_range, args.infer_ori_strategy,
         )
-    else:
-        print("  ori_token: inferred from hotspots")
-    if args.fab_pdb:
-        print(f"  Fab source: {args.fab_pdb}")
-    else:
-        print("  WARNING: using native Fab — run Stage 0 first for production designs.")
 
 
 if __name__ == "__main__":

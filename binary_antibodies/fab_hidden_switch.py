@@ -304,13 +304,64 @@ def extract_chain_sequences(pdb_path: Path) -> dict[str, str]:
     return out
 
 
+def _shift_residues(residues: list, shift: np.ndarray) -> list:
+    """Translate all atoms in every residue by a fixed 3-D vector. Returns new copies."""
+    shifted: list = []
+    for res in residues:
+        new_res = res.copy()
+        for atom in new_res:
+            atom.set_coord(atom.get_coord() + shift)
+        shifted.append(new_res)
+    return shifted
+
+
+def _auto_split_vl_cl(
+    ch1_res: list,
+    cl_res: list,
+    vl_res: list,
+    target_ch1_cl_centroid_a: float,
+) -> tuple[list, list]:
+    """Translate VL+CL as one rigid arm along the CH1→CL centroid axis.
+
+    This is the geometrically correct way to open the Fab:
+
+    * The translation direction is the vector from the CH1 centroid to the CL
+      centroid — the natural interface-opening direction.
+    * VL and CL receive the **same** shift vector, so the arm stays rigid and
+      the VL–CL covalent geometry is preserved.
+    * Because the shift is purely translational along an axis that already lies
+      in the Fab plane, the two arms remain coplanar and CH1/CL continue to
+      face each other in parallel.
+
+    The old ``_shift_residues_perpendicular`` computed the shift direction as the
+    cross-product of the VH–VL axis with world-Z, which (a) changes depending on
+    how the molecule is oriented in global space and (b) moves VL and CL in
+    *different* directions, breaking the rigid-arm requirement.
+
+    Returns (new_vl_res, new_cl_res).
+    """
+    ch1_cent = _centroid(ch1_res)
+    cl_cent = _centroid(cl_res)
+    axis = cl_cent - ch1_cent
+    current_dist = float(np.linalg.norm(axis))
+    if current_dist < 1e-3:
+        raise ValueError("CH1 and CL centroids are coincident; cannot define split axis.")
+    axis_norm = axis / current_dist
+    shift = axis_norm * (target_ch1_cl_centroid_a - current_dist)
+    return _shift_residues(vl_res, shift), _shift_residues(cl_res, shift)
+
+
 def _shift_residues_perpendicular(
     residues: list,
     ref_centroid: np.ndarray,
     other_centroid: np.ndarray,
     separation_a: float,
 ) -> list:
-    """Translate residues perpendicular to the ref→other axis by separation_a."""
+    """Legacy: translate residues perpendicular to the ref→other axis.
+
+    Kept for split-chain MPNN usage only.  Stage A arm splitting should use
+    ``_auto_split_vl_cl`` instead, which preserves rigid-arm geometry.
+    """
     axis = other_centroid - ref_centroid
     axis /= np.linalg.norm(axis) + 1e-8
     ref = np.array([0.0, 0.0, 1.0])
@@ -780,20 +831,91 @@ def build_holo_split_cif(
     """
     Expand fused Boltz holo (H/L[/T]) to A/B/C/D[/T] and separate VL/CL from VH/CH1.
 
+    ``separation_a`` is the target CH1–CL centroid distance in Å after splitting.
+    VL and CL are translated together as one rigid arm along the CH1→CL axis so
+    the arms remain coplanar and CH1/CL continue to face each other.
+
     Writes a *_split.cif (or .pdb) suitable for PyMOL inspection and Stage A --fab-pdb.
     """
     vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(holo_cif)
-    vl_res = _shift_residues_perpendicular(
-        vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
-    )
-    cl_res = _shift_residues_perpendicular(
-        cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
-    )
+    vl_res, cl_res = _auto_split_vl_cl(ch1_res, cl_res, vl_res, separation_a)
     struct = _assemble_fab_structure(
         vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name, place_stub_if_missing=True
     )
     _write_structure(struct, out_path)
     return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
+
+
+DEFAULT_AUTO_SPLIT_DISTANCES: tuple[float, ...] = (30.0, 40.0, 50.0, 60.0)
+"""CH1–CL centroid separations (Å) tested by default in auto_split_fab_arms.
+
+The native assembled Fab has ~17 Å centroid separation. The user's manual
+placement (rank079 v2 CIF) sits at ~51 Å centroid / 21 Å closest approach.
+The range 30–60 Å spans from a narrow gap (short minibinder ≈ 40 aa helical
+hairpin) to a wide gap (long minibinder ≈ 75 aa three-helix bundle).
+"""
+
+
+def auto_split_fab_arms(
+    source_pdb: Path | str,
+    out_dir: Path,
+    distances_a: Iterable[float] = DEFAULT_AUTO_SPLIT_DISTANCES,
+    prefix: str = "fab_split",
+    struct_name_prefix: str = "split",
+) -> list[dict]:
+    """Generate A/B/C/D split PDBs at multiple CH1–CL centroid distances.
+
+    For each distance ``d`` in ``distances_a``, writes
+    ``<out_dir>/<prefix>_<d>a.pdb`` and returns a list of dicts with keys:
+
+    * ``distance_a``: the requested CH1–CL centroid target (Å)
+    * ``actual_centroid_a``: measured CH1–CL centroid after translation
+    * ``closest_approach_a``: minimum CA–CA distance between CH1 and CL
+    * ``ch1_vl_centroid_a``: gap between CH1 and VL hotspot centroids
+    * ``path``: Path of the written PDB
+
+    The VH+CH1 arm is fixed; VL+CL translate together along the CH1→CL axis,
+    so arms stay coplanar and CH1/CL remain facing each other.
+
+    Accepts both fused H/L and already-split A/B/C/D sources (the latter are
+    re-split from their current geometry to the requested distances).
+    """
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
+
+    results = []
+    for d in distances_a:
+        d = float(d)
+        new_vl, new_cl = _auto_split_vl_cl(ch1_res, cl_res, vl_res, d)
+
+        ch1_cent = _centroid(ch1_res)
+        cl_cent = _centroid(new_cl)
+        actual_centroid = float(np.linalg.norm(ch1_cent - cl_cent))
+
+        ch1_ca = np.array([r["CA"].get_coord() for r in ch1_res if "CA" in r])
+        cl_ca = np.array([r["CA"].get_coord() for r in new_cl if "CA" in r])
+        closest = float(np.linalg.norm(ch1_ca[:, None, :] - cl_ca[None, :, :], axis=2).min())
+
+        vl_ca = np.array([r["CA"].get_coord() for r in new_vl if "CA" in r])
+        ch1_vl_cent = float(np.linalg.norm(ch1_cent - vl_ca.mean(0)))
+
+        struct = _assemble_fab_structure(
+            vh_res, new_vl, ch1_res, new_cl, epitope_from_source,
+            f"{struct_name_prefix}_{int(d)}a",
+        )
+        out_path = out_dir / f"{prefix}_{int(d)}a.pdb"
+        _write_structure(struct, out_path)
+
+        results.append({
+            "distance_a": d,
+            "actual_centroid_a": round(actual_centroid, 2),
+            "closest_approach_a": round(closest, 2),
+            "ch1_vl_centroid_a": round(ch1_vl_cent, 2),
+            "path": out_path,
+        })
+
+    return results
 
 
 def build_fab_context_pdb(
@@ -825,18 +947,17 @@ def build_stage_a_design_target_pdb(
     """
     Build Stage A RFd3 target: full Fab (A–D + epitope T) with VL/CL translated apart.
 
-    Pass a pre-built *_split.cif with already_split=True (or separation_a=0) to use
-    coordinates as-is without re-translating VL/CL.
+    ``separation_a`` is the **target CH1–CL centroid distance** in Å.  VL and CL
+    are moved together as a rigid arm along the CH1→CL axis so the arms stay
+    coplanar and the CH1/CL interface faces remain parallel.
+
+    Pass a pre-built *_split.cif (or H/L CIF) with ``already_split=True`` to use
+    coordinates verbatim without any re-translation.
     """
     vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
 
     if not already_split and separation_a > 0:
-        vl_res = _shift_residues_perpendicular(
-            vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
-        )
-        cl_res = _shift_residues_perpendicular(
-            cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
-        )
+        vl_res, cl_res = _auto_split_vl_cl(ch1_res, cl_res, vl_res, separation_a)
 
     struct = _assemble_fab_structure(
         vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name
@@ -966,6 +1087,19 @@ def stage_a_hotspot_geometry(design_pdb: Path, vh_len: int = VH_END) -> dict[str
     vl_ca = hotspot_ca("B", VL_HOTSPOTS_STAGE_A)
     ch1_centroid, vl_centroid = ch1_ca.mean(0), vl_ca.mean(0)
     pair_dists = np.linalg.norm(ch1_ca[:, None, :] - vl_ca[None, :, :], axis=2)
+
+    # Full CH1-CL centroid separation (arm-opening metric, independent of hotspot selection).
+    ch1_all_ca = np.array([
+        res["CA"].get_coord() for res in model["C"] if res.id[0] == " " and "CA" in res
+    ]) if "C" in model.child_dict else np.empty((0, 3))
+    cl_all_ca = np.array([
+        res["CA"].get_coord() for res in model["D"] if res.id[0] == " " and "CA" in res
+    ]) if "D" in model.child_dict else np.empty((0, 3))
+    ch1_cl_centroid_a = (
+        round(float(np.linalg.norm(ch1_all_ca.mean(0) - cl_all_ca.mean(0))), 2)
+        if len(ch1_all_ca) and len(cl_all_ca) else None
+    )
+
     return {
         "ch1_hotspot_centroid": [round(float(v), 3) for v in ch1_centroid],
         "vl_hotspot_centroid": [round(float(v), 3) for v in vl_centroid],
@@ -974,6 +1108,7 @@ def stage_a_hotspot_geometry(design_pdb: Path, vh_len: int = VH_END) -> dict[str
         "closest_hotspot_approach_a": round(float(pair_dists.min()), 2),
         "n_ch1_hotspots": int(len(ch1_ca)),
         "n_vl_hotspots": int(len(vl_ca)),
+        "ch1_cl_centroid_a": ch1_cl_centroid_a,
     }
 
 
