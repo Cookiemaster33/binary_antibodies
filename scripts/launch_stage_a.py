@@ -61,6 +61,7 @@ def ssh_opts(key: str) -> list[str]:
         "-o", "StrictHostKeyChecking=no",
         "-o", "ConnectTimeout=15",
         "-o", "ServerAliveInterval=30",
+        "-o", "BatchMode=yes",
     ]
 
 
