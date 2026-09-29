@@ -34,8 +34,10 @@ INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE = 3.20  # aggressive (19 rim residues)
 PISA_CORE_MIN_BURIED_SASA_A2 = 10.0  # keep native on deeply buried PISA interface residues
 PISA_CORE_MIN_BURIED_SASA_A2_AGGRESSIVE = 5.0
 DEFAULT_SPLIT_SEPARATION_A = 30.0
-# Stage A: spread VL/CL away from VH/CH1 so CH1 and VL hotspot surfaces are farther apart.
-DEFAULT_STAGE_A_SEPARATION_A = 45.0
+# Stage A: target CH1–CL centroid distance after auto-split.
+# 50 Å gives CH1-VL hotspot gap ~44 Å, clearance ~16 Å, matching the user's manually-placed
+# reference file (rank079_s0_native_split…_split.cif, CH1-CL centroid ~51 Å).
+DEFAULT_STAGE_A_SEPARATION_A = 50.0
 
 VH_END = 113
 VL_END = 107

@@ -42,14 +42,15 @@ REMOTE_TMUX = "tmux"
 GITHUB_BRANCH = "cursor/helical-minibinder-fixed-fab-992c"
 INPUT_PDB = "fab_hidden_minibinder_stage_a.pdb"
 CONFIG_JSON = "stage_a_hidden_minibinder_config.json"
+# The canonical Stage 0 → Stage A input: fused Boltz holo that the auto-split
+# will open at DEFAULT_STAGE_A_SEPARATION_A (50 Å CH1-CL centroid).
 DEFAULT_STAGE0_FAB = (
-    ROOT / "structures" / "rank079_s0_native_split_s296_model_0_split.cif"
-)
-DEFAULT_STAGE0_HOLO = (
     ROOT
     / "pipeline_results/stage_0_full_fab_fused_t025/structures/holo"
     / "rank079_s0_native_split_s296_model_0.cif"
 )
+# Fallback when the holo CIF is also missing (should not happen in production).
+DEFAULT_STAGE0_HOLO = DEFAULT_STAGE0_FAB
 EPHEMERAL_KEY_NAME = "cursor-cloud-ephemeral-992c"
 EPHEMERAL_KEY_PATH = Path.home() / ".ssh" / "cursor_lambda_ephemeral"
 
