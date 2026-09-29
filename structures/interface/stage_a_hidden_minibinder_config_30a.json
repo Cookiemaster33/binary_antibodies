@@ -20,32 +20,32 @@
   },
   "hotspot_geometry": {
     "ori_token": [
-      -4.789,
-      7.949,
-      14.506
+      -2.911,
+      2.023,
+      5.96
     ],
-    "clearance_a": 11.17,
+    "clearance_a": 9.2,
     "perpendicular_offset_a": 10.0,
-    "midpoint_clearance_a": 6.15,
+    "midpoint_clearance_a": 2.0,
     "ch1_hotspot_centroid": [
-      -7.764,
-      -9.683,
-      16.521
+      2.851,
+      -12.299,
+      9.314
     ],
     "vl_hotspot_centroid": [
-      10.883,
-      13.722,
-      2.042
+      12.16,
+      15.59,
+      0.929
     ],
-    "centroid_separation_a": 33.24,
+    "centroid_separation_a": 30.57,
     "midpoint": [
-      1.559,
-      2.019,
-      9.281
+      7.505,
+      1.646,
+      5.121
     ],
-    "closest_hotspot_approach_a": 15.29,
-    "n_ch1_hotspots": 13,
-    "n_vl_hotspots": 12,
+    "closest_hotspot_approach_a": 24.76,
+    "n_ch1_hotspots": 3,
+    "n_vl_hotspots": 2,
     "ch1_cl_centroid_a": 30.0
   },
   "secondary_structure": {
@@ -67,7 +67,7 @@
       "C1-107": "ALL",
       "D1-107": "ALL"
     },
-    "select_hotspots": "C26,C27,C29,C30,C46,C47,C48,C49,C50,C51,C52,C53,C60,B35,B37,B39,B43,B44,B45,B46,B47,B95,B99,B103,B104",
+    "select_hotspots": "C35,C60,C73,B36,B87",
     "is_non_loopy": true,
     "mb_length_range": "60-85",
     "sampler": {
@@ -75,9 +75,9 @@
       "gamma_0": 0.2
     },
     "ori_token": [
-      -4.789,
-      7.949,
-      14.506
+      -2.911,
+      2.023,
+      5.96
     ]
   },
   "validation": {

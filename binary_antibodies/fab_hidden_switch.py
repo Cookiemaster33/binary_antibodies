@@ -51,9 +51,13 @@ VL_CDR_RANGES = [(24, 34), (50, 56), (89, 97)]
 VH_INTERFACE_FW = [34, 38, 42, 43, 44, 45, 46, 47, 49, 87, 89]
 VL_INTERFACE_FW = [35, 37, 39, 43, 44, 45, 46, 47, 104, 105, 106, 107, 108, 109, 110, 111, 112]
 
-# CH1 hotspots (heavy-chain numbering) for Stage A
-CH1_HOTSPOTS_HEAVY = [139, 140, 142, 143, 159, 160, 161, 162, 163, 164, 165, 166, 173]
-VL_HOTSPOTS_STAGE_A = [35, 37, 39, 43, 44, 45, 46, 47, 95, 99, 103, 104]
+# CH1 hotspots (heavy-chain numbering) for Stage A.
+# C35 (C-strand), C60 (DE-loop), C73 (E/F-strand) in chain-C local numbering
+# → heavy-chain numbers = local + VH_END (113).
+CH1_HOTSPOTS_HEAVY = [148, 173, 186]
+# VL hotspots in chain-B local numbering.
+# B36 (post-CDR-L1 framework), B87 (pre-CDR-L3 framework).
+VL_HOTSPOTS_STAGE_A = [36, 87]
 
 # The CH1 and VL hotspot surfaces of the split Fab sit ~30-50 A apart, so a
 # minibinder that touches both has to be elongated. An alpha helix rises 1.5 A
