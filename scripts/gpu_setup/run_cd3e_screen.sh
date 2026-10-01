@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run Boltz-1 multimer screen: top Stage A minibinders vs CD3e ECD
+# Run Boltz-2 multimer screen: top Stage A minibinders vs CD3e ECD
 set -euo pipefail
 
 # Ensure pip-installed binaries are on PATH
@@ -45,14 +45,23 @@ for f in sorted(results.glob("**/confidence_*.json")):
     try:
         data = json.loads(f.read_text())
         name = f.parent.parent.name   # boltz_results/<name>/predictions/
-        iptm = data.get("iptm", data.get("complex_plddt", 0.0))
-        ptm  = data.get("ptm", 0.0)
-        scores.append((iptm, ptm, name))
+
+        # Boltz-2: iptm is a dict {"AB": 0.7, ...}; extract chain-pair AB
+        raw_iptm = data.get("iptm", 0.0)
+        if isinstance(raw_iptm, dict):
+            iptm = float(raw_iptm.get("AB", list(raw_iptm.values())[0] if raw_iptm else 0.0))
+        else:
+            iptm = float(raw_iptm)
+
+        ptm = float(data.get("ptm", 0.0))
+        plddt = float(data.get("mean_plddt", data.get("complex_plddt", 0.0)))
+        scores.append((iptm, ptm, plddt, name))
     except Exception as e:
         print(f"  skip {f}: {e}")
 
 scores.sort(reverse=True)
-print(f"{'rank':<6} {'ipTM':>6} {'pTM':>6}  design")
-for i, (iptm, ptm, name) in enumerate(scores, 1):
-    print(f"{i:<6} {iptm:>6.3f} {ptm:>6.3f}  {name}")
+print(f"{'rank':<6} {'ipTM':>6} {'pTM':>6} {'pLDDT':>7}  design")
+for i, (iptm, ptm, plddt, name) in enumerate(scores, 1):
+    flag = " *" if iptm > 0.5 else ""
+    print(f"{i:<6} {iptm:>6.3f} {ptm:>6.3f} {plddt:>7.1f}  {name}{flag}")
 PYEOF

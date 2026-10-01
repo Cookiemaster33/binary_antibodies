@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Launch CD3e binding screen on a Lambda GPU instance.
 
-Uploads the YAML inputs, sets up Boltz-1, runs the screen,
+Uploads the YAML inputs, sets up Boltz-2, runs the screen,
 fetches confidence JSON files and prints the ipTM ranking.
 """
 import argparse, json, os, subprocess, sys, time
@@ -104,25 +104,33 @@ def summarise(out_dir: Path) -> None:
         try:
             data = json.loads(f.read_text())
             name = f.parent.parent.name
-            iptm = float(data.get("iptm", data.get("complex_plddt", 0.0)))
-            ptm  = float(data.get("ptm", 0.0))
-            scores.append({"design": name, "iptm": iptm, "ptm": ptm})
+
+            # Boltz-2: iptm is a dict {"AB": 0.7, ...}; extract chain-pair AB
+            raw_iptm = data.get("iptm", 0.0)
+            if isinstance(raw_iptm, dict):
+                iptm = float(raw_iptm.get("AB", next(iter(raw_iptm.values()), 0.0)))
+            else:
+                iptm = float(raw_iptm)
+
+            ptm   = float(data.get("ptm", 0.0))
+            plddt = float(data.get("mean_plddt", data.get("complex_plddt", 0.0)))
+            scores.append({"design": name, "iptm": iptm, "ptm": ptm, "plddt": plddt})
         except Exception:
             pass
     if not scores:
         print("  No confidence files found.")
         return
     scores.sort(key=lambda x: x["iptm"], reverse=True)
-    print(f"\n{'Rank':<5} {'ipTM':>6} {'pTM':>6}  Design")
-    print("-" * 60)
+    print(f"\n{'Rank':<5} {'ipTM':>6} {'pTM':>6} {'pLDDT':>7}  Design")
+    print("-" * 68)
     for i, s in enumerate(scores, 1):
         flag = " ★" if s["iptm"] > 0.5 else ""
-        print(f"{i:<5} {s['iptm']:>6.3f} {s['ptm']:>6.3f}  {s['design']}{flag}")
+        print(f"{i:<5} {s['iptm']:>6.3f} {s['ptm']:>6.3f} {s['plddt']:>7.1f}  {s['design']}{flag}")
 
     import csv
     csv_path = out_dir / "cd3e_screen_iptm.csv"
     with open(csv_path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["rank", "design", "iptm", "ptm"])
+        w = csv.DictWriter(f, fieldnames=["rank", "design", "iptm", "ptm", "plddt"])
         w.writeheader()
         for i, s in enumerate(scores, 1):
             w.writerow({"rank": i, **s})
