@@ -52,7 +52,6 @@ sequences:
 YAML
         "$BOLTZ_BIN" predict "$TMPDIR_PRED" \
             --out_dir "$TMPDIR_PRED/out" \
-            --accelerator gpu \
             --devices 1 \
             --override 2>&1 | tail -10 || true
         rm -rf "$TMPDIR_PRED"

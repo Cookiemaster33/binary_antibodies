@@ -21,10 +21,9 @@ fi
 
 # Run Boltz-1 (no MSA server — both chains have msa: empty)
 BOLTZ=$(command -v boltz 2>/dev/null || echo "$HOME/.local/bin/boltz")
-echo "Using boltz: $BOLTZ"
+echo "Using boltz: $BOLTZ  (version: $($BOLTZ --version 2>/dev/null || echo unknown))"
 "$BOLTZ" predict "$SCREEN_DIR" \
     --out_dir "$RESULTS_DIR" \
-    --accelerator gpu \
     --devices 1 \
     --override \
     2>&1 | tee "$PIPELINE/boltz_predict.log"
