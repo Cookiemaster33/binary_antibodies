@@ -137,6 +137,39 @@ def summarise(out_dir: Path) -> None:
     print(f"\n  Saved: {csv_path}")
 
 
+def launch_with_retry(client, ssh_key: str, key_name: str) -> tuple[str, str]:
+    """Try every available (instance_type, region) pair until one launches.
+
+    Returns (instance_id, ip_address).
+    """
+    from requests.exceptions import HTTPError
+
+    # Build a flat list of (itype, region, price) candidates ordered by preference
+    available = client.available_instance_types()
+    from scripts.launch_stage_a import INSTANCE_PREFERENCE, ARM_INSTANCE_TYPES
+    avail_map = {t["name"]: t for t in available if t["name"] not in ARM_INSTANCE_TYPES}
+    ordered_types = [n for n in INSTANCE_PREFERENCE if n in avail_map]
+    ordered_types += sorted(n for n in avail_map if n not in INSTANCE_PREFERENCE)
+
+    candidates = []
+    for itype in ordered_types:
+        for region in avail_map[itype]["available_regions"]:
+            price = avail_map[itype]["price_per_hour"]
+            candidates.append((itype, region, price))
+
+    for itype, region, price in candidates:
+        print(f"  Trying {itype} in {region} (${price:.2f}/h)...")
+        try:
+            iid = client.launch(itype, region, ssh_key_names=[key_name], name="cd3e-screen")["id"]
+            print(f"  Launched: {iid}")
+            return iid
+        except (HTTPError, Exception) as e:
+            print(f"  Launch failed ({e}), trying next...")
+            time.sleep(2)
+
+    raise RuntimeError("Could not launch any instance — all regions returned errors")
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--results-dir", default="pipeline_results/cd3e_screen")
@@ -149,10 +182,8 @@ def main() -> None:
     n_yaml = len(list((ROOT / "structures" / "cd3e_screen").glob("*.yaml")))
     print(f"  CD3e screen: {n_yaml} complexes")
 
-    itype, region, price = select_instance_type(client, None, None)
-    print(f"  Launching {itype} in {region} (${price:.2f}/h)...")
     ssh_key, key_name = resolve_ssh_key(client, args.ssh_key, "cursor-agent")
-    iid = client.launch(itype, region, ssh_key_names=[key_name], name="cd3e-screen")["id"]
+    iid = launch_with_retry(client, ssh_key, key_name)
     print(f"  Instance: {iid}")
 
     ip = wait_until_reachable(client, iid, ssh_key, 1800)
