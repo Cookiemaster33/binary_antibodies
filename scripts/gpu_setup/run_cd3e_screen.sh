@@ -2,6 +2,9 @@
 # Run Boltz-1 multimer screen: top Stage A minibinders vs CD3e ECD
 set -euo pipefail
 
+# Ensure pip-installed binaries are on PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 PIPELINE=/home/ubuntu/pipeline
 SCREEN_DIR=$PIPELINE/cd3e_screen
 RESULTS_DIR=$PIPELINE/cd3e_screen_results
@@ -17,12 +20,14 @@ if [ "$N_YAML" -eq 0 ]; then
 fi
 
 # Run Boltz-1 (no MSA server — both chains have msa: empty)
-$HOME/.local/bin/boltz predict "$SCREEN_DIR" \
+BOLTZ=$(command -v boltz 2>/dev/null || echo "$HOME/.local/bin/boltz")
+echo "Using boltz: $BOLTZ"
+"$BOLTZ" predict "$SCREEN_DIR" \
     --out_dir "$RESULTS_DIR" \
     --accelerator gpu \
     --devices 1 \
     --override \
-    2>&1 | tee "$PIPELINE/cd3e_screen.log"
+    2>&1 | tee "$PIPELINE/boltz_predict.log"
 
 echo ""
 echo "=== CD3e screen complete: $(date) ==="

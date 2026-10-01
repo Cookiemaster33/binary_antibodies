@@ -22,7 +22,7 @@ REMOTE_TMUX = "tmux"
 def upload_files(ip: str, key: str) -> None:
     screen_dir = ROOT / "structures" / "cd3e_screen"
     run_script = ROOT / "scripts" / "gpu_setup" / "run_cd3e_screen.sh"
-    setup_script = ROOT / "scripts" / "gpu_setup" / "setup_pipeline_rfd3.sh"
+    setup_script = ROOT / "scripts" / "gpu_setup" / "setup_boltz.sh"
 
     # Create directories
     ssh(ip, key, f"mkdir -p {REMOTE_PIPELINE}/cd3e_screen {REMOTE_PIPELINE}/cd3e_screen_results")
@@ -31,24 +31,24 @@ def upload_files(ip: str, key: str) -> None:
     for yaml_file in sorted(screen_dir.glob("*.yaml")):
         scp(str(yaml_file), ip, f"{REMOTE_PIPELINE}/cd3e_screen/{yaml_file.name}", key)
 
-    # Upload run script
+    # Upload run scripts
     scp(str(run_script), ip, f"{REMOTE_PIPELINE}/run_cd3e_screen.sh", key)
-    scp(str(setup_script), ip, f"{REMOTE_PIPELINE}/setup_pipeline_rfd3.sh", key)
-    ssh(ip, key, f"chmod +x {REMOTE_PIPELINE}/run_cd3e_screen.sh {REMOTE_PIPELINE}/setup_pipeline_rfd3.sh")
+    scp(str(setup_script), ip, f"{REMOTE_PIPELINE}/setup_boltz.sh", key)
+    ssh(ip, key, f"chmod +x {REMOTE_PIPELINE}/run_cd3e_screen.sh {REMOTE_PIPELINE}/setup_boltz.sh")
     print(f"  Uploaded {len(list(screen_dir.glob('*.yaml')))} YAML files + run script")
 
 
 def run_setup(ip: str, key: str) -> None:
-    print("  Running Boltz setup (Docker pull)...")
+    print("  Running Boltz setup (pip install + weight download)...")
     ssh(ip, key,
         f"{REMOTE_TMUX} new-session -d -s setup -c {REMOTE_PIPELINE} "
-        f"'bash {REMOTE_PIPELINE}/setup_pipeline_rfd3.sh 2>&1 | tee {REMOTE_PIPELINE}/setup.log'")
+        f"'bash {REMOTE_PIPELINE}/setup_boltz.sh 2>&1 | tee {REMOTE_PIPELINE}/setup_boltz.log'")
     while True:
-        if ssh(ip, key, f"grep -q 'Setup complete' {REMOTE_PIPELINE}/setup.log", check=False) == 0:
+        if ssh(ip, key, f"grep -q 'Setup complete' {REMOTE_PIPELINE}/setup_boltz.log", check=False) == 0:
             print("  Setup complete.")
             return
         if ssh(ip, key, f"{REMOTE_TMUX} has-session -t setup", check=False) != 0:
-            ssh(ip, key, f"tail -20 {REMOTE_PIPELINE}/setup.log", check=False)
+            ssh(ip, key, f"tail -20 {REMOTE_PIPELINE}/setup_boltz.log", check=False)
             raise RuntimeError("Setup session ended unexpectedly")
         time.sleep(20)
 
@@ -137,14 +137,14 @@ def main() -> None:
     args = p.parse_args()
 
     client = LambdaClient(os.environ["LAMBDA_API_KEY"])
-    ssh_key, _ = resolve_ssh_key(client, args.ssh_key, "cursor-agent")
 
     n_yaml = len(list((ROOT / "structures" / "cd3e_screen").glob("*.yaml")))
     print(f"  CD3e screen: {n_yaml} complexes")
 
-    itype = select_instance_type(client)
-    print(f"  Launching {itype}...")
-    iid = client.launch(itype, [{"name": "cursor-agent"}])
+    itype, region, price = select_instance_type(client, None, None)
+    print(f"  Launching {itype} in {region} (${price:.2f}/h)...")
+    ssh_key, key_name = resolve_ssh_key(client, args.ssh_key, "cursor-agent")
+    iid = client.launch(itype, region, ssh_key_names=[key_name], name="cd3e-screen")["id"]
     print(f"  Instance: {iid}")
 
     ip = wait_until_reachable(client, iid, ssh_key, 1800)
