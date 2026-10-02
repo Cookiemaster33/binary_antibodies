@@ -54,29 +54,29 @@ else
     docker pull rosettacommons/foundry:latest 2>&1 | tail -5
 fi
 
-# Install Boltz-2 (host-side, for self-consistency predictions).
-#
-# Driver-compatibility strategy:
-#   1. Install boltz (no [cuda] extras) to get all non-torch dependencies.
-#   2. Force-reinstall torch + torchvision from the cu124 wheel index,
-#      which is compatible with Lambda instances' NVIDIA driver (CUDA 12.x).
-#   3. This avoids pulling in a torch build that requires a driver the instance
-#      does not have.
-if ! command -v boltz &>/dev/null; then
-    echo "  Installing Boltz-2 (base)..."
-    pip install -q boltz 2>&1 | tail -5 \
-      || pip install --break-system-packages -q boltz 2>&1 | tail -5
+# Install Boltz-2 in a clean Python venv to avoid conflicts with Lambda's
+# system packages (numpy, matplotlib, torchvision, etc. all have version
+# mismatches that break Boltz when pip-installed into the system Python).
+BOLTZ_VENV="$HOME/boltz_venv"
+BOLTZ="$BOLTZ_VENV/bin/boltz"
+
+if [ ! -f "$BOLTZ" ]; then
+    echo "  Creating Boltz-2 venv at $BOLTZ_VENV..."
+    python3 -m venv "$BOLTZ_VENV"
+    echo "  Installing torch (cu124) + boltz..."
+    "$BOLTZ_VENV/bin/pip" install -q --upgrade pip 2>&1 | tail -2
+    "$BOLTZ_VENV/bin/pip" install -q \
+        torch torchvision \
+        --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -5
+    "$BOLTZ_VENV/bin/pip" install -q boltz 2>&1 | tail -5
 fi
-echo "  Reinstalling torch/torchvision for CUDA 12.4 (Lambda driver compat)..."
-pip install -q --force-reinstall \
-    torch torchvision \
-    --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -5 \
-  || pip install --break-system-packages -q --force-reinstall \
-    torch torchvision \
-    --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -5
-# Verify torch can see the GPU
-python3 -c "import torch; print(f'  torch {torch.__version__}  CUDA available: {torch.cuda.is_available()}  device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"n/a\"}')"
-BOLTZ=$(command -v boltz 2>/dev/null || echo "$HOME/.local/bin/boltz")
+
+# Verify GPU access
+"$BOLTZ_VENV/bin/python3" -c "
+import torch
+print(f'  torch {torch.__version__}  CUDA={torch.cuda.is_available()}  '
+      f'device={torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"n/a\"}')
+"
 echo "  Boltz-2: $BOLTZ"
 
 # Install biopython (host-side, for sequence extraction)
