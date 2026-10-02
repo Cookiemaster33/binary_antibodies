@@ -235,8 +235,11 @@ def main() -> None:
 
     finally:
         if not args.no_terminate:
-            client.terminate(iid)
-            print(f"  Terminated: {iid}")
+            try:
+                client.terminate(iid)
+                print(f"  Terminated: {iid}")
+            except Exception as exc:
+                print(f"  WARNING: terminate call failed ({exc}) — instance {iid} may still be running")
 
 
 if __name__ == "__main__":

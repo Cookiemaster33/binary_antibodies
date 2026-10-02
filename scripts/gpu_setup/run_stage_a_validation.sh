@@ -54,12 +54,17 @@ else
     docker pull rosettacommons/foundry:latest 2>&1 | tail -5
 fi
 
-# Install Boltz-2 (host-side, for self-consistency predictions)
+# Install Boltz-2 (host-side, for self-consistency predictions).
+# Also install torchvision via pip to shadow the system package, which is
+# incompatible with the pip-installed version of torch that boltz[cuda] pulls in.
 if ! command -v boltz &>/dev/null; then
-    echo "  Installing Boltz-2..."
+    echo "  Installing Boltz-2 + matching torchvision..."
     pip install -q "boltz[cuda]" 2>&1 | tail -5 \
       || pip install --break-system-packages -q "boltz[cuda]" 2>&1 | tail -5
 fi
+# Always upgrade torchvision to match pip-installed torch (avoids operator conflicts)
+pip install -q --upgrade torchvision 2>&1 | tail -3 \
+  || pip install --break-system-packages -q --upgrade torchvision 2>&1 | tail -3
 BOLTZ=$(command -v boltz 2>/dev/null || echo "$HOME/.local/bin/boltz")
 echo "  Boltz-2: $BOLTZ"
 
