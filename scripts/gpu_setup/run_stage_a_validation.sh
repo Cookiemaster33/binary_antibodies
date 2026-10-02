@@ -55,16 +55,27 @@ else
 fi
 
 # Install Boltz-2 (host-side, for self-consistency predictions).
-# Also install torchvision via pip to shadow the system package, which is
-# incompatible with the pip-installed version of torch that boltz[cuda] pulls in.
+#
+# Driver-compatibility strategy:
+#   1. Install boltz (no [cuda] extras) to get all non-torch dependencies.
+#   2. Force-reinstall torch + torchvision from the cu124 wheel index,
+#      which is compatible with Lambda instances' NVIDIA driver (CUDA 12.x).
+#   3. This avoids pulling in a torch build that requires a driver the instance
+#      does not have.
 if ! command -v boltz &>/dev/null; then
-    echo "  Installing Boltz-2 + matching torchvision..."
-    pip install -q "boltz[cuda]" 2>&1 | tail -5 \
-      || pip install --break-system-packages -q "boltz[cuda]" 2>&1 | tail -5
+    echo "  Installing Boltz-2 (base)..."
+    pip install -q boltz 2>&1 | tail -5 \
+      || pip install --break-system-packages -q boltz 2>&1 | tail -5
 fi
-# Always upgrade torchvision to match pip-installed torch (avoids operator conflicts)
-pip install -q --upgrade torchvision 2>&1 | tail -3 \
-  || pip install --break-system-packages -q --upgrade torchvision 2>&1 | tail -3
+echo "  Reinstalling torch/torchvision for CUDA 12.4 (Lambda driver compat)..."
+pip install -q --force-reinstall \
+    torch torchvision \
+    --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -5 \
+  || pip install --break-system-packages -q --force-reinstall \
+    torch torchvision \
+    --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -5
+# Verify torch can see the GPU
+python3 -c "import torch; print(f'  torch {torch.__version__}  CUDA available: {torch.cuda.is_available()}  device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"n/a\"}')"
 BOLTZ=$(command -v boltz 2>/dev/null || echo "$HOME/.local/bin/boltz")
 echo "  Boltz-2: $BOLTZ"
 
