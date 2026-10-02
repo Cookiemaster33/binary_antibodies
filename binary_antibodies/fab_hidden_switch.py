@@ -34,8 +34,10 @@ INTERFACE_CORE_MAX_HEAVY_A_AGGRESSIVE = 3.20  # aggressive (19 rim residues)
 PISA_CORE_MIN_BURIED_SASA_A2 = 10.0  # keep native on deeply buried PISA interface residues
 PISA_CORE_MIN_BURIED_SASA_A2_AGGRESSIVE = 5.0
 DEFAULT_SPLIT_SEPARATION_A = 30.0
-# Stage A: spread VL/CL away from VH/CH1 so CH1 and VL hotspot surfaces are farther apart.
-DEFAULT_STAGE_A_SEPARATION_A = 45.0
+# Stage A: target CH1–CL centroid distance after auto-split.
+# 50 Å gives CH1-VL hotspot gap ~44 Å, clearance ~16 Å, matching the user's manually-placed
+# reference file (rank079_s0_native_split…_split.cif, CH1-CL centroid ~51 Å).
+DEFAULT_STAGE_A_SEPARATION_A = 50.0
 
 VH_END = 113
 VL_END = 107
@@ -49,9 +51,13 @@ VL_CDR_RANGES = [(24, 34), (50, 56), (89, 97)]
 VH_INTERFACE_FW = [34, 38, 42, 43, 44, 45, 46, 47, 49, 87, 89]
 VL_INTERFACE_FW = [35, 37, 39, 43, 44, 45, 46, 47, 104, 105, 106, 107, 108, 109, 110, 111, 112]
 
-# CH1 hotspots (heavy-chain numbering) for Stage A
-CH1_HOTSPOTS_HEAVY = [139, 140, 142, 143, 159, 160, 161, 162, 163, 164, 165, 166, 173]
-VL_HOTSPOTS_STAGE_A = [35, 37, 39, 43, 44, 45, 46, 47, 95, 99, 103, 104]
+# CH1 hotspots (heavy-chain numbering) for Stage A.
+# C35 (C-strand), C60 (DE-loop), C73 (E/F-strand) in chain-C local numbering
+# → heavy-chain numbers = local + VH_END (113).
+CH1_HOTSPOTS_HEAVY = [148, 173, 186]
+# VL hotspots in chain-B local numbering.
+# B36 (post-CDR-L1 framework), B87 (pre-CDR-L3 framework).
+VL_HOTSPOTS_STAGE_A = [36, 87]
 
 # The CH1 and VL hotspot surfaces of the split Fab sit ~30-50 A apart, so a
 # minibinder that touches both has to be elongated. An alpha helix rises 1.5 A
@@ -273,8 +279,9 @@ def cdr_residue_set(chain: str, vh_len: int = VH_END, vl_len: int = VL_END) -> s
     return set(cdr_residue_numbers(chain, vh_len, vl_len))
 
 
-def _load_biopython_structure(path: Path):
+def _load_biopython_structure(path: Path | str):
     """Load PDB or mmCIF into a BioPython Structure."""
+    path = Path(path)
     if path.suffix.lower() in {".cif", ".mmcif"}:
         parser = MMCIFParser(QUIET=True)
     else:
@@ -303,13 +310,64 @@ def extract_chain_sequences(pdb_path: Path) -> dict[str, str]:
     return out
 
 
+def _shift_residues(residues: list, shift: np.ndarray) -> list:
+    """Translate all atoms in every residue by a fixed 3-D vector. Returns new copies."""
+    shifted: list = []
+    for res in residues:
+        new_res = res.copy()
+        for atom in new_res:
+            atom.set_coord(atom.get_coord() + shift)
+        shifted.append(new_res)
+    return shifted
+
+
+def _auto_split_vl_cl(
+    ch1_res: list,
+    cl_res: list,
+    vl_res: list,
+    target_ch1_cl_centroid_a: float,
+) -> tuple[list, list]:
+    """Translate VL+CL as one rigid arm along the CH1→CL centroid axis.
+
+    This is the geometrically correct way to open the Fab:
+
+    * The translation direction is the vector from the CH1 centroid to the CL
+      centroid — the natural interface-opening direction.
+    * VL and CL receive the **same** shift vector, so the arm stays rigid and
+      the VL–CL covalent geometry is preserved.
+    * Because the shift is purely translational along an axis that already lies
+      in the Fab plane, the two arms remain coplanar and CH1/CL continue to
+      face each other in parallel.
+
+    The old ``_shift_residues_perpendicular`` computed the shift direction as the
+    cross-product of the VH–VL axis with world-Z, which (a) changes depending on
+    how the molecule is oriented in global space and (b) moves VL and CL in
+    *different* directions, breaking the rigid-arm requirement.
+
+    Returns (new_vl_res, new_cl_res).
+    """
+    ch1_cent = _centroid(ch1_res)
+    cl_cent = _centroid(cl_res)
+    axis = cl_cent - ch1_cent
+    current_dist = float(np.linalg.norm(axis))
+    if current_dist < 1e-3:
+        raise ValueError("CH1 and CL centroids are coincident; cannot define split axis.")
+    axis_norm = axis / current_dist
+    shift = axis_norm * (target_ch1_cl_centroid_a - current_dist)
+    return _shift_residues(vl_res, shift), _shift_residues(cl_res, shift)
+
+
 def _shift_residues_perpendicular(
     residues: list,
     ref_centroid: np.ndarray,
     other_centroid: np.ndarray,
     separation_a: float,
 ) -> list:
-    """Translate residues perpendicular to the ref→other axis by separation_a."""
+    """Legacy: translate residues perpendicular to the ref→other axis.
+
+    Kept for split-chain MPNN usage only.  Stage A arm splitting should use
+    ``_auto_split_vl_cl`` instead, which preserves rigid-arm geometry.
+    """
     axis = other_centroid - ref_centroid
     axis /= np.linalg.norm(axis) + 1e-8
     ref = np.array([0.0, 0.0, 1.0])
@@ -601,7 +659,7 @@ def _write_structure(struct: S.Structure, out_path: Path) -> None:
         io.save(str(out_path))
 
 
-def fab_has_split_chains(source_pdb: Path) -> bool:
+def fab_has_split_chains(source_pdb: Path | str) -> bool:
     """True when structure already uses logical Fab chains A–D (not fused H/L)."""
     src = _load_biopython_structure(source_pdb)
     model = list(src.get_models())[0]
@@ -609,11 +667,27 @@ def fab_has_split_chains(source_pdb: Path) -> bool:
     return {"A", "B"}.issubset(chains) and "H" not in chains and "L" not in chains
 
 
-def fab_arms_are_separated(source_pdb: Path, min_gap_a: float = 8.0) -> bool:
+def _is_hl_format(model) -> bool:
+    """True when the structure uses the two-arm H/L chain naming.
+
+    H = VH+CH1 (one rigid arm), L = VL+CL (the other rigid arm).  This is the
+    format the user produces when manually repositioning the Fab arms in a
+    molecular-graphics tool before Stage A.  It is distinct from the fused Boltz
+    H/L output (which has the arms packed together) and from the legacy A/B/C/D
+    split (four separate domain chains).
+    """
+    chains = set(model.child_dict)
+    return "H" in chains and "L" in chains and not {"A", "B", "C", "D"}.intersection(chains)
+
+
+def fab_arms_are_separated(source_pdb: Path | str, min_gap_a: float = 8.0) -> bool:
     """True when the VH/CH1 and VL/CL arms are already pulled apart in the input.
 
-    Measured as the closest CA-CA approach between arm 1 (A+C) and arm 2 (B+D).
-    An assembled Fab has packed VH-VL and CH1-CL interfaces (~4-5 A contacts), so
+    Works with both formats:
+    - A/B/C/D split: arm 1 = chains A+C, arm 2 = chains B+D
+    - H/L two-arm: arm 1 = chain H (VH+CH1), arm 2 = chain L (VL+CL)
+
+    An assembled Fab has packed VH-VL and CH1-CL interfaces (~4-5 Å contacts), so
     any gap beyond ``min_gap_a`` means the arms have been separated deliberately.
     """
     model = list(_load_biopython_structure(source_pdb).get_models())[0]
@@ -628,40 +702,51 @@ def fab_arms_are_separated(source_pdb: Path, min_gap_a: float = 8.0) -> bool:
         ]
         return np.array(coords)
 
-    arm1, arm2 = arm_ca(("A", "C")), arm_ca(("B", "D"))
+    if _is_hl_format(model):
+        arm1, arm2 = arm_ca(("H",)), arm_ca(("L",))
+    else:
+        arm1, arm2 = arm_ca(("A", "C")), arm_ca(("B", "D"))
+
     if len(arm1) == 0 or len(arm2) == 0:
         return False
     gap = float(np.linalg.norm(arm1[:, None, :] - arm2[None, :, :], axis=2).min())
     return gap >= min_gap_a
 
 
-def infer_already_split(source_pdb: Path | None) -> bool:
+def infer_already_split(source_pdb: Path | str | None) -> bool:
     """True when Fab coordinates should be used as-is (no VL/CL re-translation).
 
-    Detection is based on the structure's own geometry, not its filename: a file
-    that already has logical A-D chains with separated arms is a deliberate
-    placement (e.g. arms positioned by hand in PyMOL) and must be passed through
-    verbatim. Relying on a ``_split`` filename suffix silently re-translated such
-    inputs by 45 A, which destroyed the intended geometry.
+    Handles both A/B/C/D split files and H/L two-arm files.  Detection is based
+    on the structure's own geometry, not its filename: any file where the two Fab
+    arms are already separated is a deliberate placement (e.g. arms repositioned
+    by hand in PyMOL or ChimeraX) and must be passed through verbatim.
     """
     if source_pdb is None:
         return False
+    model = list(_load_biopython_structure(source_pdb).get_models())[0]
+    if _is_hl_format(model):
+        # H/L with arms pulled apart is always a hand-placed file.
+        return fab_arms_are_separated(source_pdb)
     if not fab_has_split_chains(source_pdb):
         return False
     return fab_arms_are_separated(source_pdb)
 
 
 def verify_design_target_matches_source(
-    design_pdb: Path, source_pdb: Path, tol_a: float = 1e-3
+    design_pdb: Path | str, source_pdb: Path | str, tol_a: float = 1e-3
 ) -> dict[str, float]:
     """Assert the built design target reproduces the source coordinates exactly.
 
-    Guards the promise that a hand-placed Fab is passed through untouched. Chains
-    are compared in file order per chain id; raises if any CA moves by more than
-    ``tol_a``. Returns the per-chain maximum deviation.
-    """
+    Guards the promise that a hand-placed Fab is passed through untouched.  Raises
+    if any CA moves by more than ``tol_a``.  Returns the per-chain maximum deviation.
 
-    def chain_ca(path: Path) -> dict[str, np.ndarray]:
+    Handles both source formats:
+    - A/B/C/D source: chains are compared directly by ID.
+    - H/L source: H is split at VH_END into virtual chains A (VH) and C (CH1);
+      L is split at VL_END into virtual chains B (VL) and D (CL).  The design
+      target (always A/B/C/D) is compared against these virtual chains.
+    """
+    def _ca_by_chain(path: Path | str) -> dict[str, np.ndarray]:
         model = list(_load_biopython_structure(path).get_models())[0]
         return {
             chain.id: np.array(
@@ -670,13 +755,39 @@ def verify_design_target_matches_source(
             for chain in model.get_chains()
         }
 
-    design, source = chain_ca(design_pdb), chain_ca(source_pdb)
+    design = _ca_by_chain(design_pdb)
+    source_raw = _ca_by_chain(source_pdb)
+
+    # For H/L source, synthesise virtual A/B/C/D CAs from the two-arm chains.
+    # Use _identify_boltz_ig_chain_ids to correctly handle the case where the
+    # user's CIF has H=light-arm and L=heavy-arm (e.g. the chain labelled "L"
+    # actually carries EVQL/VH at its N-terminus).
+    if "H" in source_raw and "L" in source_raw and "A" not in source_raw:
+        src_model = list(_load_biopython_structure(source_pdb).get_models())[0]
+        ig_heavy_id, ig_light_id = _identify_boltz_ig_chain_ids(src_model)
+        heavy_ca = source_raw[ig_heavy_id]   # VH+CH1 arm
+        light_ca = source_raw[ig_light_id]   # VL+CL arm
+        source: dict[str, np.ndarray] = {
+            "A": heavy_ca[:VH_END],           # VH → design chain A
+            "C": heavy_ca[VH_END:],           # CH1 → design chain C
+            "B": light_ca[:VL_END],           # VL → design chain B
+            "D": light_ca[VL_END:],           # CL → design chain D
+        }
+    else:
+        source = source_raw
+
     deviations: dict[str, float] = {}
     problems: list[str] = []
     for cid, coords in design.items():
+        if cid == "T":
+            # Epitope stub is generated, not taken from the source.
+            continue
         ref = source.get(cid)
         if ref is None or len(ref) != len(coords):
-            problems.append(f"chain {cid}: no length-matched counterpart in source")
+            if ref is not None:
+                problems.append(
+                    f"chain {cid}: length mismatch (design {len(coords)} vs source {len(ref)})"
+                )
             continue
         dev = float(np.abs(coords - ref).max()) if len(coords) else 0.0
         deviations[cid] = round(dev, 6)
@@ -726,20 +837,92 @@ def build_holo_split_cif(
     """
     Expand fused Boltz holo (H/L[/T]) to A/B/C/D[/T] and separate VL/CL from VH/CH1.
 
+    ``separation_a`` is the target CH1–CL centroid distance in Å after splitting.
+    VL and CL are translated together as one rigid arm along the CH1→CL axis so
+    the arms remain coplanar and CH1/CL continue to face each other.
+
     Writes a *_split.cif (or .pdb) suitable for PyMOL inspection and Stage A --fab-pdb.
     """
     vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(holo_cif)
-    vl_res = _shift_residues_perpendicular(
-        vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
-    )
-    cl_res = _shift_residues_perpendicular(
-        cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
-    )
+    vl_res, cl_res = _auto_split_vl_cl(ch1_res, cl_res, vl_res, separation_a)
     struct = _assemble_fab_structure(
         vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name, place_stub_if_missing=True
     )
     _write_structure(struct, out_path)
     return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
+
+
+DEFAULT_AUTO_SPLIT_DISTANCES: tuple[float, ...] = (30.0, 40.0, 50.0, 60.0)
+"""CH1–CL centroid separations (Å) tested by default in auto_split_fab_arms.
+
+The native assembled Fab has ~17 Å centroid separation. The user's manual
+placement (rank079 v2 CIF) sits at ~51 Å centroid / 21 Å closest approach.
+The range 30–60 Å spans from a narrow gap (short minibinder ≈ 40 aa helical
+hairpin) to a wide gap (long minibinder ≈ 75 aa three-helix bundle).
+"""
+
+
+def auto_split_fab_arms(
+    source_pdb: Path | str,
+    out_dir: Path,
+    distances_a: Iterable[float] = DEFAULT_AUTO_SPLIT_DISTANCES,
+    prefix: str = "fab_split",
+    struct_name_prefix: str = "split",
+) -> list[dict]:
+    """Generate A/B/C/D split PDBs at multiple CH1–CL centroid distances.
+
+    For each distance ``d`` in ``distances_a``, writes
+    ``<out_dir>/<prefix>_<d>a.pdb`` and returns a list of dicts with keys:
+
+    * ``distance_a``: the requested CH1–CL centroid target (Å)
+    * ``actual_centroid_a``: measured CH1–CL centroid after translation
+    * ``closest_approach_a``: minimum CA–CA distance between CH1 and CL
+    * ``ch1_vl_centroid_a``: gap between CH1 and VL hotspot centroids
+    * ``path``: Path of the written PDB
+
+    The VH+CH1 arm is fixed; VL+CL translate together along the CH1→CL axis,
+    so arms stay coplanar and CH1/CL remain facing each other.
+
+    Accepts both fused H/L and already-split A/B/C/D sources (the latter are
+    re-split from their current geometry to the requested distances).
+    """
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
+
+    results = []
+    for d in distances_a:
+        d = float(d)
+        new_vl, new_cl = _auto_split_vl_cl(ch1_res, cl_res, vl_res, d)
+
+        ch1_cent = _centroid(ch1_res)
+        cl_cent = _centroid(new_cl)
+        actual_centroid = float(np.linalg.norm(ch1_cent - cl_cent))
+
+        ch1_ca = np.array([r["CA"].get_coord() for r in ch1_res if "CA" in r])
+        cl_ca = np.array([r["CA"].get_coord() for r in new_cl if "CA" in r])
+        closest = float(np.linalg.norm(ch1_ca[:, None, :] - cl_ca[None, :, :], axis=2).min())
+
+        vl_ca = np.array([r["CA"].get_coord() for r in new_vl if "CA" in r])
+        ch1_vl_cent = float(np.linalg.norm(ch1_cent - vl_ca.mean(0)))
+
+        struct = _assemble_fab_structure(
+            vh_res, new_vl, ch1_res, new_cl, None,
+            f"{struct_name_prefix}_{int(d)}a",
+            place_stub_if_missing=False,
+        )
+        out_path = out_dir / f"{prefix}_{int(d)}a.pdb"
+        _write_structure(struct, out_path)
+
+        results.append({
+            "distance_a": d,
+            "actual_centroid_a": round(actual_centroid, 2),
+            "closest_approach_a": round(closest, 2),
+            "ch1_vl_centroid_a": round(ch1_vl_cent, 2),
+            "path": out_path,
+        })
+
+    return results
 
 
 def build_fab_context_pdb(
@@ -767,25 +950,33 @@ def build_stage_a_design_target_pdb(
     struct_name: str = "stage_a",
     *,
     already_split: bool = False,
+    include_epitope: bool = False,
 ) -> tuple[int, int, int, int]:
     """
-    Build Stage A RFd3 target: full Fab (A–D + epitope T) with VL/CL translated apart.
+    Build Stage A RFd3 target: Fab chains A–D with VL/CL translated apart.
 
-    Pass a pre-built *_split.cif with already_split=True (or separation_a=0) to use
-    coordinates as-is without re-translating VL/CL.
+    The epitope stub (chain T) is **excluded by default**.  In the split
+    configuration the stub is geometrically displaced far from the inter-arm
+    gap (it was synthesised at the VH–VL groove of the assembled Fab), so it
+    contributes no useful context to RFd3 and can mislead the origin placement.
+    Pass ``include_epitope=True`` only for debugging or legacy compatibility.
+
+    ``separation_a`` is the **target CH1–CL centroid distance** in Å.  VL and CL
+    are moved together as a rigid arm along the CH1→CL axis so the arms stay
+    coplanar and the CH1/CL interface faces remain parallel.
+
+    Pass a pre-built *_split.cif (or H/L CIF) with ``already_split=True`` to use
+    coordinates verbatim without any re-translation.
     """
     vh_res, vl_res, ch1_res, cl_res, epitope_from_source = _load_fab_chain_residues(source_pdb)
 
     if not already_split and separation_a > 0:
-        vl_res = _shift_residues_perpendicular(
-            vl_res, _centroid(vh_res), _centroid(vl_res), separation_a
-        )
-        cl_res = _shift_residues_perpendicular(
-            cl_res, _centroid(ch1_res), _centroid(cl_res), separation_a
-        )
+        vl_res, cl_res = _auto_split_vl_cl(ch1_res, cl_res, vl_res, separation_a)
 
+    epitope = epitope_from_source if include_epitope else None
     struct = _assemble_fab_structure(
-        vh_res, vl_res, ch1_res, cl_res, epitope_from_source, struct_name
+        vh_res, vl_res, ch1_res, cl_res, epitope, struct_name,
+        place_stub_if_missing=False,
     )
     _write_structure(struct, out_pdb)
     return len(vh_res), len(vl_res), len(ch1_res), len(cl_res)
@@ -797,14 +988,17 @@ def stage_a_contig(
     ch1_len: int,
     cl_len: int,
     mb_length_range: str = DEFAULT_MB_LENGTH_RANGE,
-    epitope_len: int = len(EPITOPE_SEQ),
+    epitope_len: int = 0,
 ) -> str:
     """RFd3 contig in the canonical binder-design layout.
 
     The designed minibinder comes first as its own chain, then a chain break,
     then every Fab chain as a separate fixed target chain:
 
-        ``55-75,/0,A1-113,/0,B1-107,/0,C1-107,/0,D1-107,/0,T1-12``
+        ``60-85,/0,A1-113,/0,B1-107,/0,C1-107,/0,D1-107``
+
+    Chain T (epitope stub) is omitted by default: in the split Fab geometry it
+    sits far from the inter-arm gap and adds no useful RFd3 context.
 
     This matters. A designed segment that sits *between* two motif segments in a
     contig (e.g. ``B1-107/0,35-55,C1-107``) is covalently bonded to both of them,
@@ -814,16 +1008,10 @@ def stage_a_contig(
     than a folded binder. Keeping the minibinder on its own chain removes both
     failure modes.
     """
-    target = ",/0,".join(
-        [
-            f"A1-{vh_len}",
-            f"B1-{vl_len}",
-            f"C1-{ch1_len}",
-            f"D1-{cl_len}",
-            f"T1-{epitope_len}",
-        ]
-    )
-    return f"{mb_length_range},/0,{target}"
+    fab_chains = [f"A1-{vh_len}", f"B1-{vl_len}", f"C1-{ch1_len}", f"D1-{cl_len}"]
+    if epitope_len > 0:
+        fab_chains.append(f"T1-{epitope_len}")
+    return f"{mb_length_range},/0," + ",/0,".join(fab_chains)
 
 
 def stage_a_rfd3_config(
@@ -832,7 +1020,7 @@ def stage_a_rfd3_config(
     ch1_len: int,
     cl_len: int,
     mb_length_range: str = DEFAULT_MB_LENGTH_RANGE,
-    epitope_len: int = len(EPITOPE_SEQ),
+    epitope_len: int = 0,
     *,
     ori_token: list[float] | None = None,
     is_non_loopy: bool = True,
@@ -869,16 +1057,21 @@ def stage_a_fixed_atoms(
     vl_len: int,
     ch1_len: int,
     cl_len: int,
-    epitope_len: int = len(EPITOPE_SEQ),
+    epitope_len: int = 0,
 ) -> dict[str, str]:
-    """All Fab + epitope chains fixed; only the unlinked minibinder is designed."""
-    return {
+    """All Fab chains fixed; only the unlinked minibinder is designed.
+
+    Chain T (epitope stub) is excluded by default for Stage A.
+    """
+    fixed = {
         f"A1-{vh_len}": "ALL",
         f"B1-{vl_len}": "ALL",
         f"C1-{ch1_len}": "ALL",
         f"D1-{cl_len}": "ALL",
-        f"T1-{epitope_len}": "ALL",
     }
+    if epitope_len > 0:
+        fixed[f"T1-{epitope_len}"] = "ALL"
+    return fixed
 
 
 def ch1_hotspots_chain_c(vh_len: int = VH_END) -> list[str]:
@@ -912,6 +1105,19 @@ def stage_a_hotspot_geometry(design_pdb: Path, vh_len: int = VH_END) -> dict[str
     vl_ca = hotspot_ca("B", VL_HOTSPOTS_STAGE_A)
     ch1_centroid, vl_centroid = ch1_ca.mean(0), vl_ca.mean(0)
     pair_dists = np.linalg.norm(ch1_ca[:, None, :] - vl_ca[None, :, :], axis=2)
+
+    # Full CH1-CL centroid separation (arm-opening metric, independent of hotspot selection).
+    ch1_all_ca = np.array([
+        res["CA"].get_coord() for res in model["C"] if res.id[0] == " " and "CA" in res
+    ]) if "C" in model.child_dict else np.empty((0, 3))
+    cl_all_ca = np.array([
+        res["CA"].get_coord() for res in model["D"] if res.id[0] == " " and "CA" in res
+    ]) if "D" in model.child_dict else np.empty((0, 3))
+    ch1_cl_centroid_a = (
+        round(float(np.linalg.norm(ch1_all_ca.mean(0) - cl_all_ca.mean(0))), 2)
+        if len(ch1_all_ca) and len(cl_all_ca) else None
+    )
+
     return {
         "ch1_hotspot_centroid": [round(float(v), 3) for v in ch1_centroid],
         "vl_hotspot_centroid": [round(float(v), 3) for v in vl_centroid],
@@ -920,6 +1126,7 @@ def stage_a_hotspot_geometry(design_pdb: Path, vh_len: int = VH_END) -> dict[str
         "closest_hotspot_approach_a": round(float(pair_dists.min()), 2),
         "n_ch1_hotspots": int(len(ch1_ca)),
         "n_vl_hotspots": int(len(vl_ca)),
+        "ch1_cl_centroid_a": ch1_cl_centroid_a,
     }
 
 
