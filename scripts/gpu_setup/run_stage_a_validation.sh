@@ -63,12 +63,20 @@ BOLTZ="$BOLTZ_VENV/bin/boltz"
 if [ ! -f "$BOLTZ" ]; then
     echo "  Creating Boltz-2 venv at $BOLTZ_VENV..."
     python3 -m venv "$BOLTZ_VENV"
-    echo "  Installing torch (cu124) + boltz..."
-    "$BOLTZ_VENV/bin/pip" install -q --upgrade pip 2>&1 | tail -2
-    "$BOLTZ_VENV/bin/pip" install -q \
+    PIP="$BOLTZ_VENV/bin/pip"
+    echo "  Installing torch (cu124)..."
+    "$PIP" install -q --upgrade pip 2>&1 | tail -2
+    "$PIP" install -q \
         torch torchvision \
         --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -5
-    "$BOLTZ_VENV/bin/pip" install -q boltz 2>&1 | tail -5
+    echo "  Installing cuequivariance (Boltz-2 triangular-mult kernel)..."
+    "$PIP" install -q \
+        cuequivariance-torch cuequivariance \
+        --extra-index-url https://pypi.nvidia.com 2>&1 | tail -5 || \
+    "$PIP" install -q cuequivariance-torch cuequivariance 2>&1 | tail -5 || \
+        echo "  WARNING: cuequivariance not installed — may use fallback"
+    echo "  Installing boltz..."
+    "$PIP" install -q boltz 2>&1 | tail -5
 fi
 
 # Verify GPU access
