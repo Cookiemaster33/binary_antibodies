@@ -64,19 +64,20 @@ if [ ! -f "$BOLTZ" ]; then
     echo "  Creating Boltz-2 venv at $BOLTZ_VENV..."
     python3 -m venv "$BOLTZ_VENV"
     PIP="$BOLTZ_VENV/bin/pip"
-    echo "  Installing torch (cu124)..."
+    echo "  Installing torch (cu124) + boltz..."
     "$PIP" install -q --upgrade pip 2>&1 | tail -2
+    # Install CUDA-12.4 compatible torch FIRST so boltz doesn't pull a newer one
     "$PIP" install -q \
         torch torchvision \
         --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -5
-    echo "  Installing cuequivariance (Boltz-2 triangular-mult kernel)..."
-    "$PIP" install -q \
-        cuequivariance-torch cuequivariance \
-        --extra-index-url https://pypi.nvidia.com 2>&1 | tail -5 || \
-    "$PIP" install -q cuequivariance-torch cuequivariance 2>&1 | tail -5 || \
-        echo "  WARNING: cuequivariance not installed — may use fallback"
-    echo "  Installing boltz..."
     "$PIP" install -q boltz 2>&1 | tail -5
+    # cuequivariance-torch installs correctly but cuequivariance_ops_torch
+    # (its compiled CUDA extension) is NOT available for every driver version.
+    # When partially installed, boltz detects cuequivariance as available and
+    # tries to use it, then crashes.  Safest: remove it entirely so boltz
+    # falls back to its pure-PyTorch triangular-mult implementation.
+    "$PIP" uninstall -y cuequivariance-torch cuequivariance cuequivariance-ops 2>/dev/null || true
+    echo "  cuequivariance removed — boltz will use pure-PyTorch fallback path"
 fi
 
 # Verify GPU access
